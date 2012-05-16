@@ -1,0 +1,11 @@
+name: HungerArena
+main: me.Travja.HungerArena.Main
+version: 1.2.2.2
+description: A plugin to help with playing The Hunger Games!
+commands:
+  Ha:
+    description: Makes you join a game or start the game!
+  StartPoint:
+    description: Sets the starting point of a tribute.
+  Sponsor:
+    description: Sponsors a Tribute
