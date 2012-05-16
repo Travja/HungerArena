@@ -1283,6 +1283,7 @@ class DeathListener implements Listener{
 		Block block = event.getClickedBlock();
 		Player p = event.getPlayer();
 		//currently crashes the server when refilling....
+		//Kinda glitchy through all here...
 		if(block.getState() instanceof Chest && p.getItemInHand().getType()== Material.BLAZE_ROD && event.getAction() == Action.LEFT_CLICK_BLOCK){
 
 			ItemStack[] itemsinchest = ((Chest) block.getState()).getInventory().getContents();
