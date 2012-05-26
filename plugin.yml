@@ -1,6 +1,6 @@
 name: HungerArena
 main: me.Travja.HungerArena.Main
-version: 1.2.2.2
+version: 1.3alpha
 description: A plugin to help with playing The Hunger Games!
 commands:
   Ha:

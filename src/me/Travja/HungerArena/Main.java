@@ -184,6 +184,9 @@ public class Main extends JavaPlugin{
 					p.getInventory().setHelmet(null);
 					p.getInventory().setLeggings(null);
 					getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined the Game!");
+					if(Playing.size()== 24){
+						p.performCommand("ha warpall");
+					}
 				}
 			}
 			if(args[0].equalsIgnoreCase("Ready")){
@@ -1173,7 +1176,7 @@ class DeathListener implements Listener{
 		final Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
 		if(plugin.Playing.contains(p)){
 			if(plugin.Playing.size()== 1){
-				
+
 			}
 			plugin.Out.add(p);
 		}
@@ -1184,33 +1187,33 @@ class DeathListener implements Listener{
 			public void run(){
 				if(plugin.Playing.contains(p) && plugin.Out.contains(p)){
 					if(plugin.canjoin== true){
-					plugin.Playing.remove(p);
-					plugin.Quit.add(p);
-					plugin.Out.remove(p);
-					if(plugin.Playing.size()== 1){
-						for(Player winner:plugin.Playing){
-							String winnername = winner.getName();
-							p.getServer().broadcastMessage(ChatColor.GREEN + winnername + " is the victor of this Hunger Games!");
-							winner.getInventory().clear();
-							winner.getInventory().setBoots(null);
-							winner.getInventory().setChestplate(null);
-							winner.getInventory().setHelmet(null);
-							winner.getInventory().setLeggings(null);
-							winner.getInventory().addItem(plugin.Reward);
+						plugin.Playing.remove(p);
+						plugin.Quit.add(p);
+						plugin.Out.remove(p);
+						if(plugin.Playing.size()== 1){
+							for(Player winner:plugin.Playing){
+								String winnername = winner.getName();
+								p.getServer().broadcastMessage(ChatColor.GREEN + winnername + " is the victor of this Hunger Games!");
+								winner.getInventory().clear();
+								winner.getInventory().setBoots(null);
+								winner.getInventory().setChestplate(null);
+								winner.getInventory().setHelmet(null);
+								winner.getInventory().setLeggings(null);
+								winner.getInventory().addItem(plugin.Reward);
+							}
+							for(Player spectator:plugin.Watching){
+								spectator.setAllowFlight(false);
+								spectator.teleport(Spawn);
+							}
+							if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
+								plugin.Dead.clear();
+								plugin.Playing.clear();
+								plugin.Quit.clear();
+								plugin.Watching.clear();
+								plugin.Frozen.clear();
+								plugin.canjoin = false;
+							}
 						}
-						for(Player spectator:plugin.Watching){
-							spectator.setAllowFlight(false);
-							spectator.teleport(Spawn);
-						}
-						if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
-							plugin.Dead.clear();
-							plugin.Playing.clear();
-							plugin.Quit.clear();
-							plugin.Watching.clear();
-							plugin.Frozen.clear();
-							plugin.canjoin = false;
-						}
-					}
 					}else if(plugin.canjoin== false){
 						plugin.Playing.remove(p);
 						plugin.Quit.add(p);
@@ -1346,17 +1349,6 @@ class DeathListener implements Listener{
 				plugin.getConfig().set("StorageXYZ", list2);
 				plugin.getConfig().options().copyDefaults(true);
 				plugin.saveConfig();
-			}
-		}
-	}
-	@EventHandler
-	public void SpectatorJoining(PlayerJoinEvent event){
-		Player spectator = event.getPlayer();
-		if(plugin.Watching.contains(spectator)){
-			spectator.setAllowFlight(true);
-			spectator.setFlying(true);
-			for(Player everyone:plugin.getServer().getOnlinePlayers()){
-				everyone.hidePlayer(spectator);
 			}
 		}
 	}
