@@ -61,15 +61,6 @@ public class Main extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(new DeathListener(this), this);
 		Reward = new ItemStack(config.getInt("Reward.ID"), config.getInt("Reward.Amount"));
 		Cost = new ItemStack(config.getInt("Sponsor_Cost.ID"), config.getInt("Sponsor_Cost.Amount"));
-		if(!config.contains("Auto_Restart")){
-			config.addDefault("Auto_Restart", "false");
-			this.saveConfig();
-		}
-		if(!config.contains("Start_Message")){
-			config.addDefault("Start_Message", "&bLet The Games Begin!");
-			this.saveConfig();
-			System.out.println("Saved Start_Message");
-		}
 	}
 	public void onDisable(){
 		log = this.getLogger();
@@ -123,6 +114,9 @@ public class Main extends JavaPlugin{
 			}
 		}
 		if(cmd.getName().equalsIgnoreCase("Ha")){
+			if(config.getString("Spawns_set").equalsIgnoreCase("false")){
+				p.sendMessage(ChatColor.RED + "/ha setspawn hasn't been run!");
+			}
 			if(args.length== 0){
 				p.sendMessage(ChatColor.GREEN + "[HungerArena] by " + ChatColor.AQUA + "travja!");
 				return false;
@@ -149,6 +143,7 @@ public class Main extends JavaPlugin{
 					String w = p.getWorld().getName();
 					config.set("Spawn_coords", x + "," + y + "," + z + "," + w);
 					saveConfig();
+					config.set("Spawns_set", "true");
 					p.sendMessage(ChatColor.AQUA + "You have set the spawn for dead tributes!");
 				}else{
 					p.sendMessage(ChatColor.RED + "You don't have permission!");
@@ -1135,6 +1130,13 @@ class DeathListener implements Listener{
 	public void onPlayerJoin(PlayerJoinEvent event){
 		Player p = event.getPlayer();
 		final Player player = event.getPlayer();
+		if(plugin.Watching.contains(p)){
+			p.setAllowFlight(true);
+			p.setFlying(true);
+			for(Player everyone:plugin.getServer().getOnlinePlayers()){
+				everyone.hidePlayer(p);
+			}
+		}
 		if(plugin.Out.contains(p)){
 			plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 				public void run(){
@@ -1142,7 +1144,6 @@ class DeathListener implements Listener{
 				}
 			}, 40L);
 			plugin.Out.remove(p);
-			plugin.Playing.add(p);
 		}
 		if(plugin.Quit.contains(p) || plugin.Dead.contains(p)){
 			String[] Spawncoords = plugin.config.getString("Spawn_coords").split(",");
@@ -1170,12 +1171,19 @@ class DeathListener implements Listener{
 		double spawny = Double.parseDouble(Spawncoords[1]);
 		double spawnz = Double.parseDouble(Spawncoords[2]);
 		final Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
+		if(plugin.Playing.contains(p)){
+			if(plugin.Playing.size()== 1){
+				
+			}
+			plugin.Out.add(p);
+		}
 		if(plugin.Watching.contains(p)){
 			System.out.println(p.getName() + " testing");
 		}
 		plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 			public void run(){
-				if(plugin.Playing.contains(p) && plugin.Out.contains(p) && plugin.canjoin== false){
+				if(plugin.Playing.contains(p) && plugin.Out.contains(p)){
+					if(plugin.canjoin== true){
 					plugin.Playing.remove(p);
 					plugin.Quit.add(p);
 					plugin.Out.remove(p);
@@ -1202,6 +1210,11 @@ class DeathListener implements Listener{
 							plugin.Frozen.clear();
 							plugin.canjoin = false;
 						}
+					}
+					}else if(plugin.canjoin== false){
+						plugin.Playing.remove(p);
+						plugin.Quit.add(p);
+						plugin.Out.remove(p);
 					}
 				}
 			}
