@@ -61,6 +61,15 @@ public class Main extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(new DeathListener(this), this);
 		Reward = new ItemStack(config.getInt("Reward.ID"), config.getInt("Reward.Amount"));
 		Cost = new ItemStack(config.getInt("Sponsor_Cost.ID"), config.getInt("Sponsor_Cost.Amount"));
+		if(!config.contains("Auto_Restart")){
+			config.addDefault("Auto_Restart", "false");
+			this.saveConfig();
+		}
+		if(!config.contains("Start_Message")){
+			config.addDefault("Start_Message", "&bLet The Games Begin!");
+			this.saveConfig();
+			System.out.println("Saved Start_Message");
+		}
 	}
 	public void onDisable(){
 		log = this.getLogger();
@@ -170,15 +179,17 @@ public class Main extends JavaPlugin{
 					p.sendMessage(ChatColor.RED + "You don't have permission!");
 				}
 			}
-			if(args[0].equalsIgnoreCase("Confirm") && NeedConfirm.contains(p)){
-				Playing.add(p);
-				NeedConfirm.remove(p);
-				p.getInventory().clear();
-				p.getInventory().setBoots(null);
-				p.getInventory().setChestplate(null);
-				p.getInventory().setHelmet(null);
-				p.getInventory().setLeggings(null);
-				getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined the Game!");
+			if(args[0].equalsIgnoreCase("Confirm")){
+				if(NeedConfirm.contains(p)){
+					Playing.add(p);
+					NeedConfirm.remove(p);
+					p.getInventory().clear();
+					p.getInventory().setBoots(null);
+					p.getInventory().setChestplate(null);
+					p.getInventory().setHelmet(null);
+					p.getInventory().setLeggings(null);
+					getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined the Game!");
+				}
 			}
 			if(args[0].equalsIgnoreCase("Ready")){
 				if(Playing.contains(p)){
@@ -1152,16 +1163,19 @@ class DeathListener implements Listener{
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event){
 		final Player p = event.getPlayer();
-		if(plugin.Playing.contains(p) && plugin.canjoin== true){
-			plugin.Out.add(p);
-		}
-		if(plugin.Playing.contains(p) && plugin.canjoin== false){
-			plugin.Out.add(p);
-			plugin.Playing.remove(p);
+		String[] Spawncoords = plugin.config.getString("Spawn_coords").split(",");
+		String w = Spawncoords[3];
+		World spawnw = plugin.getServer().getWorld(w);
+		double spawnx = Double.parseDouble(Spawncoords[0]);
+		double spawny = Double.parseDouble(Spawncoords[1]);
+		double spawnz = Double.parseDouble(Spawncoords[2]);
+		final Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
+		if(plugin.Watching.contains(p)){
+			System.out.println(p.getName() + " testing");
 		}
 		plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 			public void run(){
-				if(plugin.Playing.contains(p) && plugin.canjoin== true && plugin.Out.contains(p)){
+				if(plugin.Playing.contains(p) && plugin.Out.contains(p) && plugin.canjoin== false){
 					plugin.Playing.remove(p);
 					plugin.Quit.add(p);
 					plugin.Out.remove(p);
@@ -1178,6 +1192,7 @@ class DeathListener implements Listener{
 						}
 						for(Player spectator:plugin.Watching){
 							spectator.setAllowFlight(false);
+							spectator.teleport(Spawn);
 						}
 						if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
 							plugin.Dead.clear();
@@ -1207,24 +1222,33 @@ class DeathListener implements Listener{
 		}
 	}
 	@EventHandler
-	public void Chat(PlayerChatEvent event){
+	public void TributeChat(PlayerChatEvent event){
 		Player p = event.getPlayer();
 		if(plugin.Playing.contains(p)){
 			String msg = "<" + ChatColor.RED + "[Tribute] " + ChatColor.WHITE + p.getName() + ">" + " " + event.getMessage();
 			if(plugin.config.getString("ChatClose").equalsIgnoreCase("True")){
 				double radius = plugin.config.getDouble("ChatClose_Radius");
 				List<Entity> near = p.getNearbyEntities(radius, radius, radius);
-				p.sendMessage(msg);
-				for(Entity e:near){
-					if(e instanceof Player){
-						((Player) e).sendMessage(msg);
-					}else if(e instanceof Entity || !(e instanceof Player)){
-						p.sendMessage("Why are you talking to an animal?");
-					}else if(near.size()== 0){
-						p.sendMessage("No one is near");
+				event.setCancelled(true);
+				if(near.size()== 0){
+					p.sendMessage(msg);
+					p.sendMessage(ChatColor.YELLOW + "No one near!");
+				}else if(!(near.size()== 0)){
+					for(Entity en:near){
+						if(!(en instanceof Player)){
+							p.sendMessage(msg);
+							p.sendMessage(ChatColor.YELLOW + "No one near!");
+						}
+					}
+				}else{
+					for(Entity e:near){
+						if(e instanceof Player){
+							((Player) e).sendMessage(msg);
+						}
 					}
 				}
-				event.setCancelled(true);
+			}else{
+				plugin.getServer().broadcastMessage(msg);
 			}
 		}
 	}
@@ -1255,7 +1279,7 @@ class DeathListener implements Listener{
 		}
 	}
 	@EventHandler
-	public void Drops(PlayerDropItemEvent event){
+	public void SpectatorDrops(PlayerDropItemEvent event){
 		Player p = event.getPlayer();
 		if(plugin.Watching.contains(p)){
 			event.setCancelled(true);
@@ -1263,7 +1287,7 @@ class DeathListener implements Listener{
 		}
 	}
 	@EventHandler
-	public void Interactions(PlayerInteractEvent event){
+	public void SpectatorInteractions(PlayerInteractEvent event){
 		Player p = event.getPlayer();
 		if(plugin.Watching.contains(p)){
 			event.setCancelled(true);
@@ -1284,31 +1308,43 @@ class DeathListener implements Listener{
 		Player p = event.getPlayer();
 		//currently crashes the server when refilling....
 		//Kinda glitchy through all here...
-		if(block.getState() instanceof Chest && p.getItemInHand().getType()== Material.BLAZE_ROD && event.getAction() == Action.LEFT_CLICK_BLOCK){
-
-			ItemStack[] itemsinchest = ((Chest) block.getState()).getInventory().getContents();
-			int blockx = block.getX();
-			int blocky = block.getY();
-			int blockz = block.getZ();
-			String blockw = block.getWorld().getName().toString();
-			if(!plugin.getConfig().contains("Storage." + blockx + "," + blocky + "," + blockz + ".Location.X")){
-				plugin.getConfig().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".Location.X", blockx);
-				plugin.getConfig().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".Location.Y", blocky);
-				plugin.getConfig().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".Location.Z",blockz);
-				plugin.getConfig().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".Location.W", blockw);
-				plugin.getConfig().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".ItemsInStorage", itemsinchest);
-			}else{
-				plugin.getConfig().set("Storage." + blockx + "," + blocky+ "," + blockz + ".Location.X",blockx);
-				plugin.getConfig().set("Storage." + blockx + "," + blocky + "," + blockz + ".Location.Y", blocky);
-				plugin.getConfig().set("Storage." + blockx + "," + blocky + "," + blockz + ".Location.Z", blockz);
-				plugin.getConfig().set("Storage." + blockx + "," + blocky + "," + blockz + ".Location.W", blockw);
-				plugin.getConfig().set("Storage." + blockx + "," + blocky + "," + blockz + ".ItemsInStorage", itemsinchest);
+		if(p.getItemInHand().getType()== Material.BLAZE_ROD && event.getAction() == Action.LEFT_CLICK_BLOCK){
+			if(block.getState() instanceof Chest){
+				ItemStack[] itemsinchest = ((Chest) block.getState()).getInventory().getContents();
+				int blockx = block.getX();
+				int blocky = block.getY();
+				int blockz = block.getZ();
+				String blockw = block.getWorld().getName().toString();
+				if(!plugin.getConfig().contains("Storage." + blockx + "," + blocky + "," + blockz + ".Location.X")){
+					plugin.getConfig().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".Location.X", blockx);
+					plugin.getConfig().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".Location.Y", blocky);
+					plugin.getConfig().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".Location.Z",blockz);
+					plugin.getConfig().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".Location.W", blockw);
+					plugin.getConfig().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".ItemsInStorage", itemsinchest);
+				}else{
+					plugin.getConfig().set("Storage." + blockx + "," + blocky+ "," + blockz + ".Location.X",blockx);
+					plugin.getConfig().set("Storage." + blockx + "," + blocky + "," + blockz + ".Location.Y", blocky);
+					plugin.getConfig().set("Storage." + blockx + "," + blocky + "," + blockz + ".Location.Z", blockz);
+					plugin.getConfig().set("Storage." + blockx + "," + blocky + "," + blockz + ".Location.W", blockw);
+					plugin.getConfig().set("Storage." + blockx + "," + blocky + "," + blockz + ".ItemsInStorage", itemsinchest);
+				}
+				List<String> list2 = plugin.getConfig().getStringList("StorageXYZ");
+				list2.add(blockx + "," + blocky + "," + blockz);
+				plugin.getConfig().set("StorageXYZ", list2);
+				plugin.getConfig().options().copyDefaults(true);
+				plugin.saveConfig();
 			}
-			List<String> list2 = plugin.getConfig().getStringList("StorageXYZ");
-			list2.add(blockx + "," + blocky + "," + blockz);
-			plugin.getConfig().set("StorageXYZ", list2);
-			plugin.getConfig().options().copyDefaults(true);
-			plugin.saveConfig();
+		}
+	}
+	@EventHandler
+	public void SpectatorJoining(PlayerJoinEvent event){
+		Player spectator = event.getPlayer();
+		if(plugin.Watching.contains(spectator)){
+			spectator.setAllowFlight(true);
+			spectator.setFlying(true);
+			for(Player everyone:plugin.getServer().getOnlinePlayers()){
+				everyone.hidePlayer(spectator);
+			}
 		}
 	}
 }
