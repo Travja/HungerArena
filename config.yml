@@ -1,6 +1,7 @@
 # default config.yml
 Start_Message: '&bLet The Games Begin!'
 Auto_Restart: 'false'
+iConomy_Support: 'false'
 Reward:
     ID: 264
     Amount: 10
