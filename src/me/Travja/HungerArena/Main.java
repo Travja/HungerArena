@@ -15,6 +15,7 @@ import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.command.Command;
+import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Entity;
@@ -47,6 +48,15 @@ public class Main extends JavaPlugin{
 	public ArrayList<Player> Watching = new ArrayList<Player>();
 	public ArrayList<Player> NeedConfirm = new ArrayList<Player>();
 	public HashSet<Player> Frozen = new HashSet<Player>();
+	public Listener DeathListener = new DeathListener(this);
+	public Listener SpectatorListener = new SpectatorListener(this);
+	public Listener FreezeListener = new FreezeListener(this);
+	public Listener JoinAndQuitListener = new JoinAndQuitListener(this);
+	public Listener ChatListener = new ChatListener(this);
+	public Listener Chests = new Chests(this);
+	public Listener PvP = new PvP(this);
+	public Listener Blocks = new Blocks(this);
+	public CommandExecutor HaCommands = new HaCommands(this);
 	public boolean canjoin;
 	public boolean exists;
 	public FileConfiguration config;
@@ -58,7 +68,15 @@ public class Main extends JavaPlugin{
 		config = getConfig();
 		config.options().copyDefaults(true);
 		this.saveDefaultConfig();
-		getServer().getPluginManager().registerEvents(new DeathListener(this), this);
+		getServer().getPluginManager().registerEvents(DeathListener, this);
+		getServer().getPluginManager().registerEvents(SpectatorListener, this);
+		getServer().getPluginManager().registerEvents(FreezeListener, this);
+		getServer().getPluginManager().registerEvents(JoinAndQuitListener, this);
+		getServer().getPluginManager().registerEvents(ChatListener, this);
+		getServer().getPluginManager().registerEvents(Chests, this);
+		getServer().getPluginManager().registerEvents(PvP, this);
+		getServer().getPluginManager().registerEvents(Blocks, this);
+		getCommand("Ha").setExecutor(HaCommands);
 		Reward = new ItemStack(config.getInt("Reward.ID"), config.getInt("Reward.Amount"));
 		Cost = new ItemStack(config.getInt("Sponsor_Cost.ID"), config.getInt("Sponsor_Cost.Amount"));
 	}
@@ -70,7 +88,7 @@ public class Main extends JavaPlugin{
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args){
 		Player p = (Player) sender;
 		String pname = p.getName();
-		if(cmd.getName().equalsIgnoreCase("Sponsor")){
+		/*if(cmd.getName().equalsIgnoreCase("Sponsor")){
 			Player target = Bukkit.getPlayer(args[0]);
 			if(!Playing.contains(p)){
 				if(args.length== 0){
@@ -764,7 +782,7 @@ public class Main extends JavaPlugin{
 					p.sendMessage(ChatColor.RED + "You don't have permission!");
 				}
 			}
-		}
+		}*/
 		if(cmd.getName().equalsIgnoreCase("StartPoint")){
 			if(p.hasPermission("HungerArena.StartPoint")){	
 				if(args[0].equalsIgnoreCase("1")){
@@ -990,20 +1008,14 @@ public class Main extends JavaPlugin{
 		return true;
 	}
 }
-class DeathListener implements Listener{
+/*class DeadListener implements Listener{
 	public Main plugin;
-	public DeathListener(Main m){
+	public DeadListener(Main m){
 		this.plugin = m;
 	}
-	public FileConfiguration config;
 	@EventHandler
 	public void onPlayerMove(PlayerMoveEvent event){
 		Player p = event.getPlayer();
-		if(p.getWorld().getFullTime()== 18000){
-			for(Player dead:plugin.Dead){
-				p.getServer().broadcastMessage(ChatColor.GREEN + dead.getName() + " was killed today!");
-			}
-		}
 		if(plugin.Frozen.contains(p) && plugin.config.getString("Frozen_Teleport").equalsIgnoreCase("True")){
 			event.setCancelled(true);
 		}
@@ -1352,4 +1364,4 @@ class DeathListener implements Listener{
 			}
 		}
 	}
-}
+}*/
