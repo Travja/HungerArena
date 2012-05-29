@@ -2,6 +2,7 @@ package me.Travja.HungerArena;
 
 import java.util.List;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
@@ -21,8 +22,6 @@ public class Chests implements Listener {
 	public void ChestSaves(PlayerInteractEvent event){
 		Block block = event.getClickedBlock();
 		Player p = event.getPlayer();
-		//currently crashes the server when refilling....
-		//Kinda glitchy through all here...
 		if(p.getItemInHand().getType()== Material.BLAZE_ROD && event.getAction() == Action.LEFT_CLICK_BLOCK){
 			if(block.getState() instanceof Chest){
 				ItemStack[] itemsinchest = ((Chest) block.getState()).getInventory().getContents();
@@ -48,6 +47,7 @@ public class Chests implements Listener {
 				plugin.getConfig().set("StorageXYZ", list2);
 				plugin.getConfig().options().copyDefaults(true);
 				plugin.saveConfig();
+				p.sendMessage(ChatColor.GREEN + "Chest Stored!");
 			}
 		}
 	}

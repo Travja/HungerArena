@@ -64,6 +64,9 @@ public class DeathListener implements Listener{
 						}
 						for(Player spectator:plugin.Watching){
 							spectator.setAllowFlight(false);
+							for(Player online:plugin.getServer().getOnlinePlayers()){
+								online.showPlayer(spectator);
+							}
 						}
 						if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
 							plugin.Dead.clear();
@@ -95,6 +98,9 @@ public class DeathListener implements Listener{
 						}
 						for(Player spectator:plugin.Watching){
 							spectator.setAllowFlight(false);
+							for(Player online:plugin.getServer().getOnlinePlayers()){
+								online.showPlayer(spectator);
+							}
 						}
 						if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
 							plugin.Dead.clear();
@@ -123,6 +129,9 @@ public class DeathListener implements Listener{
 					}
 					for(Player spectator:plugin.Watching){
 						spectator.setAllowFlight(false);
+						for(Player online:plugin.getServer().getOnlinePlayers()){
+							online.showPlayer(spectator);
+						}
 					}
 					if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
 						plugin.Dead.clear();
@@ -134,10 +143,6 @@ public class DeathListener implements Listener{
 					}
 				}
 			}
-		}
-		if(plugin.Watching.contains(p)){
-			for(Player online:plugin.getServer().getOnlinePlayers())
-				online.showPlayer(p);
 		}
 	}
 }
