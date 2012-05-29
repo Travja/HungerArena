@@ -107,6 +107,8 @@ public class HaCommands implements CommandExecutor {
 						p.sendMessage(ChatColor.RED + "The game is in progress!");
 					}else if(plugin.config.getString("Spawns_set").equalsIgnoreCase("false")){
 						p.sendMessage(ChatColor.RED + "/ha setspawn hasn't been run!");
+					}else if(plugin.NeedConfirm.contains(p)){
+						p.sendMessage(ChatColor.RED + "You need to do /ha confirm");
 					}else{
 						plugin.NeedConfirm.add(p);
 						p.sendMessage(ChatColor.GOLD + "You're inventory will be cleared! Type /ha confirm to procede");
