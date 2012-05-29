@@ -38,7 +38,7 @@ public class SponsorCommands implements CommandExecutor {
 						int ID = Integer.parseInt(args[1]);
 						int Amount = Integer.parseInt(args[2]);
 						ItemStack sponsoritem = new ItemStack(ID, Amount);
-						if(p.getInventory().contains(plugin.Cost)){
+						if(p.getInventory().contains(plugin.config.getInt("Sponsor_Cost.ID"), plugin.config.getInt("Sponsor_Cost.Amount")*Amount)){
 							if(!plugin.Playing.contains(target)){
 								p.sendMessage(ChatColor.RED + "That person isn't playing!");
 							}else{
