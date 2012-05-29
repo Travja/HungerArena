@@ -18,6 +18,9 @@ public class JoinAndQuitListener implements Listener {
 	public void onPlayerJoin(PlayerJoinEvent event){
 		Player p = event.getPlayer();
 		final Player player = event.getPlayer();
+		for(Player spectator:plugin.Watching){
+			p.hidePlayer(spectator);
+		}
 		if(plugin.Out.contains(p)){
 			plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 				public void run(){

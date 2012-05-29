@@ -56,7 +56,10 @@ public class Main extends JavaPlugin{
 	public Listener Chests = new Chests(this);
 	public Listener PvP = new PvP(this);
 	public Listener Blocks = new Blocks(this);
+	public Listener CommandBlock = new CommandBlock(this);
 	public CommandExecutor HaCommands = new HaCommands(this);
+	public CommandExecutor SponsorCommands = new SponsorCommands(this);
+	public CommandExecutor SpawnsCommand = new SpawnsCommand(this);
 	public boolean canjoin;
 	public boolean exists;
 	public FileConfiguration config;
@@ -76,7 +79,10 @@ public class Main extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(Chests, this);
 		getServer().getPluginManager().registerEvents(PvP, this);
 		getServer().getPluginManager().registerEvents(Blocks, this);
+		getServer().getPluginManager().registerEvents(CommandBlock, this);
 		getCommand("Ha").setExecutor(HaCommands);
+		getCommand("Sponsor").setExecutor(SponsorCommands);
+		getCommand("Startpoint").setExecutor(SpawnsCommand);
 		Reward = new ItemStack(config.getInt("Reward.ID"), config.getInt("Reward.Amount"));
 		Cost = new ItemStack(config.getInt("Sponsor_Cost.ID"), config.getInt("Sponsor_Cost.Amount"));
 	}
@@ -84,12 +90,10 @@ public class Main extends JavaPlugin{
 		log = this.getLogger();
 		log.info("HungerArena has been Disabled");
 	}
-	@SuppressWarnings("unchecked")
-	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args){
+	/*public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args){
 		Player p = (Player) sender;
 		String pname = p.getName();
-		/*if(cmd.getName().equalsIgnoreCase("Sponsor")){
-			Player target = Bukkit.getPlayer(args[0]);
+		if(cmd.getName().equalsIgnoreCase("Sponsor")){
 			if(!Playing.contains(p)){
 				if(args.length== 0){
 					p.sendMessage(ChatColor.RED + "You didn't specify a tribute!");
@@ -102,12 +106,12 @@ public class Main extends JavaPlugin{
 					p.sendMessage(ChatColor.RED + "You didn't specify an amount!");
 				}
 				if(args.length== 3){
+					Player target = Bukkit.getPlayer(args[0]);
 					if(args[1].equalsIgnoreCase("57") || args[1].equalsIgnoreCase("7")){
 						p.sendMessage(ChatColor.RED + "You can't sponsor that item!");
 					}else{
 						int ID = Integer.parseInt(args[1]);
 						int Amount = Integer.parseInt(args[2]);
-						Cost = new ItemStack(config.getInt("Sponsor_Cost.ID"), config.getInt("Sponsor_Cost.Amount")*Amount);
 						ItemStack sponsoritem = new ItemStack(ID, Amount);
 						if(p.getInventory().contains(Cost)){
 							if(!Playing.contains(target)){
@@ -782,7 +786,7 @@ public class Main extends JavaPlugin{
 					p.sendMessage(ChatColor.RED + "You don't have permission!");
 				}
 			}
-		}*/
+		}
 		if(cmd.getName().equalsIgnoreCase("StartPoint")){
 			if(p.hasPermission("HungerArena.StartPoint")){	
 				if(args[0].equalsIgnoreCase("1")){
@@ -1008,7 +1012,7 @@ public class Main extends JavaPlugin{
 		return true;
 	}
 }
-/*class DeadListener implements Listener{
+class DeadListener implements Listener{
 	public Main plugin;
 	public DeadListener(Main m){
 		this.plugin = m;
@@ -1363,5 +1367,5 @@ public class Main extends JavaPlugin{
 				plugin.saveConfig();
 			}
 		}
-	}
-}*/
+	}*/
+}

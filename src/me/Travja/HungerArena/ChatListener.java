@@ -23,7 +23,14 @@ public class ChatListener implements Listener {
 				double radius = plugin.config.getDouble("ChatClose_Radius");
 				List<Entity> near = p.getNearbyEntities(radius, radius, radius);
 				event.setCancelled(true);
-				if(near.size()== 0){
+				if(!(near.size()== 0)){
+				for(Entity e:near){
+					if(e instanceof Player){
+						p.sendMessage(msg);
+						((Player) e).sendMessage(msg);
+					}
+				}
+				}else if(near.size()== 0){
 					p.sendMessage(msg);
 					p.sendMessage(ChatColor.YELLOW + "No one near!");
 				}else if(!(near.size()== 0)){
@@ -31,12 +38,6 @@ public class ChatListener implements Listener {
 						if(!(en instanceof Player)){
 							p.sendMessage(msg);
 							p.sendMessage(ChatColor.YELLOW + "No one near!");
-						}
-					}
-				}else{
-					for(Entity e:near){
-						if(e instanceof Player){
-							((Player) e).sendMessage(msg);
 						}
 					}
 				}

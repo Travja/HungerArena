@@ -10,6 +10,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
@@ -110,6 +111,15 @@ public class SpectatorListener implements Listener {
 		Player p = event.getPlayer();
 		if(plugin.Watching.contains(p)){
 			System.out.println(p.getName() + " quit while spectating!");
+		}
+	}
+	@EventHandler
+	public void MobNerf(EntityTargetEvent event){
+		Entity target = event.getTarget();
+		if(target instanceof Player){
+			if(plugin.Watching.contains(target)){
+				event.setCancelled(true);
+			}
 		}
 	}
 }
