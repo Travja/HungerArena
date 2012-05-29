@@ -32,6 +32,9 @@ public class Signs implements Listener {
 						p.performCommand("ha leave");
 					}
 				}
+				if(lines[0].equalsIgnoreCase("[Sponsor]")){
+					p.performCommand("sponsor" + " " + lines[1] + " " + lines[2] + " " + lines[3]);
+				}
 			}
 		}
 	}
