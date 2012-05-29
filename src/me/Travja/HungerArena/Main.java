@@ -57,6 +57,7 @@ public class Main extends JavaPlugin{
 	public Listener PvP = new PvP(this);
 	public Listener Blocks = new Blocks(this);
 	public Listener CommandBlock = new CommandBlock(this);
+	public Listener Signs = new Signs(this);
 	public CommandExecutor HaCommands = new HaCommands(this);
 	public CommandExecutor SponsorCommands = new SponsorCommands(this);
 	public CommandExecutor SpawnsCommand = new SpawnsCommand(this);
@@ -80,6 +81,7 @@ public class Main extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(PvP, this);
 		getServer().getPluginManager().registerEvents(Blocks, this);
 		getServer().getPluginManager().registerEvents(CommandBlock, this);
+		getServer().getPluginManager().registerEvents(Signs, this);
 		getCommand("Ha").setExecutor(HaCommands);
 		getCommand("Sponsor").setExecutor(SponsorCommands);
 		getCommand("Startpoint").setExecutor(SpawnsCommand);
