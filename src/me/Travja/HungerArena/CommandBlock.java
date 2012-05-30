@@ -16,7 +16,7 @@ public class CommandBlock implements Listener {
 	public void CatchCommand(PlayerCommandPreprocessEvent event){
 		String cmd = event.getMessage();
 		Player p = event.getPlayer();
-		if(!cmd.contains("/ha") && plugin.Playing.contains(p)){
+		if(!cmd.contains("/ha") && plugin.Playing.contains(p) && plugin.canjoin== true){
 			event.setCancelled(true);
 			p.sendMessage(ChatColor.RED + "You are only allowed to use /ha commands!");
 		}
