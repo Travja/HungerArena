@@ -1,7 +1,15 @@
 # default config.yml
+# Message to display when the games start
 Start_Message: '&bLet The Games Begin!'
+# If the games should automatically restart at the end
 Auto_Restart: 'false'
+# If it should automatically start the countdown on warping
+Auto_Start: 'false'
+# If tributes need to type /ha confirm to join
+Need_Confirm: 'true'
+# Not yet implemented
 iConomy_Support: 'false'
+# What the reward for winning is
 Reward:
     ID: 264
     Amount: 10
@@ -46,4 +54,5 @@ Tribute_twentyone_spawn: 100,100,100
 Tribute_twentytwo_spawn: 100,100,100
 Tribute_twentythree_spawn: 100,100,100
 Tribute_twentyfour_spawn: 100,100,100
-Spawn_set: false
+# If /ha setspawn has been run
+Spawn_set: 'false'
