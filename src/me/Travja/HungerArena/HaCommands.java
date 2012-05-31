@@ -23,6 +23,13 @@ public class HaCommands implements CommandExecutor {
 	@SuppressWarnings("unchecked")
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args){
+		String[] Spawncoords = plugin.config.getString("Spawn_coords").split(",");
+		double spawnx = Double.parseDouble(Spawncoords[0]);
+		double spawny = Double.parseDouble(Spawncoords[1]);
+		double spawnz = Double.parseDouble(Spawncoords[2]);
+		String spawnworld = Spawncoords[3];
+		World spawnw = plugin.getServer().getWorld(spawnworld);
+		Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
 		if(sender instanceof Player){
 			Player p = (Player) sender;
 			String pname = p.getName();
@@ -47,11 +54,11 @@ public class HaCommands implements CommandExecutor {
 					sender.sendMessage(c + "/ha reload - Reloads the config!");
 					sender.sendMessage(c + "/ha start - Unfreezes tributes allowing them to fight!");
 					sender.sendMessage(c + "/ha list - Shows a list of players in the game and their health!");
+					sender.sendMessage(c + "/ha rlist - See who's ready!");
 					sender.sendMessage(c + "/startpoint [1,2,3,4,etc] - Sets the starting points of tributes!");
 					sender.sendMessage(ChatColor.GREEN + "----------------------");
 					return false;
-				}
-				if(args[0].equalsIgnoreCase("List")){
+				}else if(args[0].equalsIgnoreCase("List")){
 					if(p.hasPermission("HungerArena.GameMaker") || sender instanceof ConsoleCommandSender){
 						sender.sendMessage(ChatColor.AQUA + "-----People Playing-----");
 						for(Player players:plugin.Playing){
@@ -64,8 +71,7 @@ public class HaCommands implements CommandExecutor {
 					}else{
 						sender.sendMessage(ChatColor.RED + "You don't have permission!");
 					}
-				}
-				if(args[0].equalsIgnoreCase("rList")){
+				}else if(args[0].equalsIgnoreCase("rList")){
 					if(p.hasPermission("HungerArena.GameMaker") || sender instanceof ConsoleCommandSender){
 						sender.sendMessage(ChatColor.AQUA + "-----People Ready-----");
 						for(Player ready:plugin.Ready){
@@ -78,8 +84,7 @@ public class HaCommands implements CommandExecutor {
 					}else{
 						sender.sendMessage(ChatColor.RED + "You don't have permission!");
 					}
-				}
-				if(args[0].equalsIgnoreCase("SetSpawn")){
+				}else if(args[0].equalsIgnoreCase("SetSpawn")){
 					if(sender instanceof ConsoleCommandSender){
 						sender.sendMessage(ChatColor.RED + "That can only be run by a player!");
 					}else if(p.hasPermission("HungerArena.SetSpawn")){
@@ -94,15 +99,7 @@ public class HaCommands implements CommandExecutor {
 					}else{
 						p.sendMessage(ChatColor.RED + "You don't have permission!");
 					}
-				}
-				String[] Spawncoords = plugin.config.getString("Spawn_coords").split(",");
-				double spawnx = Double.parseDouble(Spawncoords[0]);
-				double spawny = Double.parseDouble(Spawncoords[1]);
-				double spawnz = Double.parseDouble(Spawncoords[2]);
-				String spawnworld = Spawncoords[3];
-				World spawnw = plugin.getServer().getWorld(spawnworld);
-				Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
-				if(args[0].equalsIgnoreCase("Join")){
+				}else if(args[0].equalsIgnoreCase("Join")){
 					if(sender instanceof ConsoleCommandSender){
 						sender.sendMessage(ChatColor.RED + "That can only be run by a player!");
 					}else if(p.hasPermission("HungerArena.Join")){
@@ -136,8 +133,7 @@ public class HaCommands implements CommandExecutor {
 					}else{
 						p.sendMessage(ChatColor.RED + "You don't have permission!");
 					}
-				}
-				if(args[0].equalsIgnoreCase("Confirm")){
+				}else if(args[0].equalsIgnoreCase("Confirm")){
 					if(sender instanceof ConsoleCommandSender){
 						sender.sendMessage(ChatColor.RED + "That can only be run by a player!");
 					}else if(plugin.NeedConfirm.contains(p)){
@@ -154,8 +150,7 @@ public class HaCommands implements CommandExecutor {
 							p.performCommand("ha warpall");
 						}
 					}
-				}
-				if(args[0].equalsIgnoreCase("Ready")){
+				}else if(args[0].equalsIgnoreCase("Ready")){
 					if(sender instanceof ConsoleCommandSender){
 						sender.sendMessage(ChatColor.RED + "That can only be run by a player!");
 					}else if(plugin.Playing.contains(p)){
@@ -173,12 +168,21 @@ public class HaCommands implements CommandExecutor {
 					}else if(!plugin.Playing.contains(p)){
 						p.sendMessage(ChatColor.RED + "You aren't playing!");
 					}
-				}
-				if(args[0].equalsIgnoreCase("Leave")){
-					if(sender instanceof ConsoleCommandSender){
-						sender.sendMessage(ChatColor.RED + "That can only be run by a player!");
-					}else if(!plugin.Playing.contains(p)){
+				}else if(args[0].equalsIgnoreCase("Leave")){
+					if(!plugin.Playing.contains(p)){
 						p.sendMessage(ChatColor.RED + "You aren't playing!");
+					}else if(plugin.canjoin== false){
+						plugin.Playing.remove(p);
+						p.sendMessage(ChatColor.AQUA + "You have left the game!");
+						p.getServer().broadcastMessage(ChatColor.RED + pname + " Quit!");
+						p.getInventory().clear();
+						p.getInventory().setBoots(null);
+						p.getInventory().setChestplate(null);
+						p.getInventory().setHelmet(null);
+						p.getInventory().setLeggings(null);
+						if(plugin.Frozen.contains(p)){
+							plugin.Frozen.remove(p);
+						}
 					}else{
 						plugin.Playing.remove(p);
 						plugin.Quit.add(p);
@@ -218,8 +222,7 @@ public class HaCommands implements CommandExecutor {
 							}
 						}
 					}
-				}
-				if(args[0].equalsIgnoreCase("Watch")){
+				}else if(args[0].equalsIgnoreCase("Watch")){
 					if(sender instanceof ConsoleCommandSender){
 						sender.sendMessage(ChatColor.RED + "That can only be run by a player!");
 					}else if(sender.hasPermission("HungerArena.Watch")){
@@ -246,8 +249,7 @@ public class HaCommands implements CommandExecutor {
 					}else{
 						sender.sendMessage(ChatColor.RED + "You don't have permission!");
 					}
-				}
-				if(args[0].equalsIgnoreCase("Kick")){
+				}else if(args[0].equalsIgnoreCase("Kick")){
 					Player target = plugin.getServer().getPlayer(args[1]);
 					if(sender.hasPermission("HungerArena.Kick") || sender instanceof ConsoleCommandSender){
 						if(plugin.Playing.contains(target)){
@@ -295,8 +297,7 @@ public class HaCommands implements CommandExecutor {
 					}else{
 						sender.sendMessage(ChatColor.RED + "You don't have permission!");
 					}
-				}
-				if(args[0].equalsIgnoreCase("Refill")){
+				}else if(args[0].equalsIgnoreCase("Refill")){
 					int list056;
 					list056 = 0;
 					int limit = plugin.getConfig().getStringList("StorageXYZ").size();
@@ -326,8 +327,7 @@ public class HaCommands implements CommandExecutor {
 					if(limit== list056){
 						sender.sendMessage(ChatColor.GREEN + "All chests refilled!");
 					}
-				}
-				if(args[0].equalsIgnoreCase("Restart")){
+				}else if(args[0].equalsIgnoreCase("Restart")){
 					if(sender.hasPermission("HungerArena.Restart") || sender instanceof ConsoleCommandSender){
 						for(Player spectator:plugin.Watching){
 							spectator.setAllowFlight(false);
@@ -350,12 +350,10 @@ public class HaCommands implements CommandExecutor {
 					}else{
 						sender.sendMessage(ChatColor.RED + "You don't have permission!");
 					}
-				}
-				if(args[0].equalsIgnoreCase("Reload")){
+				}else if(args[0].equalsIgnoreCase("Reload")){
 					plugin.reloadConfig();
 					sender.sendMessage(ChatColor.AQUA + "HungerArena Reloaded!");
-				}
-				if(args[0].equalsIgnoreCase("WarpAll")){
+				}else if(args[0].equalsIgnoreCase("WarpAll")){
 					if(sender.hasPermission("HungerArena.Warpall") || sender instanceof ConsoleCommandSender){
 						if(plugin.config.getString("Spawns_set").equalsIgnoreCase("false")){
 							sender.sendMessage(ChatColor.RED + "/ha setspawn hasn't been run!");
@@ -707,8 +705,7 @@ public class HaCommands implements CommandExecutor {
 							}
 						}
 					}
-				}
-				if(args[0].equalsIgnoreCase("Start")){
+				}else if(args[0].equalsIgnoreCase("Start")){
 					String begin = plugin.config.getString("Start_Message");
 					begin = begin.replaceAll("(&([a-f0-9]))", "\u00A7$2");
 					final String msg = begin;
@@ -779,6 +776,8 @@ public class HaCommands implements CommandExecutor {
 					}else{
 						p.sendMessage(ChatColor.RED + "You don't have permission!");
 					}
+				}else{
+					p.sendMessage(ChatColor.RED + "Unknown command, type /ha help for a list of commands");
 				}
 			}
 		}else if(sender instanceof ConsoleCommandSender){
@@ -803,11 +802,11 @@ public class HaCommands implements CommandExecutor {
 					sender.sendMessage(c + "/ha reload - Reloads the config!");
 					sender.sendMessage(c + "/ha start - Unfreezes tributes allowing them to fight!");
 					sender.sendMessage(c + "/ha list - Shows a list of players in the game and their health!");
+					sender.sendMessage(c + "/ha rlist - See who's ready!");
 					sender.sendMessage(c + "/startpoint [1,2,3,4,etc] - Sets the starting points of tributes!");
 					sender.sendMessage(ChatColor.GREEN + "----------------------");
 					return false;
-				}
-				if(args[0].equalsIgnoreCase("List")){
+				}else if(args[0].equalsIgnoreCase("List")){
 					sender.sendMessage(ChatColor.AQUA + "-----People Playing-----");
 					for(Player players:plugin.Playing){
 						sender.sendMessage(ChatColor.GREEN + players.getDisplayName() + " Life: " + players.getHealth() + "/20");
@@ -816,45 +815,31 @@ public class HaCommands implements CommandExecutor {
 						sender.sendMessage(ChatColor.GRAY + "No one is playing!");
 					}
 					sender.sendMessage(ChatColor.AQUA + "----------------------");
-				}
-				if(args[0].equalsIgnoreCase("SetSpawn")){
+				}else if(args[0].equalsIgnoreCase("SetSpawn")){
 					if(sender instanceof ConsoleCommandSender){
 						sender.sendMessage(ChatColor.RED + "That can only be run by a player!");
 					}
-				}
-				String[] Spawncoords = plugin.config.getString("Spawn_coords").split(",");
-				double spawnx = Double.parseDouble(Spawncoords[0]);
-				double spawny = Double.parseDouble(Spawncoords[1]);
-				double spawnz = Double.parseDouble(Spawncoords[2]);
-				String spawnworld = Spawncoords[3];
-				World spawnw = plugin.getServer().getWorld(spawnworld);
-				Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
-				if(args[0].equalsIgnoreCase("Join")){
+				}else if(args[0].equalsIgnoreCase("Join")){
 					if(sender instanceof ConsoleCommandSender){
 						sender.sendMessage(ChatColor.RED + "That can only be run by a player!");
 					}
-				}
-				if(args[0].equalsIgnoreCase("Confirm")){
+				}else if(args[0].equalsIgnoreCase("Confirm")){
 					if(sender instanceof ConsoleCommandSender){
 						sender.sendMessage(ChatColor.RED + "That can only be run by a player!");
 					}
-				}
-				if(args[0].equalsIgnoreCase("Ready")){
+				}else if(args[0].equalsIgnoreCase("Ready")){
 					if(sender instanceof ConsoleCommandSender){
 						sender.sendMessage(ChatColor.RED + "That can only be run by a player!");
 					}
-				}
-				if(args[0].equalsIgnoreCase("Leave")){
+				}else if(args[0].equalsIgnoreCase("Leave")){
 					if(sender instanceof ConsoleCommandSender){
 						sender.sendMessage(ChatColor.RED + "That can only be run by a player!");
 					}
-				}
-				if(args[0].equalsIgnoreCase("Watch")){
+				}else if(args[0].equalsIgnoreCase("Watch")){
 					if(sender instanceof ConsoleCommandSender){
 						sender.sendMessage(ChatColor.RED + "That can only be run by a player!");
 					}
-				}
-				if(args[0].equalsIgnoreCase("Kick")){
+				}else if(args[0].equalsIgnoreCase("Kick")){
 					Player target = plugin.getServer().getPlayer(args[1]);
 					if(plugin.Playing.contains(target)){
 						if(target.isOnline()){
@@ -898,8 +883,7 @@ public class HaCommands implements CommandExecutor {
 					}else{
 						sender.sendMessage(ChatColor.RED + "That player isn't in the game!");
 					}
-				}
-				if(args[0].equalsIgnoreCase("Refill")){
+				}else if(args[0].equalsIgnoreCase("Refill")){
 					int list056;
 					list056 = 0;
 					int limit = plugin.getConfig().getStringList("StorageXYZ").size();
@@ -929,8 +913,7 @@ public class HaCommands implements CommandExecutor {
 					if(limit== list056){
 						sender.sendMessage(ChatColor.GREEN + "All chests refilled!");
 					}
-				}
-				if(args[0].equalsIgnoreCase("Restart")){
+				}else if(args[0].equalsIgnoreCase("Restart")){
 					for(Player spectator:plugin.Watching){
 						spectator.setAllowFlight(false);
 						for(Player online:plugin.getServer().getOnlinePlayers()){
@@ -955,12 +938,10 @@ public class HaCommands implements CommandExecutor {
 					plugin.canjoin = false;
 					Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha refill");
 					sender.sendMessage(ChatColor.AQUA + "The games have been reset!");
-				}
-				if(args[0].equalsIgnoreCase("Reload")){
+				}else if(args[0].equalsIgnoreCase("Reload")){
 					plugin.reloadConfig();
 					sender.sendMessage(ChatColor.AQUA + "HungerArena Reloaded!");
-				}
-				if(args[0].equalsIgnoreCase("WarpAll")){
+				}else if(args[0].equalsIgnoreCase("WarpAll")){
 					if(plugin.config.getString("Spawns_set").equalsIgnoreCase("false")){
 						sender.sendMessage(ChatColor.RED + "/ha setspawn hasn't been run!");
 					}else{
@@ -1310,8 +1291,7 @@ public class HaCommands implements CommandExecutor {
 							Tribute_twentyfour.setFoodLevel(20);
 						}
 					}
-				}
-				if(args[0].equalsIgnoreCase("Start")){
+				}else if(args[0].equalsIgnoreCase("Start")){
 					String begin = plugin.config.getString("Start_Message");
 					begin = begin.replaceAll("(&([a-f0-9]))", "\u00A7$2");
 					final String msg = begin;
@@ -1378,6 +1358,8 @@ public class HaCommands implements CommandExecutor {
 						plugin.getServer().broadcastMessage(msg);
 						plugin.canjoin = true;
 					}
+				}else{
+					sender.sendMessage(ChatColor.RED + "Unknown command, type /ha help to see all commands!");
 				}
 			}
 		}
