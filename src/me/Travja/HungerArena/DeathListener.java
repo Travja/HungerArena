@@ -1,5 +1,6 @@
 package me.Travja.HungerArena;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -61,10 +62,10 @@ public class DeathListener implements Listener{
 					event.setDeathMessage("");
 					s.broadcastMessage(ChatColor.LIGHT_PURPLE + "**BOOM** Tribute " + pname + " was killed by tribute " + killername + " with their FIST!");
 					s.broadcastMessage(leftmsg);
-					if(plugin.Playing.size()== 1){
+					if(plugin.Playing.size()== 1 && plugin.canjoin== true){
 						for(Player winner:plugin.Playing){
 							String winnername = winner.getName();
-							s.broadcastMessage(ChatColor.GREEN + winnername + " is the victor of this Hunger Games!");
+							plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername + " is the victor of this Hunger Games!");
 							winner.getInventory().clear();
 							winner.teleport(Spawn);
 							winner.getInventory().setBoots(null);
@@ -82,11 +83,7 @@ public class DeathListener implements Listener{
 							}
 						}
 						if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
-							plugin.Dead.clear();
-							plugin.Quit.clear();
-							plugin.Watching.clear();
-							plugin.Frozen.clear();
-							plugin.canjoin = false;
+							Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha restart");
 						}
 					}
 				}else{
@@ -97,10 +94,10 @@ public class DeathListener implements Listener{
 					event.setDeathMessage("");
 					s.broadcastMessage(msg);
 					s.broadcastMessage(leftmsg);
-					if(plugin.Playing.size()== 1){
+					if(plugin.Playing.size()== 1 && plugin.canjoin== true){
 						for(Player winner:plugin.Playing){
 							String winnername = winner.getName();
-							s.broadcastMessage(ChatColor.GREEN + winnername + " is the victor of this Hunger Games!");
+							plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername + " is the victor of this Hunger Games!");
 							winner.getInventory().clear();
 							winner.teleport(Spawn);
 							winner.getInventory().setBoots(null);
@@ -118,11 +115,7 @@ public class DeathListener implements Listener{
 							}
 						}
 						if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
-							plugin.Dead.clear();
-							plugin.Quit.clear();
-							plugin.Watching.clear();
-							plugin.Frozen.clear();
-							plugin.canjoin = false;
+							Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha restart");
 						}
 					}
 				}
@@ -130,10 +123,10 @@ public class DeathListener implements Listener{
 				event.setDeathMessage("");
 				s.broadcastMessage(ChatColor.LIGHT_PURPLE + pname + " died of natural causes!");
 				s.broadcastMessage(leftmsg);
-				if(plugin.Playing.size()== 1){
+				if(plugin.Playing.size()== 1 && plugin.canjoin== true){
 					for(Player winner:plugin.Playing){
 						String winnername = winner.getName();
-						s.broadcastMessage(ChatColor.GREEN + winnername + " is the victor of this Hunger Games!");
+						plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername + " is the victor of this Hunger Games!");
 						winner.getInventory().clear();
 						winner.teleport(Spawn);
 						winner.getInventory().setBoots(null);
@@ -151,11 +144,7 @@ public class DeathListener implements Listener{
 						}
 					}
 					if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
-						plugin.Dead.clear();
-						plugin.Quit.clear();
-						plugin.Watching.clear();
-						plugin.Frozen.clear();
-						plugin.canjoin = false;
+						Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha restart");
 					}
 				}
 			}
