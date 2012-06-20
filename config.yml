@@ -19,7 +19,7 @@ Sponsor_Cost:
     Amount: 1
 # Whether or not the countdown will start upon warping.
 Countdown: 'true'
-Spawn_coords: 100,100,100
+Spawn_coords: 100,100,100,world
 # If players will only talk to close players of the whole server
 ChatClose: 'true'
 # How close the players have to be to talk to them
@@ -56,3 +56,4 @@ Tribute_twentythree_spawn: 100,100,100
 Tribute_twentyfour_spawn: 100,100,100
 # If /ha setspawn has been run
 Spawn_set: 'false'
+Blocks_Destroyed:

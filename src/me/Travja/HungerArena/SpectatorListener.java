@@ -15,7 +15,6 @@ import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerPickupItemEvent;
-import org.bukkit.event.player.PlayerQuitEvent;
 
 public class SpectatorListener implements Listener {
 	public Main plugin;
@@ -87,7 +86,6 @@ public class SpectatorListener implements Listener {
 				double spawny = Double.parseDouble(Spawncoords[1]);
 				double spawnz = Double.parseDouble(Spawncoords[2]);
 				final Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
-				plugin.Watching.remove(p);
 				for(Player everyone:plugin.getServer().getOnlinePlayers()){
 					everyone.showPlayer(p);
 				}
@@ -97,6 +95,7 @@ public class SpectatorListener implements Listener {
 						player.sendMessage(ChatColor.RED + "You have been teleported to spawn because the game is over!");
 					}
 				}, 40L);
+				plugin.Watching.remove(p);
 			}else{
 				p.setAllowFlight(true);
 				p.setFlying(true);
@@ -104,13 +103,6 @@ public class SpectatorListener implements Listener {
 					everyone.hidePlayer(p);
 				}
 			}
-		}
-	}
-	@EventHandler
-	public void SpectatorQuit(PlayerQuitEvent event){
-		Player p = event.getPlayer();
-		if(plugin.Watching.contains(p)){
-			System.out.println(p.getName() + " quit while spectating!");
 		}
 	}
 	@EventHandler
