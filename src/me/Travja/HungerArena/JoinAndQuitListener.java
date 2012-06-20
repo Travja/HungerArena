@@ -1,5 +1,6 @@
 package me.Travja.HungerArena;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -14,22 +15,26 @@ public class JoinAndQuitListener implements Listener {
 	public JoinAndQuitListener(Main m) {
 		this.plugin = m;
 	}
+	int i = 0;
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event){
-		Player p = event.getPlayer();
-		final Player player = event.getPlayer();
-		for(Player spectator:plugin.Watching){
+		final Player p = event.getPlayer();
+		String pname = p.getDisplayName();
+		if(!plugin.Watching.isEmpty()){
+			String s = plugin.Watching.get(i++);
+			Player spectator = plugin.getServer().getPlayerExact(s);
 			p.hidePlayer(spectator);
 		}
-		if(plugin.Out.contains(p)){
+		if(plugin.Out.contains(pname)){
+			plugin.Playing.add(pname);
 			plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 				public void run(){
-					player.sendMessage(ChatColor.AQUA + "You have saved yourself from being ejected from the arena!");
+					p.sendMessage(ChatColor.AQUA + "You have saved yourself from being ejected from the arena!");
 				}
 			}, 40L);
 			plugin.Out.remove(p);
 		}
-		if(plugin.Quit.contains(p) || plugin.Dead.contains(p)){
+		if(plugin.Quit.contains(pname) || plugin.Dead.contains(pname)){
 			String[] Spawncoords = plugin.config.getString("Spawn_coords").split(",");
 			String w = Spawncoords[3];
 			World spawnw = plugin.getServer().getWorld(w);
@@ -39,8 +44,8 @@ public class JoinAndQuitListener implements Listener {
 			final Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
 			plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 				public void run(){
-					player.teleport(Spawn);
-					player.sendMessage(ChatColor.RED + "You have been teleported to spawn because you quit/forfieted!");
+					p.teleport(Spawn);
+					p.sendMessage(ChatColor.RED + "You have been teleported to spawn because you quit/forfieted!");
 				}
 			}, 40L);
 		}
@@ -48,6 +53,7 @@ public class JoinAndQuitListener implements Listener {
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event){
 		final Player p = event.getPlayer();
+		final String pname = p.getDisplayName();
 		String[] Spawncoords = plugin.config.getString("Spawn_coords").split(",");
 		String w = Spawncoords[3];
 		World spawnw = plugin.getServer().getWorld(w);
@@ -55,45 +61,46 @@ public class JoinAndQuitListener implements Listener {
 		double spawny = Double.parseDouble(Spawncoords[1]);
 		double spawnz = Double.parseDouble(Spawncoords[2]);
 		final Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
-		if(plugin.Playing.contains(p)){
-			plugin.Out.add(p);
+		if(plugin.Playing.contains(pname)){
+			plugin.Out.add(pname);
+			plugin.Playing.remove(pname);
 		}
 		plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 			public void run(){
-				if(plugin.Playing.contains(p) && plugin.Out.contains(p)){
+				if(plugin.Out.contains(pname)){
 					if(plugin.canjoin== true){
-						plugin.Playing.remove(p);
-						plugin.Quit.add(p);
-						plugin.Out.remove(p);
+						plugin.Quit.add(pname);
+						plugin.Out.remove(pname);
 						if(plugin.Playing.size()== 1){
-							for(Player winner:plugin.Playing){
-								String winnername = winner.getName();
-								p.getServer().broadcastMessage(ChatColor.GREEN + winnername + " is the victor of this Hunger Games!");
-								winner.getInventory().clear();
-								winner.getInventory().setBoots(null);
-								winner.getInventory().setChestplate(null);
-								winner.getInventory().setHelmet(null);
-								winner.getInventory().setLeggings(null);
-								winner.getInventory().addItem(plugin.Reward);
-							}
-							for(Player spectator:plugin.Watching){
+							//Announce Winner
+							String winnername = plugin.Playing.get(i++);
+							Player winner = plugin.getServer().getPlayerExact(winnername);
+							String winnername2 = winner.getName();
+							p.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
+							winner.getInventory().clear();
+							winner.getInventory().setBoots(null);
+							winner.getInventory().setChestplate(null);
+							winner.getInventory().setHelmet(null);
+							winner.getInventory().setLeggings(null);
+							winner.getInventory().addItem(plugin.Reward);
+							//Make spectators visible
+							if(!plugin.Watching.isEmpty()){
+								String s = plugin.Watching.get(i++);
+								Player spectator = plugin.getServer().getPlayerExact(s);
 								spectator.setAllowFlight(false);
 								spectator.teleport(Spawn);
+								for(Player online:plugin.getServer().getOnlinePlayers()){
+									online.showPlayer(spectator);
+								}
 							}
 							if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
-								plugin.Dead.clear();
-								plugin.Playing.clear();
-								plugin.Quit.clear();
-								plugin.Watching.clear();
-								plugin.Frozen.clear();
-								plugin.canjoin = false;
+								Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha restart");
 							}
 						}
-					}else if(plugin.canjoin== false){
-						plugin.Playing.remove(p);
-						plugin.Quit.add(p);
-						plugin.Out.remove(p);
 					}
+				}else{
+					plugin.Quit.add(pname);
+					plugin.Out.remove(pname);
 				}
 			}
 		}, 1200L);

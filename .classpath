@@ -3,6 +3,6 @@
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
 	<classpathentry kind="lib" path="C:/Documents and Settings/TJ/Desktop/iConomy.jar"/>
-	<classpathentry kind="lib" path="C:/Documents and Settings/TJ/Desktop/bukkit-1.2.5-R1.4-20120509.221906-5.jar"/>
+	<classpathentry kind="lib" path="C:/Documents and Settings/TJ/Desktop/bukkit-1.2.5-R4.1-20120615.060142-9.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
