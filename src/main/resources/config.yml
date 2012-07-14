@@ -1,0 +1,63 @@
+# default config.yml
+# Message to display when the games start
+Start_Message: '&bLet The Games Begin!'
+# If the games should automatically restart at the end
+Auto_Restart: 'false'
+# If it should automatically start the countdown on warping
+Auto_Start: 'false'
+# If tributes need to type /ha confirm to join
+Need_Confirm: 'true'
+# What the reward for winning is
+Reward:
+    ID: 264
+    Amount: 10
+# What sponsors have to pay to sponsor tributes
+Sponsor_Cost:
+    ID: 264
+    Amount: 1
+# Whether or not the countdown will start upon warping.
+Countdown: 'true'
+Spawn_coords: 100,100,100,world
+# If players will only talk to close players of the whole server
+ChatClose: 'true'
+# How close the players have to be to talk to them
+ChatClose_Radius: 10
+# Whether or not players can break blocks while playing
+Protected_Arena: 'true'
+# Whether or not players will be frozen when they are teleported to their positions
+Frozen_Teleport: 'true'
+# Whether or not thunder will sound upon a players death
+Cannon_Death: 'true'
+Tribute_one_spawn: 100,100,100
+Tribute_two_spawn: 100,100,100
+Tribute_three_spawn: 100,100,100
+Tribute_four_spawn: 100,100,100
+Tribute_five_spawn: 100,100,100
+Tribute_six_spawn: 100,100,100
+Tribute_seven_spawn: 100,100,100
+Tribute_eight_spawn: 100,100,100
+Tribute_nine_spawn: 100,100,100
+Tribute_ten_spawn: 100,100,100
+Tribute_eleven_spawn: 100,100,100
+Tribute_twelve_spawn: 100,100,100
+Tribute_thirteen_spawn: 100,100,100
+Tribute_fourteen_spawn: 100,100,100
+Tribute_fifteen_spawn: 100,100,100
+Tribute_sixteen_spawn: 100,100,100
+Tribute_seventeen_spawn: 100,100,100
+Tribute_eighteen_spawn: 100,100,100
+Tribute_nineteen_spawn: 100,100,100
+Tribute_twenty_spawn: 100,100,100
+Tribute_twentyone_spawn: 100,100,100
+Tribute_twentytwo_spawn: 100,100,100
+Tribute_twentythree_spawn: 100,100,100
+Tribute_twentyfour_spawn: 100,100,100
+# If /ha setspawn has been run
+Spawn_set: 'false'
+# True means give money to winner, false means don't.
+Economy_Support: 'false'
+# How much money to give the winner.
+Economy_Reward:
+  Amount: 100
+# Leave this. :)
+Blocks_Destroyed:
