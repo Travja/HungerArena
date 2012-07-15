@@ -1,4 +1,4 @@
-package me.Travja.HungerArena;
+package me.travja.hungerarena;
 
 import java.util.List;
 

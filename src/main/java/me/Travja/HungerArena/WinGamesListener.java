@@ -1,4 +1,4 @@
-package me.Travja.HungerArena;
+package me.travja.hungerarena;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -18,6 +18,7 @@ public class WinGamesListener implements Listener {
     @EventHandler
     public void onWin(PlayerWinGamesEvent evt) {
         Player p = evt.getPlayer();
+        plugin.econ.depositPlayer(p.getName(), plugin.config.getDouble("EcoReward"));
     }
 
 }
