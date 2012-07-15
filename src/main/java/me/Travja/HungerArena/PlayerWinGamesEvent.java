@@ -1,4 +1,4 @@
-package me.Travja.HungerArena;
+package me.travja.hungerarena;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;

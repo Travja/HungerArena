@@ -1,4 +1,4 @@
-package me.Travja.HungerArena;
+package me.travja.hungerarena;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -65,13 +65,22 @@ public class Main extends JavaPlugin{
 		getCommand("Startpoint").setExecutor(SpawnsCommand);
                 if (setupEconomy()) {
                     log.info(ChatColor.AQUA + "[HungerArena] Found Vault! Hooking in for economy!");
-                    vault = true;
                 }
-                if (config.getBoolean("Economy_Support", true)) {
+                if (config.getDouble("config.version") != 1.3) {
+                    config.set("config.version", 1.3);
+                    config.set("eco.enabled", false);
+                    config.set("eco.reward", 100);
+                }
+                if (config.getBoolean("eco.enabled", true)) {
                     if (vault == true) {
                         log.info(ChatColor.AQUA + "Economy hook deployed.");
                     } else {
                         log.info(ChatColor.RED + "You want economy support... yet you don't have Vault. Sorry, can't give you it.");
+                    }
+                }
+                if (config.getBoolean("eco.enabled", false)) {
+                    if (vault == true) {
+                        log.info(ChatColor.GREEN + "We see that you have Vault on your server. To set economy support to true, enable it in the config.");
                     }
                 }
 		Reward = new ItemStack(config.getInt("Reward.ID"), config.getInt("Reward.Amount"));
@@ -91,6 +100,7 @@ public class Main extends JavaPlugin{
             return false;
         }
         econ = rsp.getProvider();
+        vault = true;
         return econ != null;
     }
 }

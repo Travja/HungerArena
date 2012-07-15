@@ -1,4 +1,4 @@
-package me.Travja.HungerArena;
+package me.travja.hungerarena;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -29,7 +29,17 @@ public class SpectatorListener implements Listener {
 		}
 	}
 	@EventHandler
-	public void SpectatorInteractions(PlayerInteractEvent event){
+	public void SpectatorInteractBlock(PlayerInteractEvent event){
+		Player p = event.getPlayer();
+		String pname = p.getName();
+		if(plugin.Watching.contains(pname)){
+			event.setCancelled(true);
+			p.sendMessage(ChatColor.RED + "You are spectating, you can't interfere with the game!");
+		}
+	}
+        
+        @EventHandler
+	public void SpectatorInteractEntity(PlayerInteractEntityEvent event){
 		Player p = event.getPlayer();
 		String pname = p.getName();
 		if(plugin.Watching.contains(pname)){

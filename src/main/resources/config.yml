@@ -1,4 +1,7 @@
 # default config.yml
+#config version for us devs. DONT CHANGE THIS, or it will screw up some things PRETTY badly.
+config:
+  version: 1.3
 # Message to display when the games start
 Start_Message: '&bLet The Games Begin!'
 # If the games should automatically restart at the end
@@ -19,7 +22,7 @@ Sponsor_Cost:
 Countdown: 'true'
 Spawn_coords: 100,100,100,world
 # If players will only talk to close players of the whole server
-ChatClose: 'true'
+ChatClose: 'false'
 # How close the players have to be to talk to them
 ChatClose_Radius: 10
 # Whether or not players can break blocks while playing
@@ -55,9 +58,9 @@ Tribute_twentyfour_spawn: 100,100,100
 # If /ha setspawn has been run
 Spawn_set: 'false'
 # True means give money to winner, false means don't.
-Economy_Support: 'false'
+eco:
+  enabled: false
+  reward: 100
 # How much money to give the winner.
-Economy_Reward:
-  Amount: 100
 # Leave this. :)
 Blocks_Destroyed:
