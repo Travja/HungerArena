@@ -30,6 +30,7 @@ public class DeathListener implements Listener{
 		}
 	}
 	@EventHandler
+    @SuppressWarnings("SizeReplaceableByIsEmpty")
 	public void onPlayerDeath(PlayerDeathEvent event){
 		Player p = event.getEntity();
 		Server s = p.getServer();
@@ -110,7 +111,7 @@ public class DeathListener implements Listener{
 						winner.getInventory().addItem(plugin.Reward);
 						plugin.Playing.clear();
 						//Show spectators
-						if(!plugin.Watching.isEmpty()){
+						if(plugin.Watching.size() != 0){
 							String s1 = plugin.Watching.get(i++);
 							Player spectator = plugin.getServer().getPlayerExact(s1);
 							spectator.setAllowFlight(false);
