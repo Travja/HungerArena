@@ -30,8 +30,7 @@ public class DeathListener implements Listener{
 		}
 	}
 	@EventHandler
-    @SuppressWarnings("SizeReplaceableByIsEmpty")
-	public void onPlayerDeath(PlayerDeathEvent event){
+    public void onPlayerDeath(PlayerDeathEvent event){
 		Player p = event.getEntity();
 		Server s = p.getServer();
 		String pname = p.getName();

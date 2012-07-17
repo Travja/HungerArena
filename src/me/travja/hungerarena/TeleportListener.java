@@ -1,4 +1,4 @@
-package me.travja.hungerarena;
+package me.Travja.HungerArena;
 
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -19,7 +19,8 @@ public class TeleportListener implements Listener {
     
     @EventHandler
     public void onTP(PlayerTeleportEvent evt) {
-        Player p = evt.getPlayer();
+        @SuppressWarnings("unused")
+		Player p = evt.getPlayer();
         TeleportCause tc = evt.getCause();
         if (tc == TeleportCause.ENDER_PEARL) {
             return;

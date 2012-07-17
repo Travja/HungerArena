@@ -20,6 +20,7 @@ public class HaCommands implements CommandExecutor {
 		this.plugin = m;
 	}
 	int i = 0;
+	@SuppressWarnings("unchecked")
 	@Override
 	public boolean onCommand(final CommandSender sender, Command cmd, String commandLabel, String[] args){
 		String[] Spawncoords = plugin.config.getString("Spawn_coords").split(",");
@@ -231,7 +232,7 @@ public class HaCommands implements CommandExecutor {
 							winner.getInventory().setHelmet(null);
 							winner.getInventory().setLeggings(null);
 							winner.getInventory().addItem(plugin.Reward);
-                                                        Bukkit.getServer().getPluginManager().callEvent(new PlayerWinGamesEvent(winner));
+                            Bukkit.getServer().getPluginManager().callEvent(new PlayerWinGamesEvent(winner));
 							plugin.Playing.clear();
 							//Show spectators
 							String s = plugin.Watching.get(i++);
