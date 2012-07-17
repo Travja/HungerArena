@@ -62,7 +62,7 @@ public class Chests implements Listener {
 		Player p = event.getPlayer();
 		Block block = event.getBlock();
 		Location blocklocation = event.getBlock().getLocation();
-		if (block.getState() instanceof Chest) {
+		if (block.getState() instanceof Chest && !plugin.Playing.contains(p.getDisplayName())) {
 			int blockx = blocklocation.getBlockX();
 			int blocky = blocklocation.getBlockY();
 			int blockz = blocklocation.getBlockZ();

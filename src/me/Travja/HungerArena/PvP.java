@@ -15,7 +15,8 @@ public class PvP implements Listener {
 	public void PlayerPvP(EntityDamageByEntityEvent event){
 		Entity p = event.getEntity();
 		if(p instanceof Player){
-			if(plugin.Playing.contains(p) && plugin.canjoin== false){
+			String pname = ((Player) p).getDisplayName();
+			if(plugin.Playing.contains(pname) && plugin.canjoin== false){
 				event.setCancelled(true);
 			}
 		}

@@ -17,7 +17,8 @@ public class ChatListener implements Listener {
 	@EventHandler
 	public void TributeChat(PlayerChatEvent event){
 		Player p = event.getPlayer();
-		if(plugin.Playing.contains(p)){
+		String pname = p.getDisplayName();
+		if(plugin.Playing.contains(pname)){
 			String msg = "<" + ChatColor.RED + "[Tribute] " + ChatColor.WHITE + p.getName() + ">" + " " + event.getMessage();
 			if(plugin.config.getString("ChatClose").equalsIgnoreCase("True")){
 				double radius = plugin.config.getDouble("ChatClose_Radius");
