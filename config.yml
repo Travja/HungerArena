@@ -1,10 +1,7 @@
 # default config.yml
-<<<<<<< HEAD
-=======
 #config version for us devs. DONT CHANGE THIS, or it will screw up some things PRETTY badly.
 config:
   version: 1.3
->>>>>>> de44f825be59d96da77136bf1dd2b26fc23d09b7
 # Message to display when the games start
 Start_Message: '&bLet The Games Begin!'
 # If the games should automatically restart at the end
@@ -13,11 +10,8 @@ Auto_Restart: 'false'
 Auto_Start: 'false'
 # If tributes need to type /ha confirm to join
 Need_Confirm: 'true'
-<<<<<<< HEAD
 # Not yet implemented
 iConomy_Support: 'false'
-=======
->>>>>>> de44f825be59d96da77136bf1dd2b26fc23d09b7
 # What the reward for winning is
 Reward:
     ID: 264
@@ -30,11 +24,8 @@ Sponsor_Cost:
 Countdown: 'true'
 Spawn_coords: 100,100,100,world
 # If players will only talk to close players of the whole server
-<<<<<<< HEAD
 ChatClose: 'true'
-=======
 ChatClose: 'false'
->>>>>>> de44f825be59d96da77136bf1dd2b26fc23d09b7
 # How close the players have to be to talk to them
 ChatClose_Radius: 10
 # Whether or not players can break blocks while playing
@@ -69,13 +60,10 @@ Tribute_twentythree_spawn: 100,100,100
 Tribute_twentyfour_spawn: 100,100,100
 # If /ha setspawn has been run
 Spawn_set: 'false'
-<<<<<<< HEAD
-=======
 # True means give money to winner, false means don't.
 eco:
   enabled: false
   reward: 100
 # How much money to give the winner.
 # Leave this. :)
->>>>>>> de44f825be59d96da77136bf1dd2b26fc23d09b7
 Blocks_Destroyed:

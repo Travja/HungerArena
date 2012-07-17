@@ -41,15 +41,16 @@ public class Main extends JavaPlugin{
 	public CommandExecutor SpawnsCommand = new SpawnsCommand(this);
 	public boolean canjoin;
 	public boolean exists;
-	public FileConfiguration config = getConfig();
+	public FileConfiguration config;
 	public ItemStack Reward;
 	public ItemStack Cost;
 	public boolean vault = false;
 	public Economy econ = null;
 	public void onEnable(){
-		log.info("[HungerArena] enabled v" + getDescription().getVersion());
+		config = this.getConfig();
 		config.options().copyDefaults(true);
 		this.saveDefaultConfig();
+		log.info("[HungerArena] enabled v" + getDescription().getVersion());
 		getServer().getPluginManager().registerEvents(DeathListener, this);
 		getServer().getPluginManager().registerEvents(SpectatorListener, this);
 		getServer().getPluginManager().registerEvents(FreezeListener, this);
