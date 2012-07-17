@@ -14,7 +14,8 @@ public class Blocks implements Listener {
 	@EventHandler
 	public void BreakBlock(BlockBreakEvent event){
 		Player p = event.getPlayer();
-		if(plugin.Playing.contains(p)){
+		String pname = p.getDisplayName();
+		if(plugin.Playing.contains(pname)){
 			if(plugin.config.getString("Protected_Arena").equalsIgnoreCase("True")){
 				event.setCancelled(true);
 				p.sendMessage(ChatColor.RED + "You can't break blocks when you're playing!");

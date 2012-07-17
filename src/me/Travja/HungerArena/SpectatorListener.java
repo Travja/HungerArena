@@ -24,7 +24,8 @@ public class SpectatorListener implements Listener {
 	@EventHandler
 	public void SpectatorDrops(PlayerDropItemEvent event){
 		Player p = event.getPlayer();
-		if(plugin.Watching.contains(p)){
+		String pname = p.getDisplayName();
+		if(plugin.Watching.contains(pname)){
 			event.setCancelled(true);
 			p.sendMessage(ChatColor.RED + "You are spectating, you can't interfere with the game!");
 		}
@@ -32,7 +33,8 @@ public class SpectatorListener implements Listener {
 	@EventHandler
 	public void SpectatorInteractions(PlayerInteractEvent event){
 		Player p = event.getPlayer();
-		if(plugin.Watching.contains(p)){
+		String pname = p.getDisplayName();
+		if(plugin.Watching.contains(pname)){
 			event.setCancelled(true);
 			p.sendMessage(ChatColor.RED + "You are spectating, you can't interfere with the game!");
 		}
@@ -40,7 +42,8 @@ public class SpectatorListener implements Listener {
 	@EventHandler
 	public void SpectatorItems(PlayerPickupItemEvent event){
 		Player p = event.getPlayer();
-		if(plugin.Watching.contains(p)){
+		String pname = p.getDisplayName();
+		if(plugin.Watching.contains(pname)){
 			event.setCancelled(true);
 			p.sendMessage(ChatColor.RED + "You are spectating, you can't interfere with the game!");
 		}
@@ -50,7 +53,8 @@ public class SpectatorListener implements Listener {
 		Entity offense = event.getDamager();
 		if(offense instanceof Player){
 			Player Attacker = (Player) event.getDamager();
-			if(plugin.Watching.contains(Attacker)){
+			String attackerName = Attacker.getDisplayName();
+			if(plugin.Watching.contains(attackerName)){
 				event.setCancelled(true);
 				Attacker.sendMessage(ChatColor.RED + "You are spectating, you can't interfere with the game!");
 			}
@@ -58,7 +62,8 @@ public class SpectatorListener implements Listener {
 			Projectile arrow = (Projectile) offense;
 			if(arrow.getShooter() instanceof Player){
 				Player BowMan = (Player) arrow.getShooter();
-				if(plugin.Watching.contains(BowMan)){
+				String bowManName = BowMan.getDisplayName();
+				if(plugin.Watching.contains(bowManName)){
 					event.setCancelled(true);
 					BowMan.sendMessage(ChatColor.RED + "You are spectating, you can't interfere with the game!");
 				}
@@ -68,7 +73,8 @@ public class SpectatorListener implements Listener {
 	@EventHandler
 	public void SpectatorBlocks(BlockBreakEvent event){
 		Player p = event.getPlayer();
-		if(plugin.Watching.contains(p)){
+		String pname = p.getDisplayName();
+		if(plugin.Watching.contains(pname)){
 			event.setCancelled(true);
 			p.sendMessage(ChatColor.RED + "You are spectating, you can't interfere with the game!");
 		}
@@ -76,8 +82,9 @@ public class SpectatorListener implements Listener {
 	@EventHandler
 	public void SpectatorJoin(PlayerJoinEvent event){
 		Player p = event.getPlayer();
+		String pname = p.getDisplayName();
 		final Player player = event.getPlayer();
-		if(plugin.Watching.contains(p)){
+		if(plugin.Watching.contains(pname)){
 			if(plugin.canjoin== false){
 				String[] Spawncoords = plugin.config.getString("Spawn_coords").split(",");
 				String w = Spawncoords[3];
@@ -95,7 +102,7 @@ public class SpectatorListener implements Listener {
 						player.sendMessage(ChatColor.RED + "You have been teleported to spawn because the game is over!");
 					}
 				}, 40L);
-				plugin.Watching.remove(p);
+				plugin.Watching.remove(pname);
 			}else{
 				p.setAllowFlight(true);
 				p.setFlying(true);
@@ -109,7 +116,8 @@ public class SpectatorListener implements Listener {
 	public void MobNerf(EntityTargetEvent event){
 		Entity target = event.getTarget();
 		if(target instanceof Player){
-			if(plugin.Watching.contains(target)){
+			String targetName = ((Player) target).getDisplayName();
+			if(plugin.Watching.contains(targetName)){
 				event.setCancelled(true);
 			}
 		}

@@ -13,7 +13,8 @@ public class FreezeListener implements Listener {
 	@EventHandler
 	public void onPlayerMove(PlayerMoveEvent event){
 		Player p = event.getPlayer();
-		if(plugin.Frozen.contains(p) && plugin.config.getString("Frozen_Teleport").equalsIgnoreCase("True")){
+		String pname = p.getDisplayName();
+		if(plugin.Frozen.contains(pname) && plugin.config.getString("Frozen_Teleport").equalsIgnoreCase("True")){
 			event.setCancelled(true);
 		}
 	}

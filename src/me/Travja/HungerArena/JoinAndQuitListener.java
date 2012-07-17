@@ -32,7 +32,7 @@ public class JoinAndQuitListener implements Listener {
 					p.sendMessage(ChatColor.AQUA + "You have saved yourself from being ejected from the arena!");
 				}
 			}, 40L);
-			plugin.Out.remove(p);
+			plugin.Out.remove(pname);
 		}
 		if(plugin.Quit.contains(pname) || plugin.Dead.contains(pname)){
 			String[] Spawncoords = plugin.config.getString("Spawn_coords").split(",");
