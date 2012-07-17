@@ -1,4 +1,5 @@
 name: HungerArena
+<<<<<<< HEAD
 main: me.Travja.HungerArena.Main
 version: 1.3alpha
 description: A plugin to help with playing The Hunger Games!
@@ -9,3 +10,16 @@ commands:
     description: Sets the starting point of a tribute.
   Sponsor:
     description: Sponsors a Tribute
+=======
+main: me.travja.hungerarena.Main
+version: 1.3alpha
+description: A lightweight and powerful plugin to help with playing The Hunger Games!
+softdepend: [Vault]
+commands:
+  Ha:
+    description: Base command for HungerArena!
+  StartPoint:
+    description: Set the starting points for tributes.
+  Sponsor:
+    description: Sponsor a tribute.
+>>>>>>> de44f825be59d96da77136bf1dd2b26fc23d09b7
