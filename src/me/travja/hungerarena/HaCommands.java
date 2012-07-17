@@ -4,6 +4,7 @@ import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
@@ -59,24 +60,20 @@ public class HaCommands implements CommandExecutor {
 					sender.sendMessage(c + "/ha rlist - See who's ready!");
 					sender.sendMessage(c + "/startpoint [1,2,3,4,etc] - Sets the starting points of tributes!");
 					sender.sendMessage(ChatColor.GREEN + "----------------------");
-					return true;
 				}else if(args[0].equalsIgnoreCase("List")){
 					if(p.hasPermission("HungerArena.GameMaker")){
 						sender.sendMessage(ChatColor.AQUA + "-----People Playing-----");
 						if(!plugin.Playing.isEmpty()){
 							for(String playernames: plugin.Playing){
 								Player players = plugin.getServer().getPlayerExact(playernames);
-								p.sendMessage(ChatColor.GREEN + playernames + " Life: " + players.getHealth() + "/20");
-                                                                return true;
+								sender.sendMessage(ChatColor.GREEN + playernames + " Life: " + players.getHealth() + "/20");
 							}
 						}else if(plugin.Playing.isEmpty()){
 							p.sendMessage(ChatColor.GRAY + "No one is playing!");
 						}
 						p.sendMessage(ChatColor.AQUA + "----------------------");
-                                                return true;
 					}else{
 						p.sendMessage(ChatColor.RED + "You don't have permission!");
-                                                return true;
 					}
 				}else if(args[0].equalsIgnoreCase("rList")){
 					if(p.hasPermission("HungerArena.GameMaker")){
@@ -90,10 +87,8 @@ public class HaCommands implements CommandExecutor {
 							p.sendMessage(ChatColor.GRAY + "No one is ready!");
 						}
 						p.sendMessage(ChatColor.AQUA + "---------------------");
-                                                return true;
 					}else{
 						p.sendMessage(ChatColor.RED + "You don't have permission!");
-                                                return true;
 					}
 				}else if(args[0].equalsIgnoreCase("SetSpawn")){
 					if(p.hasPermission("HungerArena.SetSpawn")){
@@ -105,35 +100,26 @@ public class HaCommands implements CommandExecutor {
 						plugin.config.set("Spawns_set", "true");
 						plugin.saveConfig();
 						p.sendMessage(ChatColor.AQUA + "You have set the spawn for dead tributes!");
-                                                return true;
 					}else{
 						p.sendMessage(ChatColor.RED + "You don't have permission!");
-                                                return true;
 					}
 				}else if(args[0].equalsIgnoreCase("Join")){
 					if(p.hasPermission("HungerArena.Join")){
 						if(plugin.Playing.contains(pname)){
 							p.sendMessage(ChatColor.RED + "You are already playing!");
-                                                        return true;
 						}else if(plugin.Dead.contains(pname) || plugin.Quit.contains(pname)){
 							p.sendMessage(ChatColor.RED + "You DIED/QUIT! You can't join again!");
-                                                        return true;
 						}else if(plugin.Playing.size()== 24){
 							p.sendMessage(ChatColor.RED + "There are already 24 Tributes!");
-                                                        return true;
 						}else if(plugin.canjoin== true){
 							p.sendMessage(ChatColor.RED + "The game is in progress!");
-                                                        return true;
 						}else if(plugin.config.getString("Spawns_set").equalsIgnoreCase("false")){
 							p.sendMessage(ChatColor.RED + "/ha setspawn hasn't been run!");
-                                                        return true;
 						}else if(plugin.NeedConfirm.contains(pname)){
 							p.sendMessage(ChatColor.RED + "You need to do /ha confirm");
-                                                        return true;
 						}else if(plugin.config.getString("Need_Confirm").equalsIgnoreCase("true")){
 							plugin.NeedConfirm.add(pname);
 							p.sendMessage(ChatColor.GOLD + "You're inventory will be cleared! Type /ha confirm to procede");
-                                                        return true;
 						}else{
 							plugin.Playing.add(pname);
 							p.getInventory().clear();
@@ -145,11 +131,9 @@ public class HaCommands implements CommandExecutor {
 							if(plugin.Playing.size()== 24){
 								p.performCommand("ha warpall");
 							}
-                                                        return true;
 						}
 					}else{
 						p.sendMessage(ChatColor.RED + "You don't have permission!");
-                                                return true;
 					}
 				}else if(args[0].equalsIgnoreCase("Confirm")){
 					if(plugin.NeedConfirm.contains(pname)){
@@ -165,32 +149,26 @@ public class HaCommands implements CommandExecutor {
 						if(plugin.Playing.size()== 24){
 							p.performCommand("ha warpall");
 						}
-                                                return true;
 					}
 				}else if(args[0].equalsIgnoreCase("Ready")){
 					if(plugin.Playing.contains(pname)){
 						if(plugin.Ready.contains(pname)){
 							p.sendMessage(ChatColor.RED + "You're already ready!");
-                                                        return true;
 						}else if(plugin.Playing.size()== 1){
 							p.sendMessage(ChatColor.RED + "You can't be ready when no one else is playing!");
-                                                        return true;
 						}else{
 							plugin.Ready.add(pname);
 							p.sendMessage(ChatColor.AQUA + "You have marked yourself as READY!");
-							if(plugin.Playing.size()-4== plugin.Ready.size()){
+							if(plugin.Playing.size()-4== plugin.Ready.size() || plugin.Playing.size()==plugin.Ready.size()){
 								Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha warpall");
-                                                                return true;
 							}
 						}
 					}else if(!plugin.Playing.contains(pname)){
 						p.sendMessage(ChatColor.RED + "You aren't playing!");
-                                                return true;
 					}
 				}else if(args[0].equalsIgnoreCase("Leave")){
 					if(!plugin.Playing.contains(pname)){
 						p.sendMessage(ChatColor.RED + "You aren't playing!");
-                                                return true;
 					}else if(plugin.canjoin== false){
 						plugin.Playing.remove(pname);
 						p.sendMessage(ChatColor.AQUA + "You have left the game!");
@@ -204,7 +182,6 @@ public class HaCommands implements CommandExecutor {
 						if(plugin.Frozen.contains(pname)){
 							plugin.Frozen.remove(pname);
 						}
-                                                return true;
 					}else{
 						plugin.Playing.remove(pname);
 						plugin.Quit.add(pname);
