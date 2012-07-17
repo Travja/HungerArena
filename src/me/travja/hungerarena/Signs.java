@@ -1,4 +1,4 @@
-package me.travja.hungerarena;
+package me.Travja.HungerArena;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
