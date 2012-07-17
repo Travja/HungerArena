@@ -118,8 +118,8 @@ public class SpectatorListener implements Listener {
 	@EventHandler
 	public void MobNerf(EntityTargetEvent event){
 		Entity target = event.getTarget();
-                Entity le = event.getEntity();
-                if (le instanceof Player) {
+                Entity e = event.getEntity();
+                if (e instanceof Player) {
                     return;
                 }
 		if(target instanceof Player){

@@ -31,6 +31,8 @@ public class Main extends JavaPlugin{
 	public Listener PvP = new PvP(this);
 	public Listener Blocks = new Blocks(this);
 	public Listener CommandBlock = new CommandBlock(this);
+        public Listener Damage = new DmgListener(this);
+        public Listener Teleport = new TeleportListener(this);
 	public Listener Signs = new Signs(this);
 	public Listener BlockStorage = new BlockStorage(this);
         public Listener WinGames = new WinGamesListener(this);
@@ -60,6 +62,7 @@ public class Main extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(Signs, this);
 		getServer().getPluginManager().registerEvents(BlockStorage, this);
                 getServer().getPluginManager().registerEvents(WinGames, this);
+                getServer().getPluginManager().registerEvents(Damage, this);
 		getCommand("Ha").setExecutor(HaCommands);
 		getCommand("Sponsor").setExecutor(SponsorCommands);
 		getCommand("Startpoint").setExecutor(SpawnsCommand);

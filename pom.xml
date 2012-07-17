@@ -4,7 +4,7 @@
 
   <groupId>me.Travja.HungerArena</groupId>
   <artifactId>HungerArena</artifactId>
-  <version>0.5</version>
+  <version>1.3alpha</version>
   <packaging>jar</packaging>
 
   <name>HungerArena</name>

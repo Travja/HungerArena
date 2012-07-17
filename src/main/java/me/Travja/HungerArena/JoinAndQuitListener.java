@@ -13,9 +13,19 @@ import org.bukkit.event.player.PlayerQuitEvent;
 public class JoinAndQuitListener implements Listener {
 	public Main plugin;
 	public JoinAndQuitListener(Main m) {
-		this.plugin = m;
+                this.plugin = m;
 	}
 	int i = 0;
+        
+        @EventHandler
+        public void onJoin(PlayerJoinEvent evt) {
+            Player p = evt.getPlayer();
+            for (String s : plugin.Watching) {
+                Player spectator = Bukkit.getServer().getPlayerExact(s);
+                p.hidePlayer(spectator);
+            }
+        }
+        
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event){
 		final Player p = event.getPlayer();
@@ -50,6 +60,24 @@ public class JoinAndQuitListener implements Listener {
 			}, 40L);
 		}
 	}
+        
+        @EventHandler
+        public void onQuit(PlayerQuitEvent evt) {
+            Player p = evt.getPlayer();
+            String pname = p.getName();
+            if (plugin.Frozen.contains(pname)) {
+                plugin.Frozen.remove(pname);
+                String[] Spawncoords = plugin.config.getString("Spawn_coords").split(",");
+		String w = Spawncoords[3];
+		World spawnw = plugin.getServer().getWorld(w);
+		double spawnx = Double.parseDouble(Spawncoords[0]);
+		double spawny = Double.parseDouble(Spawncoords[1]);
+		double spawnz = Double.parseDouble(Spawncoords[2]);
+		Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
+                p.teleport(Spawn);
+            }
+        }
+        
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event){
 		final Player p = event.getPlayer();
@@ -102,7 +130,6 @@ public class JoinAndQuitListener implements Listener {
 					}
 				}else{
 					plugin.Quit.add(pname);
-					plugin.Out.remove(pname);
 				}
 			}
 		}, 1200L);
