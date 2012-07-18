@@ -32,6 +32,8 @@ ChatClose_Radius: 10
 Protected_Arena: 'true'
 # Whether or not players will be frozen when they are teleported to their positions
 Frozen_Teleport: 'true'
+# If the Tributes will get blown to bits when stepping off the pedestal
+Explode_on_Move: 'false'
 # Whether or not thunder will sound upon a players death
 Cannon_Death: 'true'
 Tribute_one_spawn: 100,100,100
