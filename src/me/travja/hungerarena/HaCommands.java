@@ -6,7 +6,6 @@ import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.block.Block;
-import org.bukkit.block.BlockFace;
 import org.bukkit.block.Chest;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -378,7 +377,6 @@ public class HaCommands implements CommandExecutor {
 								String world = onecoords[3];
 								World w = plugin.getServer().getWorld(world);
 								Location oneloc = new Location(w, x, y, z);
-								oneloc = oneloc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_one.teleport(oneloc);
 								plugin.Frozen.add(Tribute_one.getName());
 								Tribute_one.setFoodLevel(20);
@@ -391,7 +389,6 @@ public class HaCommands implements CommandExecutor {
 								String twoworld = twocoords[3];
 								World twow = plugin.getServer().getWorld(twoworld);
 								Location twoloc = new Location(twow, twox, twoy, twoz);
-								twoloc = twoloc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_two.teleport(twoloc);
 								plugin.Frozen.add(Tribute_two.getName());
 								Tribute_two.setFoodLevel(20);
@@ -419,7 +416,6 @@ public class HaCommands implements CommandExecutor {
 								String world = coords[3];
 								World w = plugin.getServer().getWorld(world);
 								Location loc = new Location(w, x, y, z);
-								loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_three.teleport(loc);
 								plugin.Frozen.add(Tribute_three.getName());
 								Tribute_three.setFoodLevel(20);
@@ -434,7 +430,6 @@ public class HaCommands implements CommandExecutor {
 								String world = coords[3];
 								World w = plugin.getServer().getWorld(world);
 								Location loc = new Location(w, x, y, z);
-								loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_four.teleport(loc);
 								plugin.Frozen.add(Tribute_four.getName());
 								Tribute_four.setFoodLevel(20);
@@ -449,7 +444,6 @@ public class HaCommands implements CommandExecutor {
 								String world = coords[3];
 								World w = plugin.getServer().getWorld(world);
 								Location loc = new Location(w, x, y, z);
-								loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_five.teleport(loc);
 								plugin.Frozen.add(Tribute_five.getName());
 								Tribute_five.setFoodLevel(20);
@@ -464,7 +458,6 @@ public class HaCommands implements CommandExecutor {
 								String world = coords[3];
 								World w = plugin.getServer().getWorld(world);
 								Location loc = new Location(w, x, y, z);
-								loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_six.teleport(loc);
 								plugin.Frozen.add(Tribute_six.getName());
 								Tribute_six.setFoodLevel(20);
@@ -479,7 +472,6 @@ public class HaCommands implements CommandExecutor {
 								String world = coords[3];
 								World w = plugin.getServer().getWorld(world);
 								Location loc = new Location(w, x, y, z);
-								loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_seven.teleport(loc);
 								plugin.Frozen.add(Tribute_seven.getName());
 								Tribute_seven.setFoodLevel(20);
@@ -494,7 +486,6 @@ public class HaCommands implements CommandExecutor {
 								String world = coords[3];
 								World w = plugin.getServer().getWorld(world);
 								Location loc = new Location(w, x, y, z);
-								loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_eight.teleport(loc);
 								plugin.Frozen.add(Tribute_eight.getName());
 								Tribute_eight.setFoodLevel(20);
@@ -509,7 +500,6 @@ public class HaCommands implements CommandExecutor {
 								String world = coords[3];
 								World w = plugin.getServer().getWorld(world);
 								Location loc = new Location(w, x, y, z);
-								loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_nine.teleport(loc);
 								plugin.Frozen.add(Tribute_nine.getName());
 								Tribute_nine.setFoodLevel(20);
@@ -524,7 +514,6 @@ public class HaCommands implements CommandExecutor {
 								String world = coords[3];
 								World w = plugin.getServer().getWorld(world);
 								Location loc = new Location(w, x, y, z);
-								loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_ten.teleport(loc);
 								plugin.Frozen.add(Tribute_ten.getName());
 								Tribute_ten.setFoodLevel(20);
@@ -539,7 +528,6 @@ public class HaCommands implements CommandExecutor {
 								String world = coords[3];
 								World w = plugin.getServer().getWorld(world);
 								Location loc = new Location(w, x, y, z);
-								loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_eleven.teleport(loc);
 								plugin.Frozen.add(Tribute_eleven.getName());
 								Tribute_eleven.setFoodLevel(20);
@@ -554,7 +542,6 @@ public class HaCommands implements CommandExecutor {
 								String world = coords[3];
 								World w = plugin.getServer().getWorld(world);
 								Location loc = new Location(w, x, y, z);
-								loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_twelve.teleport(loc);
 								plugin.Frozen.add(Tribute_twelve.getName());
 								Tribute_twelve.setFoodLevel(20);
@@ -569,7 +556,6 @@ public class HaCommands implements CommandExecutor {
 								String world = coords[3];
 								World w = plugin.getServer().getWorld(world);
 								Location loc = new Location(w, x, y, z);
-								loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_thirteen.teleport(loc);
 								plugin.Frozen.add(Tribute_thirteen.getName());
 								Tribute_thirteen.setFoodLevel(20);
@@ -584,7 +570,6 @@ public class HaCommands implements CommandExecutor {
 								String world = coords[3];
 								World w = plugin.getServer().getWorld(world);
 								Location loc = new Location(w, x, y, z);
-								loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_fourteen.teleport(loc);
 								plugin.Frozen.add(Tribute_fourteen.getName());
 								Tribute_fourteen.setFoodLevel(20);
@@ -599,7 +584,6 @@ public class HaCommands implements CommandExecutor {
 								String world = coords[3];
 								World w = plugin.getServer().getWorld(world);
 								Location loc = new Location(w, x, y, z);
-								loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_fifteen.teleport(loc);
 								plugin.Frozen.add(Tribute_fifteen.getName());
 								Tribute_fifteen.setFoodLevel(20);
@@ -614,7 +598,6 @@ public class HaCommands implements CommandExecutor {
 								String world = coords[3];
 								World w = plugin.getServer().getWorld(world);
 								Location loc = new Location(w, x, y, z);
-								loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_sixteen.teleport(loc);
 								plugin.Frozen.add(Tribute_sixteen.getName());
 								Tribute_sixteen.setFoodLevel(20);
@@ -629,7 +612,6 @@ public class HaCommands implements CommandExecutor {
 								String world = coords[3];
 								World w = plugin.getServer().getWorld(world);
 								Location loc = new Location(w, x, y, z);
-								loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_seventeen.teleport(loc);
 								plugin.Frozen.add(Tribute_seventeen.getName());
 								Tribute_seventeen.setFoodLevel(20);
@@ -644,7 +626,6 @@ public class HaCommands implements CommandExecutor {
 								String world = coords[3];
 								World w = plugin.getServer().getWorld(world);
 								Location loc = new Location(w, x, y, z);
-								loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_eighteen.teleport(loc);
 								plugin.Frozen.add(Tribute_eighteen.getName());
 								Tribute_eighteen.setFoodLevel(20);
@@ -659,7 +640,6 @@ public class HaCommands implements CommandExecutor {
 								String world = coords[3];
 								World w = plugin.getServer().getWorld(world);
 								Location loc = new Location(w, x, y, z);
-								loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_nineteen.teleport(loc);
 								plugin.Frozen.add(Tribute_nineteen.getName());
 								Tribute_nineteen.setFoodLevel(20);
@@ -674,7 +654,6 @@ public class HaCommands implements CommandExecutor {
 								String world = coords[3];
 								World w = plugin.getServer().getWorld(world);
 								Location loc = new Location(w, x, y, z);
-								loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_twenty.teleport(loc);
 								plugin.Frozen.add(Tribute_twenty.getName());
 								Tribute_twenty.setFoodLevel(20);
@@ -689,7 +668,6 @@ public class HaCommands implements CommandExecutor {
 								String world = coords[3];
 								World w = plugin.getServer().getWorld(world);
 								Location loc = new Location(w, x, y, z);
-								loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_twentyone.teleport(loc);
 								plugin.Frozen.add(Tribute_twentyone.getName());
 								Tribute_twentyone.setFoodLevel(20);
@@ -704,7 +682,6 @@ public class HaCommands implements CommandExecutor {
 								String world = coords[3];
 								World w = plugin.getServer().getWorld(world);
 								Location loc = new Location(w, x, y, z);
-								loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_twentytwo.teleport(loc);
 								plugin.Frozen.add(Tribute_twentytwo.getName());
 								Tribute_twentytwo.setFoodLevel(20);
@@ -719,7 +696,6 @@ public class HaCommands implements CommandExecutor {
 								String world = coords[3];
 								World w = plugin.getServer().getWorld(world);
 								Location loc = new Location(w, x, y, z);
-								loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_twentythree.teleport(loc);
 								plugin.Frozen.add(Tribute_twentythree.getName());
 								Tribute_twentythree.setFoodLevel(20);
@@ -734,7 +710,6 @@ public class HaCommands implements CommandExecutor {
 								String world = coords[3];
 								World w = plugin.getServer().getWorld(world);
 								Location loc = new Location(w, x, y, z);
-								loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 								Tribute_twentyfour.teleport(loc);
 								plugin.Frozen.add(Tribute_twentyfour.getName());
 								Tribute_twentyfour.setFoodLevel(20);
@@ -983,7 +958,6 @@ public class HaCommands implements CommandExecutor {
 							String world = onecoords[3];
 							World w = plugin.getServer().getWorld(world);
 							Location oneloc = new Location(w, x, y, z);
-							oneloc = oneloc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_one.teleport(oneloc);
 							plugin.Frozen.add(Tribute_one.getName());
 							Tribute_one.setFoodLevel(20);
@@ -996,7 +970,6 @@ public class HaCommands implements CommandExecutor {
 							String twoworld = twocoords[3];
 							World twow = plugin.getServer().getWorld(twoworld);
 							Location twoloc = new Location(twow, twox, twoy, twoz);
-							twoloc = twoloc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_two.teleport(twoloc);
 							plugin.Frozen.add(Tribute_two.getName());
 							Tribute_two.setFoodLevel(20);
@@ -1024,7 +997,6 @@ public class HaCommands implements CommandExecutor {
 							String world = coords[3];
 							World w = plugin.getServer().getWorld(world);
 							Location loc = new Location(w, x, y, z);
-							loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_three.teleport(loc);
 							plugin.Frozen.add(Tribute_three.getName());
 							Tribute_three.setFoodLevel(20);
@@ -1039,7 +1011,6 @@ public class HaCommands implements CommandExecutor {
 							String world = coords[3];
 							World w = plugin.getServer().getWorld(world);
 							Location loc = new Location(w, x, y, z);
-							loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_four.teleport(loc);
 							plugin.Frozen.add(Tribute_four.getName());
 							Tribute_four.setFoodLevel(20);
@@ -1054,7 +1025,6 @@ public class HaCommands implements CommandExecutor {
 							String world = coords[3];
 							World w = plugin.getServer().getWorld(world);
 							Location loc = new Location(w, x, y, z);
-							loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_five.teleport(loc);
 							plugin.Frozen.add(Tribute_five.getName());
 							Tribute_five.setFoodLevel(20);
@@ -1069,7 +1039,6 @@ public class HaCommands implements CommandExecutor {
 							String world = coords[3];
 							World w = plugin.getServer().getWorld(world);
 							Location loc = new Location(w, x, y, z);
-							loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_six.teleport(loc);
 							plugin.Frozen.add(Tribute_six.getName());
 							Tribute_six.setFoodLevel(20);
@@ -1084,7 +1053,6 @@ public class HaCommands implements CommandExecutor {
 							String world = coords[3];
 							World w = plugin.getServer().getWorld(world);
 							Location loc = new Location(w, x, y, z);
-							loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_seven.teleport(loc);
 							plugin.Frozen.add(Tribute_seven.getName());
 							Tribute_seven.setFoodLevel(20);
@@ -1099,7 +1067,6 @@ public class HaCommands implements CommandExecutor {
 							String world = coords[3];
 							World w = plugin.getServer().getWorld(world);
 							Location loc = new Location(w, x, y, z);
-							loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_eight.teleport(loc);
 							plugin.Frozen.add(Tribute_eight.getName());
 							Tribute_eight.setFoodLevel(20);
@@ -1114,7 +1081,6 @@ public class HaCommands implements CommandExecutor {
 							String world = coords[3];
 							World w = plugin.getServer().getWorld(world);
 							Location loc = new Location(w, x, y, z);
-							loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_nine.teleport(loc);
 							plugin.Frozen.add(Tribute_nine.getName());
 							Tribute_nine.setFoodLevel(20);
@@ -1129,7 +1095,6 @@ public class HaCommands implements CommandExecutor {
 							String world = coords[3];
 							World w = plugin.getServer().getWorld(world);
 							Location loc = new Location(w, x, y, z);
-							loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_ten.teleport(loc);
 							plugin.Frozen.add(Tribute_ten.getName());
 							Tribute_ten.setFoodLevel(20);
@@ -1144,7 +1109,6 @@ public class HaCommands implements CommandExecutor {
 							String world = coords[3];
 							World w = plugin.getServer().getWorld(world);
 							Location loc = new Location(w, x, y, z);
-							loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_eleven.teleport(loc);
 							plugin.Frozen.add(Tribute_eleven.getName());
 							Tribute_eleven.setFoodLevel(20);
@@ -1159,7 +1123,6 @@ public class HaCommands implements CommandExecutor {
 							String world = coords[3];
 							World w = plugin.getServer().getWorld(world);
 							Location loc = new Location(w, x, y, z);
-							loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_twelve.teleport(loc);
 							plugin.Frozen.add(Tribute_twelve.getName());
 							Tribute_twelve.setFoodLevel(20);
@@ -1174,7 +1137,6 @@ public class HaCommands implements CommandExecutor {
 							String world = coords[3];
 							World w = plugin.getServer().getWorld(world);
 							Location loc = new Location(w, x, y, z);
-							loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_thirteen.teleport(loc);
 							plugin.Frozen.add(Tribute_thirteen.getName());
 							Tribute_thirteen.setFoodLevel(20);
@@ -1189,7 +1151,6 @@ public class HaCommands implements CommandExecutor {
 							String world = coords[3];
 							World w = plugin.getServer().getWorld(world);
 							Location loc = new Location(w, x, y, z);
-							loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_fourteen.teleport(loc);
 							plugin.Frozen.add(Tribute_fourteen.getName());
 							Tribute_fourteen.setFoodLevel(20);
@@ -1204,7 +1165,6 @@ public class HaCommands implements CommandExecutor {
 							String world = coords[3];
 							World w = plugin.getServer().getWorld(world);
 							Location loc = new Location(w, x, y, z);
-							loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_fifteen.teleport(loc);
 							plugin.Frozen.add(Tribute_fifteen.getName());
 							Tribute_fifteen.setFoodLevel(20);
@@ -1219,7 +1179,6 @@ public class HaCommands implements CommandExecutor {
 							String world = coords[3];
 							World w = plugin.getServer().getWorld(world);
 							Location loc = new Location(w, x, y, z);
-							loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_sixteen.teleport(loc);
 							plugin.Frozen.add(Tribute_sixteen.getName());
 							Tribute_sixteen.setFoodLevel(20);
@@ -1234,7 +1193,6 @@ public class HaCommands implements CommandExecutor {
 							String world = coords[3];
 							World w = plugin.getServer().getWorld(world);
 							Location loc = new Location(w, x, y, z);
-							loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_seventeen.teleport(loc);
 							plugin.Frozen.add(Tribute_seventeen.getName());
 							Tribute_seventeen.setFoodLevel(20);
@@ -1249,7 +1207,6 @@ public class HaCommands implements CommandExecutor {
 							String world = coords[3];
 							World w = plugin.getServer().getWorld(world);
 							Location loc = new Location(w, x, y, z);
-							loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_eighteen.teleport(loc);
 							plugin.Frozen.add(Tribute_eighteen.getName());
 							Tribute_eighteen.setFoodLevel(20);
@@ -1264,7 +1221,6 @@ public class HaCommands implements CommandExecutor {
 							String world = coords[3];
 							World w = plugin.getServer().getWorld(world);
 							Location loc = new Location(w, x, y, z);
-							loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_nineteen.teleport(loc);
 							plugin.Frozen.add(Tribute_nineteen.getName());
 							Tribute_nineteen.setFoodLevel(20);
@@ -1279,7 +1235,6 @@ public class HaCommands implements CommandExecutor {
 							String world = coords[3];
 							World w = plugin.getServer().getWorld(world);
 							Location loc = new Location(w, x, y, z);
-							loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_twenty.teleport(loc);
 							plugin.Frozen.add(Tribute_twenty.getName());
 							Tribute_twenty.setFoodLevel(20);
@@ -1294,7 +1249,6 @@ public class HaCommands implements CommandExecutor {
 							String world = coords[3];
 							World w = plugin.getServer().getWorld(world);
 							Location loc = new Location(w, x, y, z);
-							loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_twentyone.teleport(loc);
 							plugin.Frozen.add(Tribute_twentyone.getName());
 							Tribute_twentyone.setFoodLevel(20);
@@ -1309,7 +1263,6 @@ public class HaCommands implements CommandExecutor {
 							String world = coords[3];
 							World w = plugin.getServer().getWorld(world);
 							Location loc = new Location(w, x, y, z);
-							loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_twentytwo.teleport(loc);
 							plugin.Frozen.add(Tribute_twentytwo.getName());
 							Tribute_twentytwo.setFoodLevel(20);
@@ -1324,7 +1277,6 @@ public class HaCommands implements CommandExecutor {
 							String world = coords[3];
 							World w = plugin.getServer().getWorld(world);
 							Location loc = new Location(w, x, y, z);
-							loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_twentythree.teleport(loc);
 							plugin.Frozen.add(Tribute_twentythree.getName());
 							Tribute_twentythree.setFoodLevel(20);
@@ -1339,7 +1291,6 @@ public class HaCommands implements CommandExecutor {
 							String world = coords[3];
 							World w = plugin.getServer().getWorld(world);
 							Location loc = new Location(w, x, y, z);
-							loc = loc.getBlock().getRelative(BlockFace.UP).getLocation();
 							Tribute_twentyfour.teleport(loc);
 							plugin.Frozen.add(Tribute_twentyfour.getName());
 							Tribute_twentyfour.setFoodLevel(20);
