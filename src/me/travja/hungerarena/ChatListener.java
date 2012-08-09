@@ -7,7 +7,7 @@ import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
-import org.bukkit.event.player.PlayerChatEvent;
+import org.bukkit.event.player.AsyncPlayerChatEvent;
 
 public class ChatListener implements Listener {
 	public Main plugin;
@@ -15,7 +15,7 @@ public class ChatListener implements Listener {
 		this.plugin = m;
 	}
 	@EventHandler
-	public void TributeChat(PlayerChatEvent event){
+	public void TributeChat(AsyncPlayerChatEvent event){
 		Player p = event.getPlayer();
 		String pname = p.getName();
 		if(plugin.Playing.contains(pname)){
