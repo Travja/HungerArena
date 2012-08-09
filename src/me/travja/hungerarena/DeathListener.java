@@ -34,13 +34,22 @@ public class DeathListener implements Listener{
 		Player p = event.getEntity();
 		Server s = p.getServer();
 		String pname = p.getName();
-		String leftmsg = ChatColor.BLUE + "There are now " + plugin.Playing.size() + " tributes left!";
+		int players = plugin.Playing.size()-1;
+		String leftmsg = ChatColor.BLUE + "There are now " + players + " tributes left!";
 		String[] Spawncoords = plugin.config.getString("Spawn_coords").split(",");
 		World spawnw = plugin.getServer().getWorld(Spawncoords[3]);
 		double spawnx = Double.parseDouble(Spawncoords[0]);
 		double spawny = Double.parseDouble(Spawncoords[1]);
 		double spawnz = Double.parseDouble(Spawncoords[2]);
 		Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
+		if(plugin.config.getString("Cannon_Death").equalsIgnoreCase("True")){
+			double y = p.getLocation().getY();
+			double newy = y+200;
+			double x = p.getLocation().getX();
+			double z = p.getLocation().getZ();
+			Location strike = new Location(p.getWorld(), x, newy, z);
+			p.getWorld().strikeLightning(strike);
+		}
 		if(plugin.Frozen.contains(pname) && plugin.Playing.contains(pname)){
 			event.setDeathMessage("");
 			p.getServer().broadcastMessage(pname + ChatColor.LIGHT_PURPLE + " Stepped off their pedestal too early!");
@@ -48,7 +57,7 @@ public class DeathListener implements Listener{
 			plugin.Playing.remove(pname);
 			plugin.Dead.add(pname);
 			s.broadcastMessage(leftmsg);
-			if(plugin.Playing.size()== 1 && plugin.canjoin== true){
+			if(plugin.Playing.size()== 1 && plugin.canjoin== false){
 				//Announce winner
 				String winnername = plugin.Playing.get(i++);
 				Player winner = plugin.getServer().getPlayerExact(winnername);

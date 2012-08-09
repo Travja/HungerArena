@@ -2,6 +2,7 @@ package me.Travja.HungerArena;
 
 import java.util.List;
 
+import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
@@ -26,7 +27,7 @@ public class BlockStorage implements Listener {
 	public BlockStorage(Main m) {
 		this.plugin = m;
 	}
-	/*@EventHandler
+	@EventHandler
 	public void creeperExplosion(EntityExplodeEvent event){
 		if(plugin.canjoin== true){
 			for(Block b:event.blockList()){
@@ -88,15 +89,34 @@ public class BlockStorage implements Listener {
 			int z = b.getZ();
 			int d = b.getTypeId();
 			String coords = w + "," + x + "," + y + "," + z + "," + d;
-			if(!(d== 51) && !(d==12){
+			if(!(d== 51) && !(d==12) && !(d==13)){
 				System.out.println("Place: " + coords);
 				List<String> blocks = plugin.config.getStringList("Blocks_Placed");
 				blocks.add(coords);
 				plugin.config.set("Blocks_Placed", blocks);
 				plugin.saveConfig();
-			}
-			Location location = b.getLocation();
-			if (b.getType() == Material.SAND || b.getType() == Material.GRAVEL) {
+			}else if (d == 12 || d == 13) {
+				System.out.println("Sand/Gravel");
+				int newy = y;
+				int replaced = 0;
+				Location l = b.getLocation();
+				while(l.getBlock().getRelative(BlockFace.DOWN).getType()== Material.AIR){
+					newy = newy-1;
+					replaced = 0;
+					System.out.println(newy);
+				}
+				while(l.getBlock().getRelative(BlockFace.DOWN).getType()== Material.WATER){
+					newy = newy-1;
+					replaced = 8;
+				}
+				while(l.getBlock().getRelative(BlockFace.DOWN).getType()== Material.LAVA){
+					newy = newy-1;
+					replaced = 10;
+				}
+				if(l.getBlock().getRelative(BlockFace.DOWN).getType()!= Material.AIR || l.getBlock().getRelative(BlockFace.DOWN).getType()!= Material.WATER || l.getBlock().getRelative(BlockFace.DOWN).getType()!= Material.LAVA){
+					event.getPlayer().sendMessage(ChatColor.GREEN + "Block will land at " + x + ", " + newy + ", " + z + " and replaced " + replaced);
+				}
+				/*Location location = b.getLocation();
 				if (location.getBlock().getRelative(BlockFace.DOWN).getType() == Material.AIR) {
 					int i = 0;
 					for (i = location.getBlockY(); i > -1; i --) {
@@ -105,13 +125,13 @@ public class BlockStorage implements Listener {
 							break;
 						}
 						event.getPlayer().sendMessage("Block will land at: " + location);
-						System.out.println("Sand Place: " + coords);
+						System.out.println("Sand/Gravel Place: " + coords);
 						List<String> blocks = plugin.config.getStringList("Blocks_Destroyed");
 						blocks.add(coords);
 						plugin.config.set("Blocks_Destroyed", blocks);
 						plugin.saveConfig();
 					}
-				}
+				}*/
 			}
 		}
 	}
@@ -178,11 +198,13 @@ public class BlockStorage implements Listener {
 			int z = b.getZ();
 			int d = b.getTypeId();
 			String coords = w + "," + x + "," + y + "," + z + "," + d;
-			System.out.println("Fade: " + coords);
-			List<String> blocks = plugin.config.getStringList("Blocks_Destroyed");
-			blocks.add(coords);
-			plugin.config.set("Blocks_Destroyed", blocks);
-			plugin.saveConfig();
+			if(d != 51 && d != 2){
+				System.out.println("Fade: " + coords);
+				List<String> blocks = plugin.config.getStringList("Blocks_Destroyed");
+				blocks.add(coords);
+				plugin.config.set("Blocks_Destroyed", blocks);
+				plugin.saveConfig();
+			}
 		}
 	}
 	@EventHandler
@@ -237,7 +259,7 @@ public class BlockStorage implements Listener {
 			}
 		}
 	}
-	@EventHandler
+	/*@EventHandler
 	public void onChange(BlockPhysicsEvent event){
 		Block block = event.getBlock();
 		Material changed = event.getChangedType();
