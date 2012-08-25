@@ -35,9 +35,9 @@ public class HaCommands implements CommandExecutor {
 			final String pname = p.getName();
 			ChatColor c = ChatColor.AQUA;
 			if(cmd.getName().equalsIgnoreCase("Ha")){
-				if(plugin.restricted && !plugin.config.getStringList("worlds").contains(p.getWorld().toString())){
+				if(plugin.restricted && !plugin.worlds.contains(p.getWorld().getName())){
 					p.sendMessage(ChatColor.RED + "That can't be run in this world!");
-				}else if((plugin.restricted && plugin.config.getStringList("worlds").contains(p.getWorld().toString())) || !plugin.restricted){
+				}else if((plugin.restricted && plugin.worlds.contains(p.getWorld().getName())) || !plugin.restricted){
 					if(args.length== 0){
 						p.sendMessage(ChatColor.GREEN + "[HungerArena] by " + ChatColor.AQUA + "travja!");
 						return false;

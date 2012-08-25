@@ -2,6 +2,7 @@ package me.Travja.HungerArena;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.logging.Logger;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.ChatColor;
@@ -22,6 +23,7 @@ public class Main extends JavaPlugin{
 	public ArrayList<String> Watching = new ArrayList<String>();
 	public ArrayList<String> NeedConfirm = new ArrayList<String>();
 	public HashSet<String> Frozen = new HashSet<String>();
+	public List<String> worlds;
 	public Listener DeathListener = new DeathListener(this);
 	public Listener SpectatorListener = new SpectatorListener(this);
 	public Listener FreezeListener = new FreezeListener(this);
@@ -90,9 +92,10 @@ public class Main extends JavaPlugin{
 		}
 		Reward = new ItemStack(config.getInt("Reward.ID"), config.getInt("Reward.Amount"));
 		Cost = new ItemStack(config.getInt("Sponsor_Cost.ID"), config.getInt("Sponsor_Cost.Amount"));
-		if(config.getStringList("worlds").isEmpty()){
+		worlds = config.getStringList("worlds");
+		if(worlds.isEmpty()){
 			restricted = false;
-		}else if(!config.getStringList("worlds").isEmpty()){
+		}else if(!worlds.isEmpty()){
 			restricted = true;
 		}
 	}

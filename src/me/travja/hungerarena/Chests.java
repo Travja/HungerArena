@@ -25,7 +25,7 @@ public class Chests implements Listener {
 		Block block = event.getClickedBlock();
 		Player p = event.getPlayer();
 		if(p.getItemInHand().getType()== Material.BLAZE_ROD && event.getAction() == Action.LEFT_CLICK_BLOCK){
-			if(!plugin.restricted || (plugin.restricted && plugin.config.getStringList("worlds").contains(p.getWorld().toString()))){
+			if(!plugin.restricted || (plugin.restricted && plugin.worlds.contains(p.getWorld().getName()))){
 				if(block.getState() instanceof Chest){
 					if(p.hasPermission("HungerArena.Chest.Store")){
 						ItemStack[] itemsinchest = ((Chest) block.getState()).getInventory().getContents();

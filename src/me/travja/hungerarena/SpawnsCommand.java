@@ -18,8 +18,8 @@ public class SpawnsCommand implements CommandExecutor {
 		Player p = (Player) sender;
 		if(cmd.getName().equalsIgnoreCase("StartPoint")){
 			if(p.hasPermission("HungerArena.StartPoint")){
-				if(!plugin.restricted || (plugin.restricted && plugin.config.getStringList("worlds").contains(p.getWorld().toString()))){
-					if(plugin.restricted && !plugin.config.getStringList("worlds").contains(p.getWorld().toString())){
+				if(!plugin.restricted || (plugin.restricted && plugin.worlds.contains(p.getWorld().getName()))){
+					if(plugin.restricted && !plugin.worlds.contains(p.getWorld().toString())){
 						p.sendMessage(ChatColor.GOLD + "We ran the command, however, this isn't a world you defined in the config...");
 						p.sendMessage(ChatColor.GOLD + "If this is the right world, please disregard this message.");
 					}
