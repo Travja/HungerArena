@@ -12,8 +12,8 @@ config:
 # If left blank all worlds will be allowed.
 # ie:
 # worlds:
-#     - world
-#     - world_nether
+#   - world
+#   - world_nether
 worlds:
  
 # Message to display when the games start
@@ -84,7 +84,7 @@ ChatClose_Radius: 10
 ########################
 Spawn_coords: 100,100,100,world
 # If /ha setspawn has been run
-Spawn_set: 'false'
+Spawns_set: 'false'
 Tribute_one_spawn: 100,100,100
 Tribute_two_spawn: 100,100,100
 Tribute_three_spawn: 100,100,100
