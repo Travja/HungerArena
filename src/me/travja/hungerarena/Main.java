@@ -41,6 +41,7 @@ public class Main extends JavaPlugin{
 	public CommandExecutor SpawnsCommand = new SpawnsCommand(this);
 	public boolean canjoin;
 	public boolean exists;
+	public boolean restricted;
 	public FileConfiguration config;
 	public ItemStack Reward;
 	public ItemStack Cost;
@@ -89,6 +90,11 @@ public class Main extends JavaPlugin{
 		}
 		Reward = new ItemStack(config.getInt("Reward.ID"), config.getInt("Reward.Amount"));
 		Cost = new ItemStack(config.getInt("Sponsor_Cost.ID"), config.getInt("Sponsor_Cost.Amount"));
+		if(config.getStringList("worlds").isEmpty()){
+			restricted = false;
+		}else if(!config.getStringList("worlds").isEmpty()){
+			restricted = true;
+		}
 	}
 
 	public void onDisable(){

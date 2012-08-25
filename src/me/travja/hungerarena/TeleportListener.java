@@ -17,7 +17,7 @@ public class TeleportListener implements Listener {
         this.plugin = m;
     }
     
-    @EventHandler
+    /*@EventHandler          Unwanted right now...
     public void onTP(PlayerTeleportEvent evt) {
         @SuppressWarnings("unused")
 		Player p = evt.getPlayer();
@@ -32,6 +32,6 @@ public class TeleportListener implements Listener {
             return;
         }
         evt.setCancelled(true);
-    }
+    }*/
 
 }
