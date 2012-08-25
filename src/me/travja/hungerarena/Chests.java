@@ -25,34 +25,36 @@ public class Chests implements Listener {
 		Block block = event.getClickedBlock();
 		Player p = event.getPlayer();
 		if(p.getItemInHand().getType()== Material.BLAZE_ROD && event.getAction() == Action.LEFT_CLICK_BLOCK){
-			if(block.getState() instanceof Chest){
-				if(p.hasPermission("HungerArena.Chest.Store")){
-					ItemStack[] itemsinchest = ((Chest) block.getState()).getInventory().getContents();
-					int blockx = block.getX();
-					int blocky = block.getY();
-					int blockz = block.getZ();
-					String blockw = block.getWorld().getName().toString();
-					if(!plugin.getConfig().contains("Storage." + blockx + "," + blocky + "," + blockz + ".Location.X")){
-						plugin.getConfig().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".Location.X", blockx);
-						plugin.getConfig().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".Location.Y", blocky);
-						plugin.getConfig().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".Location.Z",blockz);
-						plugin.getConfig().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".Location.W", blockw);
-						plugin.getConfig().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".ItemsInStorage", itemsinchest);
+			if(!plugin.restricted || (plugin.restricted && plugin.config.getStringList("worlds").contains(p.getWorld().toString()))){
+				if(block.getState() instanceof Chest){
+					if(p.hasPermission("HungerArena.Chest.Store")){
+						ItemStack[] itemsinchest = ((Chest) block.getState()).getInventory().getContents();
+						int blockx = block.getX();
+						int blocky = block.getY();
+						int blockz = block.getZ();
+						String blockw = block.getWorld().getName().toString();
+						if(!plugin.getConfig().contains("Storage." + blockx + "," + blocky + "," + blockz + ".Location.X")){
+							plugin.getConfig().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".Location.X", blockx);
+							plugin.getConfig().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".Location.Y", blocky);
+							plugin.getConfig().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".Location.Z",blockz);
+							plugin.getConfig().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".Location.W", blockw);
+							plugin.getConfig().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".ItemsInStorage", itemsinchest);
+						}else{
+							plugin.getConfig().set("Storage." + blockx + "," + blocky+ "," + blockz + ".Location.X",blockx);
+							plugin.getConfig().set("Storage." + blockx + "," + blocky + "," + blockz + ".Location.Y", blocky);
+							plugin.getConfig().set("Storage." + blockx + "," + blocky + "," + blockz + ".Location.Z", blockz);
+							plugin.getConfig().set("Storage." + blockx + "," + blocky + "," + blockz + ".Location.W", blockw);
+							plugin.getConfig().set("Storage." + blockx + "," + blocky + "," + blockz + ".ItemsInStorage", itemsinchest);
+						}
+						List<String> list2 = plugin.getConfig().getStringList("StorageXYZ");
+						list2.add(blockx + "," + blocky + "," + blockz);
+						plugin.getConfig().set("StorageXYZ", list2);
+						plugin.getConfig().options().copyDefaults(true);
+						plugin.saveConfig();
+						p.sendMessage(ChatColor.GREEN + "Chest Stored!");
 					}else{
-						plugin.getConfig().set("Storage." + blockx + "," + blocky+ "," + blockz + ".Location.X",blockx);
-						plugin.getConfig().set("Storage." + blockx + "," + blocky + "," + blockz + ".Location.Y", blocky);
-						plugin.getConfig().set("Storage." + blockx + "," + blocky + "," + blockz + ".Location.Z", blockz);
-						plugin.getConfig().set("Storage." + blockx + "," + blocky + "," + blockz + ".Location.W", blockw);
-						plugin.getConfig().set("Storage." + blockx + "," + blocky + "," + blockz + ".ItemsInStorage", itemsinchest);
+						p.sendMessage(ChatColor.RED + "You don't have permission to store chests!");
 					}
-					List<String> list2 = plugin.getConfig().getStringList("StorageXYZ");
-					list2.add(blockx + "," + blocky + "," + blockz);
-					plugin.getConfig().set("StorageXYZ", list2);
-					plugin.getConfig().options().copyDefaults(true);
-					plugin.saveConfig();
-					p.sendMessage(ChatColor.GREEN + "Chest Stored!");
-				}else{
-					p.sendMessage(ChatColor.RED + "You don't have permission to store chests!");
 				}
 			}
 		}
@@ -75,9 +77,9 @@ public class Chests implements Listener {
 					plugin.saveConfig();
 					p.sendMessage("Chest Removed!");
 				} else {
-                                    event.setCancelled(true);
-                                    p.sendMessage(ChatColor.RED + "[HungerArena] That's a storage chest! You don't have permission to break it!");
-                                }
+					event.setCancelled(true);
+					p.sendMessage(ChatColor.RED + "[HungerArena] That's a storage chest! You don't have permission to break it!");
+				}
 			}
 		}
 	}

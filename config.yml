@@ -1,41 +1,90 @@
 # default config.yml
+
 #config version for us devs. DONT CHANGE THIS, or it will screw up some things PRETTY badly.
 config:
   version: 1.3
+
+######################################
+######## Game Configuration ######### 
+######################################
+
+# The world(s) that all HA features are restricted to.
+# If left blank all worlds will be allowed.
+# ie:
+# worlds:
+#     - world
+#     - world_nether
+worlds:
+ 
 # Message to display when the games start
 Start_Message: '&bLet The Games Begin!'
+
 # If the games should automatically restart at the end
 Auto_Restart: 'false'
+
 # If it should automatically start the countdown on warping
 Auto_Start: 'false'
+
 # If tributes need to type /ha confirm to join
 Need_Confirm: 'true'
-# Not yet implemented
-iConomy_Support: 'false'
+
+# Whether or not the countdown will start upon warping.
+Countdown: 'true'
+# Whether or not players can break blocks while playing
+Protected_Arena: 'true'
+
+# Whether or not players will be frozen when they are teleported to their positions
+Frozen_Teleport: 'true'
+
+# If the Tributes will get blown to bits when stepping off the pedestal
+Explode_on_Move: 'false'
+
+# Whether or not thunder will sound upon a players death
+Cannon_Death: 'true'
+######################################
+######################################
+######################################
+
+################################
+###### Rewards/Sponsoring ######
+################################
+
 # What the reward for winning is
 Reward:
     ID: 264
     Amount: 10
+# True means give money to winner, false means don't.
+eco:
+  enabled: false
+  reward: 100
+# How much money to give the winner.
 # What sponsors have to pay to sponsor tributes
 Sponsor_Cost:
     ID: 264
     Amount: 1
-# Whether or not the countdown will start upon warping.
-Countdown: 'true'
-Spawn_coords: 100,100,100,world
+################################
+################################
+################################
+
+#############################
+####### Chat Related ########
+#############################
+
 # If players will only talk to close players of the whole server
 ChatClose: 'true'
-ChatClose: 'false'
+
 # How close the players have to be to talk to them
 ChatClose_Radius: 10
-# Whether or not players can break blocks while playing
-Protected_Arena: 'true'
-# Whether or not players will be frozen when they are teleported to their positions
-Frozen_Teleport: 'true'
-# If the Tributes will get blown to bits when stepping off the pedestal
-Explode_on_Move: 'false'
-# Whether or not thunder will sound upon a players death
-Cannon_Death: 'true'
+#############################
+#############################
+#############################
+
+########################
+####### Spawns #########
+########################
+Spawn_coords: 100,100,100,world
+# If /ha setspawn has been run
+Spawn_set: 'false'
 Tribute_one_spawn: 100,100,100
 Tribute_two_spawn: 100,100,100
 Tribute_three_spawn: 100,100,100
@@ -60,12 +109,9 @@ Tribute_twentyone_spawn: 100,100,100
 Tribute_twentytwo_spawn: 100,100,100
 Tribute_twentythree_spawn: 100,100,100
 Tribute_twentyfour_spawn: 100,100,100
-# If /ha setspawn has been run
-Spawn_set: 'false'
-# True means give money to winner, false means don't.
-eco:
-  enabled: false
-  reward: 100
-# How much money to give the winner.
+########################
+########################
+########################
+
 # Leave this. :)
 Blocks_Destroyed:
