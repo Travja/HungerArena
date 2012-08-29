@@ -12,8 +12,8 @@ config:
 # If left blank all worlds will be allowed.
 # ie:
 # worlds:
-#   - world
-#   - world_nether
+# - world
+# - world_nether
 worlds:
  
 # Message to display when the games start

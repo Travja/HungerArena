@@ -27,7 +27,7 @@ public class BlockStorage implements Listener {
 	public BlockStorage(Main m) {
 		this.plugin = m;
 	}
-	@EventHandler
+	/*@EventHandler
 	public void creeperExplosion(EntityExplodeEvent event){
 		if(plugin.canjoin== true){
 			for(Block b:event.blockList()){
@@ -116,7 +116,7 @@ public class BlockStorage implements Listener {
 				if(l.getBlock().getRelative(BlockFace.DOWN).getType()!= Material.AIR || l.getBlock().getRelative(BlockFace.DOWN).getType()!= Material.WATER || l.getBlock().getRelative(BlockFace.DOWN).getType()!= Material.LAVA){
 					event.getPlayer().sendMessage(ChatColor.GREEN + "Block will land at " + x + ", " + newy + ", " + z + " and replaced " + replaced);
 				}
-				/*Location location = b.getLocation();
+				Location location = b.getLocation();
 				if (location.getBlock().getRelative(BlockFace.DOWN).getType() == Material.AIR) {
 					int i = 0;
 					for (i = location.getBlockY(); i > -1; i --) {
@@ -131,7 +131,7 @@ public class BlockStorage implements Listener {
 						plugin.config.set("Blocks_Destroyed", blocks);
 						plugin.saveConfig();
 					}
-				}*/
+				}
 			}
 		}
 	}
@@ -259,7 +259,7 @@ public class BlockStorage implements Listener {
 			}
 		}
 	}
-	/*@EventHandler
+	@EventHandler
 	public void onChange(BlockPhysicsEvent event){
 		Block block = event.getBlock();
 		Material changed = event.getChangedType();

@@ -20,10 +20,10 @@ public class HaCommands implements CommandExecutor {
 		this.plugin = m;
 	}
 	int i = 0;
-	@SuppressWarnings("unchecked")
+	@SuppressWarnings({ "unchecked", "deprecation" })
 	@Override
 	public boolean onCommand(final CommandSender sender, Command cmd, String commandLabel, String[] args){
-		String[] Spawncoords = plugin.config.getString("Spawn_coords").split(",");
+		String[] Spawncoords = plugin.spawns.getString("Spawn_coords").split(",");
 		double spawnx = Double.parseDouble(Spawncoords[0]);
 		double spawny = Double.parseDouble(Spawncoords[1]);
 		double spawnz = Double.parseDouble(Spawncoords[2]);
@@ -62,6 +62,7 @@ public class HaCommands implements CommandExecutor {
 						sender.sendMessage(c + "/ha rlist - See who's ready!");
 						sender.sendMessage(c + "/startpoint [1,2,3,4,etc] - Sets the starting points of tributes!");
 						sender.sendMessage(ChatColor.GREEN + "----------------------");
+						//////////////////////////////////////// LISTING ///////////////////////////////////////////////
 					}else if(args[0].equalsIgnoreCase("List")){
 						if(p.hasPermission("HungerArena.GameMaker")){
 							sender.sendMessage(ChatColor.AQUA + "-----People Playing-----");
@@ -92,19 +93,21 @@ public class HaCommands implements CommandExecutor {
 						}else{
 							p.sendMessage(ChatColor.RED + "You don't have permission!");
 						}
+						////////////////////////////////////////////////////////////////////////////////////////////////
 					}else if(args[0].equalsIgnoreCase("SetSpawn")){
 						if(p.hasPermission("HungerArena.SetSpawn")){
 							double x = p.getLocation().getX();
 							double y = p.getLocation().getY();
 							double z = p.getLocation().getZ();
 							String w = p.getWorld().getName();
-							plugin.config.set("Spawn_coords", x + "," + y + "," + z + "," + w);
-							plugin.config.set("Spawns_set", "true");
-							plugin.saveConfig();
+							plugin.spawns.set("Spawn_coords", x + "," + y + "," + z + "," + w);
+							plugin.spawns.set("Spawns_set", "true");
+							plugin.saveSpawns();
 							p.sendMessage(ChatColor.AQUA + "You have set the spawn for dead tributes!");
 						}else{
 							p.sendMessage(ChatColor.RED + "You don't have permission!");
 						}
+						///////////////////////////////////// JOINING/LEAVING ////////////////////////////////////////////////////
 					}else if(args[0].equalsIgnoreCase("Join")){
 						if(p.hasPermission("HungerArena.Join")){
 							if(plugin.Playing.contains(pname)){
@@ -115,7 +118,9 @@ public class HaCommands implements CommandExecutor {
 								p.sendMessage(ChatColor.RED + "There are already 24 Tributes!");
 							}else if(plugin.canjoin== true){
 								p.sendMessage(ChatColor.RED + "The game is in progress!");
-							}else if(plugin.config.getString("Spawns_set").equalsIgnoreCase("false")){
+							}else if(!plugin.open){
+								p.sendMessage(ChatColor.RED + "The game is closed!");
+							}else if(plugin.spawns.getString("Spawns_set").equalsIgnoreCase("false")){
 								p.sendMessage(ChatColor.RED + "/ha setspawn hasn't been run!");
 							}else if(plugin.NeedConfirm.contains(pname)){
 								p.sendMessage(ChatColor.RED + "You need to do /ha confirm");
@@ -129,9 +134,10 @@ public class HaCommands implements CommandExecutor {
 								p.getInventory().setChestplate(null);
 								p.getInventory().setHelmet(null);
 								p.getInventory().setLeggings(null);
+								p.updateInventory();
 								plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined the Game!");
 								if(plugin.Playing.size()== 24){
-									p.performCommand("ha warpall");
+									Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha warpall");
 								}
 							}
 						}else{
@@ -147,6 +153,7 @@ public class HaCommands implements CommandExecutor {
 							p.getInventory().setChestplate(null);
 							p.getInventory().setHelmet(null);
 							p.getInventory().setLeggings(null);
+							p.updateInventory();
 							plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined the Game!");
 							if(plugin.Playing.size()== 24){
 								p.performCommand("ha warpall");
@@ -200,32 +207,37 @@ public class HaCommands implements CommandExecutor {
 							}
 							if(plugin.Playing.size()== 1){
 								//Announce the Winner
-								String winnername = plugin.Playing.get(i++);
-								Player winner = plugin.getServer().getPlayerExact(winnername);
-								String winnername2 = winner.getName();
-								plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
-								winner.getInventory().clear();
-								winner.teleport(Spawn);
-								winner.getInventory().setBoots(null);
-								winner.getInventory().setChestplate(null);
-								winner.getInventory().setHelmet(null);
-								winner.getInventory().setLeggings(null);
-								winner.getInventory().addItem(plugin.Reward);
-								Bukkit.getServer().getPluginManager().callEvent(new PlayerWinGamesEvent(winner));
+								for(i = 0; i < plugin.Playing.size(); i++){
+									String winnername = plugin.Playing.get(i++);
+									Player winner = plugin.getServer().getPlayerExact(winnername);
+									String winnername2 = winner.getName();
+									plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
+									winner.getInventory().clear();
+									winner.teleport(Spawn);
+									winner.getInventory().setBoots(null);
+									winner.getInventory().setChestplate(null);
+									winner.getInventory().setHelmet(null);
+									winner.getInventory().setLeggings(null);
+									winner.getInventory().addItem(plugin.Reward);
+									Bukkit.getServer().getPluginManager().callEvent(new PlayerWinGamesEvent(winner));
+								}
 								plugin.Playing.clear();
 								//Show spectators
-								String s = plugin.Watching.get(i++);
-								Player spectator = plugin.getServer().getPlayerExact(s);
-								spectator.setAllowFlight(false);
-								spectator.teleport(Spawn);
-								for(Player online:plugin.getServer().getOnlinePlayers()){
-									online.showPlayer(spectator);
+								for(i = 0; i < plugin.Watching.size(); i++){
+									String s = plugin.Watching.get(i++);
+									Player spectator = plugin.getServer().getPlayerExact(s);
+									spectator.setAllowFlight(false);
+									spectator.teleport(Spawn);
+									for(Player online:plugin.getServer().getOnlinePlayers()){
+										online.showPlayer(spectator);
+									}
 								}
 								if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
 									Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha restart");
 								}
 							}
 						}
+						////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 					}else if(args[0].equalsIgnoreCase("Watch")){
 						if(sender.hasPermission("HungerArena.Watch")){
 							if(!plugin.Watching.contains(pname) && !plugin.Playing.contains(pname) && plugin.canjoin== true){
@@ -268,26 +280,30 @@ public class HaCommands implements CommandExecutor {
 								target.getInventory().setLeggings(null);
 								plugin.Quit.add(target.getName());
 								if(plugin.Playing.size()== 1 && plugin.canjoin== true){
-									String winnername = plugin.Playing.get(i++);
-									Player winner = plugin.getServer().getPlayerExact(winnername);
-									String winnername2 = winner.getName();
-									plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
-									winner.getInventory().clear();
-									winner.teleport(Spawn);
-									winner.getInventory().setBoots(null);
-									winner.getInventory().setChestplate(null);
-									winner.getInventory().setHelmet(null);
-									winner.getInventory().setLeggings(null);
-									winner.getInventory().addItem(plugin.Reward);
-									Bukkit.getServer().getPluginManager().callEvent(new PlayerWinGamesEvent(winner));
+									for(i = 0; i < plugin.Playing.size(); i++){
+										String winnername = plugin.Playing.get(i++);
+										Player winner = plugin.getServer().getPlayerExact(winnername);
+										String winnername2 = winner.getName();
+										plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
+										winner.getInventory().clear();
+										winner.teleport(Spawn);
+										winner.getInventory().setBoots(null);
+										winner.getInventory().setChestplate(null);
+										winner.getInventory().setHelmet(null);
+										winner.getInventory().setLeggings(null);
+										winner.getInventory().addItem(plugin.Reward);
+										Bukkit.getServer().getPluginManager().callEvent(new PlayerWinGamesEvent(winner));
+									}
 									plugin.Playing.clear();
 									if(!plugin.Watching.isEmpty()){
-										String s = plugin.Watching.get(i++);
-										Player spectator = plugin.getServer().getPlayerExact(s);
-										spectator.setAllowFlight(false);
-										spectator.teleport(Spawn);
-										for(Player online:plugin.getServer().getOnlinePlayers()){
-											online.showPlayer(spectator);
+										for(i = 0; i < plugin.Watching.size(); i++){
+											String s = plugin.Watching.get(i++);
+											Player spectator = plugin.getServer().getPlayerExact(s);
+											spectator.setAllowFlight(false);
+											spectator.teleport(Spawn);
+											for(Player online:plugin.getServer().getOnlinePlayers()){
+												online.showPlayer(spectator);
+											}
 										}
 									}
 									if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
@@ -337,12 +353,14 @@ public class HaCommands implements CommandExecutor {
 					}else if(args[0].equalsIgnoreCase("Restart")){
 						if(p.hasPermission("HungerArena.Restart")){
 							if(!plugin.Watching.isEmpty()){
-								String s = plugin.Watching.get(i++);
-								Player spectator = plugin.getServer().getPlayerExact(s);
-								spectator.setAllowFlight(false);
-								spectator.teleport(Spawn);
-								for(Player online:plugin.getServer().getOnlinePlayers()){
-									online.showPlayer(spectator);
+								for(i = 0; i < plugin.Watching.size(); i++){
+									String s = plugin.Watching.get(i++);
+									Player spectator = plugin.getServer().getPlayerExact(s);
+									spectator.setAllowFlight(false);
+									spectator.teleport(Spawn);
+									for(Player online:plugin.getServer().getOnlinePlayers()){
+										online.showPlayer(spectator);
+									}
 								}
 							}
 							plugin.Dead.clear();
@@ -359,20 +377,70 @@ public class HaCommands implements CommandExecutor {
 						}else{
 							p.sendMessage(ChatColor.RED + "You don't have permission!");
 						}
+						/////////////////////////////////// Toggle //////////////////////////////////////////////////
+					}else if(args[0].equalsIgnoreCase("close")){
+						if(p.hasPermission("HungerArena.toggle")){
+							if(plugin.open){
+								plugin.open = false;
+								for(String players: plugin.Playing){
+									Player tributes = plugin.getServer().getPlayerExact(players);
+									tributes.teleport(tributes.getWorld().getSpawnLocation());
+									tributes.getInventory().clear();
+									tributes.getInventory().setBoots(null);
+									tributes.getInventory().setChestplate(null);
+									tributes.getInventory().setHelmet(null);
+									tributes.getInventory().setLeggings(null);
+								}
+								for(String sname: plugin.Watching){
+									Player spectators = plugin.getServer().getPlayerExact(sname);
+									spectators.teleport(spectators.getWorld().getSpawnLocation());
+									spectators.setAllowFlight(false);
+									for(Player online:plugin.getServer().getOnlinePlayers()){
+										online.showPlayer(spectators);
+									}
+								}
+								plugin.Dead.clear();
+								plugin.Quit.clear();
+								plugin.Watching.clear();
+								plugin.Frozen.clear();
+								plugin.Ready.clear();
+								plugin.NeedConfirm.clear();
+								plugin.Out.clear();
+								plugin.Playing.clear();
+								p.performCommand("ha refill");
+								p.sendMessage(ChatColor.GOLD + "Games Closed!");
+							}else{
+								p.sendMessage(ChatColor.RED + "Games alredy close, type /ha open to re-open them!");
+							}
+						}else{
+							p.sendMessage(ChatColor.RED + "No Perms!");
+						}
+					}else if(args[0].equalsIgnoreCase("open")){
+						if(p.hasPermission("HungerArena.toggle")){
+							if(!plugin.open){
+								plugin.open = true;
+								p.sendMessage(ChatColor.GOLD + "Games Opened!!");
+							}else{
+								p.sendMessage(ChatColor.RED + "Games already open, type /ha close to close them!");
+							}
+						}else{
+							p.sendMessage(ChatColor.RED + "No Perms!");
+						}
+						////////////////////////////////////////////////////////////////////////////////////////////
 					}else if(args[0].equalsIgnoreCase("Reload")){
 						plugin.reloadConfig();
 						p.sendMessage(ChatColor.AQUA + "HungerArena Reloaded!");
 					}else if(args[0].equalsIgnoreCase("WarpAll")){
 						if(p.hasPermission("HungerArena.Warpall")){
-							if(plugin.config.getString("Spawns_set").equalsIgnoreCase("false")){
+							if(plugin.spawns.getString("Spawns_set").equalsIgnoreCase("false")){
 								sender.sendMessage(ChatColor.RED + "/ha setspawn hasn't been run!");
 							}else{
 								if(plugin.Playing.size()== 1){
 									sender.sendMessage(ChatColor.RED + "There are not enough players!");
 								}
 								if(plugin.Playing.size()>= 2){
-									plugin.config.getString("Tribute_one_spawn");
-									String[] onecoords = plugin.config.getString("Tribute_one_spawn").split(",");
+									plugin.spawns.getString("Tribute_one_spawn");
+									String[] onecoords = plugin.spawns.getString("Tribute_one_spawn").split(",");
 									Player Tribute_one = plugin.getServer().getPlayerExact(plugin.Playing.get(0));
 									double x = Double.parseDouble(onecoords[0]);
 									double y = Double.parseDouble(onecoords[1]);
@@ -383,8 +451,8 @@ public class HaCommands implements CommandExecutor {
 									Tribute_one.teleport(oneloc);
 									plugin.Frozen.add(Tribute_one.getName());
 									Tribute_one.setFoodLevel(20);
-									plugin.config.getString("Tribute_two_spawn");
-									String[] twocoords = plugin.config.getString("Tribute_two_spawn").split(",");
+									plugin.spawns.getString("Tribute_two_spawn");
+									String[] twocoords = plugin.spawns.getString("Tribute_two_spawn").split(",");
 									Player Tribute_two = plugin.getServer().getPlayerExact(plugin.Playing.get(1));
 									double twox = Double.parseDouble(twocoords[0]);
 									double twoy = Double.parseDouble(twocoords[1]);
@@ -410,8 +478,8 @@ public class HaCommands implements CommandExecutor {
 									}, 20L);
 								}
 								if(plugin.Playing.size()>= 3){
-									plugin.config.getString("Tribute_three_spawn");
-									String[] coords = plugin.config.getString("Tribute_three_spawn").split(",");
+									plugin.spawns.getString("Tribute_three_spawn");
+									String[] coords = plugin.spawns.getString("Tribute_three_spawn").split(",");
 									Player Tribute_three = plugin.getServer().getPlayerExact(plugin.Playing.get(2));
 									double x = Double.parseDouble(coords[0]);
 									double y = Double.parseDouble(coords[1]);
@@ -424,8 +492,8 @@ public class HaCommands implements CommandExecutor {
 									Tribute_three.setFoodLevel(20);
 								}
 								if(plugin.Playing.size()>= 4){
-									plugin.config.getString("Tribute_four_spawn");
-									String[] coords = plugin.config.getString("Tribute_four_spawn").split(",");
+									plugin.spawns.getString("Tribute_four_spawn");
+									String[] coords = plugin.spawns.getString("Tribute_four_spawn").split(",");
 									Player Tribute_four = plugin.getServer().getPlayerExact(plugin.Playing.get(3));
 									double x = Double.parseDouble(coords[0]);
 									double y = Double.parseDouble(coords[1]);
@@ -438,8 +506,8 @@ public class HaCommands implements CommandExecutor {
 									Tribute_four.setFoodLevel(20);
 								}
 								if(plugin.Playing.size()>= 5){
-									plugin.config.getString("Tribute_five_spawn");
-									String[] coords = plugin.config.getString("Tribute_five_spawn").split(",");
+									plugin.spawns.getString("Tribute_five_spawn");
+									String[] coords = plugin.spawns.getString("Tribute_five_spawn").split(",");
 									Player Tribute_five = plugin.getServer().getPlayerExact(plugin.Playing.get(4));
 									double x = Double.parseDouble(coords[0]);
 									double y = Double.parseDouble(coords[1]);
@@ -452,8 +520,8 @@ public class HaCommands implements CommandExecutor {
 									Tribute_five.setFoodLevel(20);
 								}
 								if(plugin.Playing.size()>= 6){
-									plugin.config.getString("Tribute_six_spawn");
-									String[] coords = plugin.config.getString("Tribute_six_spawn").split(",");
+									plugin.spawns.getString("Tribute_six_spawn");
+									String[] coords = plugin.spawns.getString("Tribute_six_spawn").split(",");
 									Player Tribute_six = plugin.getServer().getPlayerExact(plugin.Playing.get(5));
 									double x = Double.parseDouble(coords[0]);
 									double y = Double.parseDouble(coords[1]);
@@ -466,8 +534,8 @@ public class HaCommands implements CommandExecutor {
 									Tribute_six.setFoodLevel(20);
 								}
 								if(plugin.Playing.size()>= 7){
-									plugin.config.getString("Tribute_seven_spawn");
-									String[] coords = plugin.config.getString("Tribute_seven_spawn").split(",");
+									plugin.spawns.getString("Tribute_seven_spawn");
+									String[] coords = plugin.spawns.getString("Tribute_seven_spawn").split(",");
 									Player Tribute_seven = plugin.getServer().getPlayerExact(plugin.Playing.get(6));
 									double x = Double.parseDouble(coords[0]);
 									double y = Double.parseDouble(coords[1]);
@@ -480,8 +548,8 @@ public class HaCommands implements CommandExecutor {
 									Tribute_seven.setFoodLevel(20);
 								}
 								if(plugin.Playing.size()>= 8){
-									plugin.config.getString("Tribute_eight_spawn");
-									String[] coords = plugin.config.getString("Tribute_eight_spawn").split(",");
+									plugin.spawns.getString("Tribute_eight_spawn");
+									String[] coords = plugin.spawns.getString("Tribute_eight_spawn").split(",");
 									Player Tribute_eight = plugin.getServer().getPlayerExact(plugin.Playing.get(7));
 									double x = Double.parseDouble(coords[0]);
 									double y = Double.parseDouble(coords[1]);
@@ -494,8 +562,8 @@ public class HaCommands implements CommandExecutor {
 									Tribute_eight.setFoodLevel(20);
 								}
 								if(plugin.Playing.size()>= 9){
-									plugin.config.getString("Tribute_nine_spawn");
-									String[] coords = plugin.config.getString("Tribute_nine_spawn").split(",");
+									plugin.spawns.getString("Tribute_nine_spawn");
+									String[] coords = plugin.spawns.getString("Tribute_nine_spawn").split(",");
 									Player Tribute_nine = plugin.getServer().getPlayerExact(plugin.Playing.get(8));
 									double x = Double.parseDouble(coords[0]);
 									double y = Double.parseDouble(coords[1]);
@@ -508,8 +576,8 @@ public class HaCommands implements CommandExecutor {
 									Tribute_nine.setFoodLevel(20);
 								}
 								if(plugin.Playing.size()>= 10){
-									plugin.config.getString("Tribute_ten_spawn");
-									String[] coords = plugin.config.getString("Tribute_ten_spawn").split(",");
+									plugin.spawns.getString("Tribute_ten_spawn");
+									String[] coords = plugin.spawns.getString("Tribute_ten_spawn").split(",");
 									Player Tribute_ten = plugin.getServer().getPlayerExact(plugin.Playing.get(9));
 									double x = Double.parseDouble(coords[0]);
 									double y = Double.parseDouble(coords[1]);
@@ -522,8 +590,8 @@ public class HaCommands implements CommandExecutor {
 									Tribute_ten.setFoodLevel(20);
 								}
 								if(plugin.Playing.size()>= 11){
-									plugin.config.getString("Tribute_eleven_spawn");
-									String[] coords = plugin.config.getString("Tribute_eleven_spawn").split(",");
+									plugin.spawns.getString("Tribute_eleven_spawn");
+									String[] coords = plugin.spawns.getString("Tribute_eleven_spawn").split(",");
 									Player Tribute_eleven = plugin.getServer().getPlayerExact(plugin.Playing.get(10));
 									double x = Double.parseDouble(coords[0]);
 									double y = Double.parseDouble(coords[1]);
@@ -536,8 +604,8 @@ public class HaCommands implements CommandExecutor {
 									Tribute_eleven.setFoodLevel(20);
 								}
 								if(plugin.Playing.size()>= 12){
-									plugin.config.getString("Tribute_twelve_spawn");
-									String[] coords = plugin.config.getString("Tribute_twelve_spawn").split(",");
+									plugin.spawns.getString("Tribute_twelve_spawn");
+									String[] coords = plugin.spawns.getString("Tribute_twelve_spawn").split(",");
 									Player Tribute_twelve = plugin.getServer().getPlayerExact(plugin.Playing.get(11));
 									double x = Double.parseDouble(coords[0]);
 									double y = Double.parseDouble(coords[1]);
@@ -550,8 +618,8 @@ public class HaCommands implements CommandExecutor {
 									Tribute_twelve.setFoodLevel(20);
 								}
 								if(plugin.Playing.size()>= 13){
-									plugin.config.getString("Tribute_thirteen_spawn");
-									String[] coords = plugin.config.getString("Tribute_thirteen_spawn").split(",");
+									plugin.spawns.getString("Tribute_thirteen_spawn");
+									String[] coords = plugin.spawns.getString("Tribute_thirteen_spawn").split(",");
 									Player Tribute_thirteen = plugin.getServer().getPlayerExact(plugin.Playing.get(12));
 									double x = Double.parseDouble(coords[0]);
 									double y = Double.parseDouble(coords[1]);
@@ -564,8 +632,8 @@ public class HaCommands implements CommandExecutor {
 									Tribute_thirteen.setFoodLevel(20);
 								}
 								if(plugin.Playing.size()>= 14){
-									plugin.config.getString("Tribute_fourteen_spawn");
-									String[] coords = plugin.config.getString("Tribute_fourteen_spawn").split(",");
+									plugin.spawns.getString("Tribute_fourteen_spawn");
+									String[] coords = plugin.spawns.getString("Tribute_fourteen_spawn").split(",");
 									Player Tribute_fourteen = plugin.getServer().getPlayerExact(plugin.Playing.get(13));
 									double x = Double.parseDouble(coords[0]);
 									double y = Double.parseDouble(coords[1]);
@@ -578,8 +646,8 @@ public class HaCommands implements CommandExecutor {
 									Tribute_fourteen.setFoodLevel(20);
 								}
 								if(plugin.Playing.size()>= 15){
-									plugin.config.getString("Tribute_fifteen_spawn");
-									String[] coords = plugin.config.getString("Tribute_fifteen_spawn").split(",");
+									plugin.spawns.getString("Tribute_fifteen_spawn");
+									String[] coords = plugin.spawns.getString("Tribute_fifteen_spawn").split(",");
 									Player Tribute_fifteen = plugin.getServer().getPlayerExact(plugin.Playing.get(14));
 									double x = Double.parseDouble(coords[0]);
 									double y = Double.parseDouble(coords[1]);
@@ -592,8 +660,8 @@ public class HaCommands implements CommandExecutor {
 									Tribute_fifteen.setFoodLevel(20);
 								}
 								if(plugin.Playing.size()>= 16){
-									plugin.config.getString("Tribute_sixteen_spawn");
-									String[] coords = plugin.config.getString("Tribute_sixteen_spawn").split(",");
+									plugin.spawns.getString("Tribute_sixteen_spawn");
+									String[] coords = plugin.spawns.getString("Tribute_sixteen_spawn").split(",");
 									Player Tribute_sixteen = plugin.getServer().getPlayerExact(plugin.Playing.get(15));
 									double x = Double.parseDouble(coords[0]);
 									double y = Double.parseDouble(coords[1]);
@@ -606,8 +674,8 @@ public class HaCommands implements CommandExecutor {
 									Tribute_sixteen.setFoodLevel(20);
 								}
 								if(plugin.Playing.size()>= 17){
-									plugin.config.getString("Tribute_seventeen_spawn");
-									String[] coords = plugin.config.getString("Tribute_seventeen_spawn").split(",");
+									plugin.spawns.getString("Tribute_seventeen_spawn");
+									String[] coords = plugin.spawns.getString("Tribute_seventeen_spawn").split(",");
 									Player Tribute_seventeen = plugin.getServer().getPlayerExact(plugin.Playing.get(16));
 									double x = Double.parseDouble(coords[0]);
 									double y = Double.parseDouble(coords[1]);
@@ -620,8 +688,8 @@ public class HaCommands implements CommandExecutor {
 									Tribute_seventeen.setFoodLevel(20);
 								}
 								if(plugin.Playing.size()>= 18){
-									plugin.config.getString("Tribute_eighteen_spawn");
-									String[] coords = plugin.config.getString("Tribute_eighteen_spawn").split(",");
+									plugin.spawns.getString("Tribute_eighteen_spawn");
+									String[] coords = plugin.spawns.getString("Tribute_eighteen_spawn").split(",");
 									Player Tribute_eighteen = plugin.getServer().getPlayerExact(plugin.Playing.get(17));
 									double x = Double.parseDouble(coords[0]);
 									double y = Double.parseDouble(coords[1]);
@@ -634,8 +702,8 @@ public class HaCommands implements CommandExecutor {
 									Tribute_eighteen.setFoodLevel(20);
 								}
 								if(plugin.Playing.size()>= 19){
-									plugin.config.getString("Tribute_nineteen_spawn");
-									String[] coords = plugin.config.getString("Tribute_nineteen_spawn").split(",");
+									plugin.spawns.getString("Tribute_nineteen_spawn");
+									String[] coords = plugin.spawns.getString("Tribute_nineteen_spawn").split(",");
 									Player Tribute_nineteen = plugin.getServer().getPlayerExact(plugin.Playing.get(18));
 									double x = Double.parseDouble(coords[0]);
 									double y = Double.parseDouble(coords[1]);
@@ -648,8 +716,8 @@ public class HaCommands implements CommandExecutor {
 									Tribute_nineteen.setFoodLevel(20);
 								}
 								if(plugin.Playing.size()>= 20){
-									plugin.config.getString("Tribute_twenty_spawn");
-									String[] coords = plugin.config.getString("Tribute_twenty_spawn").split(",");
+									plugin.spawns.getString("Tribute_twenty_spawn");
+									String[] coords = plugin.spawns.getString("Tribute_twenty_spawn").split(",");
 									Player Tribute_twenty = plugin.getServer().getPlayerExact(plugin.Playing.get(19));
 									double x = Double.parseDouble(coords[0]);
 									double y = Double.parseDouble(coords[1]);
@@ -662,8 +730,8 @@ public class HaCommands implements CommandExecutor {
 									Tribute_twenty.setFoodLevel(20);
 								}
 								if(plugin.Playing.size()>= 21){
-									plugin.config.getString("Tribute_twentyone_spawn");
-									String[] coords = plugin.config.getString("Tribute_twentyone_spawn").split(",");
+									plugin.spawns.getString("Tribute_twentyone_spawn");
+									String[] coords = plugin.spawns.getString("Tribute_twentyone_spawn").split(",");
 									Player Tribute_twentyone = plugin.getServer().getPlayerExact(plugin.Playing.get(20));
 									double x = Double.parseDouble(coords[0]);
 									double y = Double.parseDouble(coords[1]);
@@ -676,8 +744,8 @@ public class HaCommands implements CommandExecutor {
 									Tribute_twentyone.setFoodLevel(20);
 								}
 								if(plugin.Playing.size()>= 22){
-									plugin.config.getString("Tribute_twentytwo_spawn");
-									String[] coords = plugin.config.getString("Tribute_twentytwo_spawn").split(",");
+									plugin.spawns.getString("Tribute_twentytwo_spawn");
+									String[] coords = plugin.spawns.getString("Tribute_twentytwo_spawn").split(",");
 									Player Tribute_twentytwo = plugin.getServer().getPlayerExact(plugin.Playing.get(21));
 									double x = Double.parseDouble(coords[0]);
 									double y = Double.parseDouble(coords[1]);
@@ -690,8 +758,8 @@ public class HaCommands implements CommandExecutor {
 									Tribute_twentytwo.setFoodLevel(20);
 								}
 								if(plugin.Playing.size()>= 23){
-									plugin.config.getString("Tribute_twentythree_spawn");
-									String[] coords = plugin.config.getString("Tribute_twentythree_spawn").split(",");
+									plugin.spawns.getString("Tribute_twentythree_spawn");
+									String[] coords = plugin.spawns.getString("Tribute_twentythree_spawn").split(",");
 									Player Tribute_twentythree = plugin.getServer().getPlayerExact(plugin.Playing.get(22));
 									double x = Double.parseDouble(coords[0]);
 									double y = Double.parseDouble(coords[1]);
@@ -704,8 +772,8 @@ public class HaCommands implements CommandExecutor {
 									Tribute_twentythree.setFoodLevel(20);
 								}
 								if(plugin.Playing.size()>= 24){
-									plugin.config.getString("Tribute_twentyfour_spawn");
-									String[] coords = plugin.config.getString("Tribute_twentyfour_spawn").split(",");
+									plugin.spawns.getString("Tribute_twentyfour_spawn");
+									String[] coords = plugin.spawns.getString("Tribute_twentyfour_spawn").split(",");
 									Player Tribute_twentyfour = plugin.getServer().getPlayerExact(plugin.Playing.get(23));
 									double x = Double.parseDouble(coords[0]);
 									double y = Double.parseDouble(coords[1]);
@@ -861,27 +929,31 @@ public class HaCommands implements CommandExecutor {
 						plugin.Quit.add(target.getName());
 						if(plugin.Playing.size()== 1 && plugin.canjoin== true){
 							//Announce winner
-							String winnername = plugin.Playing.get(i++);
-							Player winner = plugin.getServer().getPlayerExact(winnername);
-							String winnername2 = winner.getName();
-							plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
-							winner.getInventory().clear();
-							winner.teleport(Spawn);
-							winner.getInventory().setBoots(null);
-							winner.getInventory().setChestplate(null);
-							winner.getInventory().setHelmet(null);
-							winner.getInventory().setLeggings(null);
-							winner.getInventory().addItem(plugin.Reward);
-							Bukkit.getServer().getPluginManager().callEvent(new PlayerWinGamesEvent(winner));
+							for(i = 0; i < plugin.Playing.size(); i++){
+								String winnername = plugin.Playing.get(i++);
+								Player winner = plugin.getServer().getPlayerExact(winnername);
+								String winnername2 = winner.getName();
+								plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
+								winner.getInventory().clear();
+								winner.teleport(Spawn);
+								winner.getInventory().setBoots(null);
+								winner.getInventory().setChestplate(null);
+								winner.getInventory().setHelmet(null);
+								winner.getInventory().setLeggings(null);
+								winner.getInventory().addItem(plugin.Reward);
+								Bukkit.getServer().getPluginManager().callEvent(new PlayerWinGamesEvent(winner));
+							}
 							plugin.Playing.clear();
 							//Make spectators visible
 							if(!plugin.Watching.isEmpty()){
-								String s = plugin.Watching.get(i++);
-								Player spectator = plugin.getServer().getPlayerExact(s);
-								spectator.setAllowFlight(false);
-								spectator.teleport(Spawn);
-								for(Player online:plugin.getServer().getOnlinePlayers()){
-									online.showPlayer(spectator);
+								for(i = 0; i < plugin.Watching.size(); i++){
+									String s = plugin.Watching.get(i++);
+									Player spectator = plugin.getServer().getPlayerExact(s);
+									spectator.setAllowFlight(false);
+									spectator.teleport(Spawn);
+									for(Player online:plugin.getServer().getOnlinePlayers()){
+										online.showPlayer(spectator);
+									}
 								}
 							}
 							if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
@@ -923,12 +995,14 @@ public class HaCommands implements CommandExecutor {
 					}
 				}else if(args[0].equalsIgnoreCase("Restart")){
 					if(!plugin.Watching.isEmpty()){
-						String s = plugin.Watching.get(i++);
-						Player spectator = plugin.getServer().getPlayerExact(s);
-						spectator.setAllowFlight(false);
-						spectator.teleport(Spawn);
-						for(Player online:plugin.getServer().getOnlinePlayers()){
-							online.showPlayer(spectator);
+						for(i = 0; i < plugin.Watching.size(); i++){
+							String s = plugin.Watching.get(i++);
+							Player spectator = plugin.getServer().getPlayerExact(s);
+							spectator.setAllowFlight(false);
+							spectator.teleport(Spawn);
+							for(Player online:plugin.getServer().getOnlinePlayers()){
+								online.showPlayer(spectator);
+							}
 						}
 					}
 					plugin.Dead.clear();
@@ -942,19 +1016,61 @@ public class HaCommands implements CommandExecutor {
 					plugin.canjoin = false;
 					Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha refill");
 					sender.sendMessage(ChatColor.AQUA + "The games have been reset!");
+					/////////////////////////////////// Toggle //////////////////////////////////////////////////
+				}else if(args[0].equalsIgnoreCase("close")){
+						if(plugin.open){
+							plugin.open = false;
+							for(String players: plugin.Playing){
+								Player tributes = plugin.getServer().getPlayerExact(players);
+								tributes.teleport(tributes.getWorld().getSpawnLocation());
+								tributes.getInventory().clear();
+								tributes.getInventory().setBoots(null);
+								tributes.getInventory().setChestplate(null);
+								tributes.getInventory().setHelmet(null);
+								tributes.getInventory().setLeggings(null);
+							}
+							for(String sname: plugin.Watching){
+								Player spectators = plugin.getServer().getPlayerExact(sname);
+								spectators.teleport(spectators.getWorld().getSpawnLocation());
+								spectators.setAllowFlight(false);
+								for(Player online:plugin.getServer().getOnlinePlayers()){
+									online.showPlayer(spectators);
+								}
+							}
+							plugin.Dead.clear();
+							plugin.Quit.clear();
+							plugin.Watching.clear();
+							plugin.Frozen.clear();
+							plugin.Ready.clear();
+							plugin.NeedConfirm.clear();
+							plugin.Out.clear();
+							plugin.Playing.clear();
+							Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha refill");
+							sender.sendMessage(ChatColor.GOLD + "Games Closed!");
+						}else{
+							sender.sendMessage(ChatColor.RED + "Games alredy close, type /ha open to re-open them!");
+						}
+				}else if(args[0].equalsIgnoreCase("open")){
+						if(!plugin.open){
+							plugin.open = true;
+							sender.sendMessage(ChatColor.GOLD + "Games Opened!!");
+						}else{
+							sender.sendMessage(ChatColor.RED + "Games already open, type /ha close to close them!");
+						}
+					////////////////////////////////////////////////////////////////////////////////////////////
 				}else if(args[0].equalsIgnoreCase("Reload")){
 					plugin.reloadConfig();
 					sender.sendMessage(ChatColor.AQUA + "HungerArena Reloaded!");
 				}else if(args[0].equalsIgnoreCase("WarpAll")){
-					if(plugin.config.getString("Spawns_set").equalsIgnoreCase("false")){
+					if(plugin.spawns.getString("Spawns_set").equalsIgnoreCase("false")){
 						sender.sendMessage(ChatColor.RED + "/ha setspawn hasn't been run!");
 					}else{
 						if(plugin.Playing.size()== 1){
 							sender.sendMessage(ChatColor.RED + "There are not enough players!");
 						}
 						if(plugin.Playing.size()>= 2){
-							plugin.config.getString("Tribute_one_spawn");
-							String[] onecoords = plugin.config.getString("Tribute_one_spawn").split(",");
+							plugin.spawns.getString("Tribute_one_spawn");
+							String[] onecoords = plugin.spawns.getString("Tribute_one_spawn").split(",");
 							Player Tribute_one = plugin.getServer().getPlayerExact(plugin.Playing.get(0));
 							double x = Double.parseDouble(onecoords[0]);
 							double y = Double.parseDouble(onecoords[1]);
@@ -965,8 +1081,8 @@ public class HaCommands implements CommandExecutor {
 							Tribute_one.teleport(oneloc);
 							plugin.Frozen.add(Tribute_one.getName());
 							Tribute_one.setFoodLevel(20);
-							plugin.config.getString("Tribute_two_spawn");
-							String[] twocoords = plugin.config.getString("Tribute_two_spawn").split(",");
+							plugin.spawns.getString("Tribute_two_spawn");
+							String[] twocoords = plugin.spawns.getString("Tribute_two_spawn").split(",");
 							Player Tribute_two = plugin.getServer().getPlayerExact(plugin.Playing.get(1));
 							double twox = Double.parseDouble(twocoords[0]);
 							double twoy = Double.parseDouble(twocoords[1]);
@@ -992,8 +1108,8 @@ public class HaCommands implements CommandExecutor {
 							}, 20L);
 						}
 						if(plugin.Playing.size()>= 3){
-							plugin.config.getString("Tribute_three_spawn");
-							String[] coords = plugin.config.getString("Tribute_three_spawn").split(",");
+							plugin.spawns.getString("Tribute_three_spawn");
+							String[] coords = plugin.spawns.getString("Tribute_three_spawn").split(",");
 							Player Tribute_three = plugin.getServer().getPlayerExact(plugin.Playing.get(2));
 							double x = Double.parseDouble(coords[0]);
 							double y = Double.parseDouble(coords[1]);
@@ -1006,8 +1122,8 @@ public class HaCommands implements CommandExecutor {
 							Tribute_three.setFoodLevel(20);
 						}
 						if(plugin.Playing.size()>= 4){
-							plugin.config.getString("Tribute_four_spawn");
-							String[] coords = plugin.config.getString("Tribute_four_spawn").split(",");
+							plugin.spawns.getString("Tribute_four_spawn");
+							String[] coords = plugin.spawns.getString("Tribute_four_spawn").split(",");
 							Player Tribute_four = plugin.getServer().getPlayerExact(plugin.Playing.get(3));
 							double x = Double.parseDouble(coords[0]);
 							double y = Double.parseDouble(coords[1]);
@@ -1020,8 +1136,8 @@ public class HaCommands implements CommandExecutor {
 							Tribute_four.setFoodLevel(20);
 						}
 						if(plugin.Playing.size()>= 5){
-							plugin.config.getString("Tribute_five_spawn");
-							String[] coords = plugin.config.getString("Tribute_five_spawn").split(",");
+							plugin.spawns.getString("Tribute_five_spawn");
+							String[] coords = plugin.spawns.getString("Tribute_five_spawn").split(",");
 							Player Tribute_five = plugin.getServer().getPlayerExact(plugin.Playing.get(4));
 							double x = Double.parseDouble(coords[0]);
 							double y = Double.parseDouble(coords[1]);
@@ -1034,8 +1150,8 @@ public class HaCommands implements CommandExecutor {
 							Tribute_five.setFoodLevel(20);
 						}
 						if(plugin.Playing.size()>= 6){
-							plugin.config.getString("Tribute_six_spawn");
-							String[] coords = plugin.config.getString("Tribute_six_spawn").split(",");
+							plugin.spawns.getString("Tribute_six_spawn");
+							String[] coords = plugin.spawns.getString("Tribute_six_spawn").split(",");
 							Player Tribute_six = plugin.getServer().getPlayerExact(plugin.Playing.get(5));
 							double x = Double.parseDouble(coords[0]);
 							double y = Double.parseDouble(coords[1]);
@@ -1048,8 +1164,8 @@ public class HaCommands implements CommandExecutor {
 							Tribute_six.setFoodLevel(20);
 						}
 						if(plugin.Playing.size()>= 7){
-							plugin.config.getString("Tribute_seven_spawn");
-							String[] coords = plugin.config.getString("Tribute_seven_spawn").split(",");
+							plugin.spawns.getString("Tribute_seven_spawn");
+							String[] coords = plugin.spawns.getString("Tribute_seven_spawn").split(",");
 							Player Tribute_seven = plugin.getServer().getPlayerExact(plugin.Playing.get(6));
 							double x = Double.parseDouble(coords[0]);
 							double y = Double.parseDouble(coords[1]);
@@ -1062,8 +1178,8 @@ public class HaCommands implements CommandExecutor {
 							Tribute_seven.setFoodLevel(20);
 						}
 						if(plugin.Playing.size()>= 8){
-							plugin.config.getString("Tribute_eight_spawn");
-							String[] coords = plugin.config.getString("Tribute_eight_spawn").split(",");
+							plugin.spawns.getString("Tribute_eight_spawn");
+							String[] coords = plugin.spawns.getString("Tribute_eight_spawn").split(",");
 							Player Tribute_eight = plugin.getServer().getPlayerExact(plugin.Playing.get(7));
 							double x = Double.parseDouble(coords[0]);
 							double y = Double.parseDouble(coords[1]);
@@ -1076,8 +1192,8 @@ public class HaCommands implements CommandExecutor {
 							Tribute_eight.setFoodLevel(20);
 						}
 						if(plugin.Playing.size()>= 9){
-							plugin.config.getString("Tribute_nine_spawn");
-							String[] coords = plugin.config.getString("Tribute_nine_spawn").split(",");
+							plugin.spawns.getString("Tribute_nine_spawn");
+							String[] coords = plugin.spawns.getString("Tribute_nine_spawn").split(",");
 							Player Tribute_nine = plugin.getServer().getPlayerExact(plugin.Playing.get(8));
 							double x = Double.parseDouble(coords[0]);
 							double y = Double.parseDouble(coords[1]);
@@ -1090,8 +1206,8 @@ public class HaCommands implements CommandExecutor {
 							Tribute_nine.setFoodLevel(20);
 						}
 						if(plugin.Playing.size()>= 10){
-							plugin.config.getString("Tribute_ten_spawn");
-							String[] coords = plugin.config.getString("Tribute_ten_spawn").split(",");
+							plugin.spawns.getString("Tribute_ten_spawn");
+							String[] coords = plugin.spawns.getString("Tribute_ten_spawn").split(",");
 							Player Tribute_ten = plugin.getServer().getPlayerExact(plugin.Playing.get(9));
 							double x = Double.parseDouble(coords[0]);
 							double y = Double.parseDouble(coords[1]);
@@ -1104,8 +1220,8 @@ public class HaCommands implements CommandExecutor {
 							Tribute_ten.setFoodLevel(20);
 						}
 						if(plugin.Playing.size()>= 11){
-							plugin.config.getString("Tribute_eleven_spawn");
-							String[] coords = plugin.config.getString("Tribute_eleven_spawn").split(",");
+							plugin.spawns.getString("Tribute_eleven_spawn");
+							String[] coords = plugin.spawns.getString("Tribute_eleven_spawn").split(",");
 							Player Tribute_eleven = plugin.getServer().getPlayerExact(plugin.Playing.get(10));
 							double x = Double.parseDouble(coords[0]);
 							double y = Double.parseDouble(coords[1]);
@@ -1118,8 +1234,8 @@ public class HaCommands implements CommandExecutor {
 							Tribute_eleven.setFoodLevel(20);
 						}
 						if(plugin.Playing.size()>= 12){
-							plugin.config.getString("Tribute_twelve_spawn");
-							String[] coords = plugin.config.getString("Tribute_twelve_spawn").split(",");
+							plugin.spawns.getString("Tribute_twelve_spawn");
+							String[] coords = plugin.spawns.getString("Tribute_twelve_spawn").split(",");
 							Player Tribute_twelve = plugin.getServer().getPlayerExact(plugin.Playing.get(11));
 							double x = Double.parseDouble(coords[0]);
 							double y = Double.parseDouble(coords[1]);
@@ -1132,8 +1248,8 @@ public class HaCommands implements CommandExecutor {
 							Tribute_twelve.setFoodLevel(20);
 						}
 						if(plugin.Playing.size()>= 13){
-							plugin.config.getString("Tribute_thirteen_spawn");
-							String[] coords = plugin.config.getString("Tribute_thirteen_spawn").split(",");
+							plugin.spawns.getString("Tribute_thirteen_spawn");
+							String[] coords = plugin.spawns.getString("Tribute_thirteen_spawn").split(",");
 							Player Tribute_thirteen = plugin.getServer().getPlayerExact(plugin.Playing.get(12));
 							double x = Double.parseDouble(coords[0]);
 							double y = Double.parseDouble(coords[1]);
@@ -1146,8 +1262,8 @@ public class HaCommands implements CommandExecutor {
 							Tribute_thirteen.setFoodLevel(20);
 						}
 						if(plugin.Playing.size()>= 14){
-							plugin.config.getString("Tribute_fourteen_spawn");
-							String[] coords = plugin.config.getString("Tribute_fourteen_spawn").split(",");
+							plugin.spawns.getString("Tribute_fourteen_spawn");
+							String[] coords = plugin.spawns.getString("Tribute_fourteen_spawn").split(",");
 							Player Tribute_fourteen = plugin.getServer().getPlayerExact(plugin.Playing.get(13));
 							double x = Double.parseDouble(coords[0]);
 							double y = Double.parseDouble(coords[1]);
@@ -1160,8 +1276,8 @@ public class HaCommands implements CommandExecutor {
 							Tribute_fourteen.setFoodLevel(20);
 						}
 						if(plugin.Playing.size()>= 15){
-							plugin.config.getString("Tribute_fifteen_spawn");
-							String[] coords = plugin.config.getString("Tribute_fifteen_spawn").split(",");
+							plugin.spawns.getString("Tribute_fifteen_spawn");
+							String[] coords = plugin.spawns.getString("Tribute_fifteen_spawn").split(",");
 							Player Tribute_fifteen = plugin.getServer().getPlayerExact(plugin.Playing.get(14));
 							double x = Double.parseDouble(coords[0]);
 							double y = Double.parseDouble(coords[1]);
@@ -1174,8 +1290,8 @@ public class HaCommands implements CommandExecutor {
 							Tribute_fifteen.setFoodLevel(20);
 						}
 						if(plugin.Playing.size()>= 16){
-							plugin.config.getString("Tribute_sixteen_spawn");
-							String[] coords = plugin.config.getString("Tribute_sixteen_spawn").split(",");
+							plugin.spawns.getString("Tribute_sixteen_spawn");
+							String[] coords = plugin.spawns.getString("Tribute_sixteen_spawn").split(",");
 							Player Tribute_sixteen = plugin.getServer().getPlayerExact(plugin.Playing.get(15));
 							double x = Double.parseDouble(coords[0]);
 							double y = Double.parseDouble(coords[1]);
@@ -1188,8 +1304,8 @@ public class HaCommands implements CommandExecutor {
 							Tribute_sixteen.setFoodLevel(20);
 						}
 						if(plugin.Playing.size()>= 17){
-							plugin.config.getString("Tribute_seventeen_spawn");
-							String[] coords = plugin.config.getString("Tribute_seventeen_spawn").split(",");
+							plugin.spawns.getString("Tribute_seventeen_spawn");
+							String[] coords = plugin.spawns.getString("Tribute_seventeen_spawn").split(",");
 							Player Tribute_seventeen = plugin.getServer().getPlayerExact(plugin.Playing.get(16));
 							double x = Double.parseDouble(coords[0]);
 							double y = Double.parseDouble(coords[1]);
@@ -1202,8 +1318,8 @@ public class HaCommands implements CommandExecutor {
 							Tribute_seventeen.setFoodLevel(20);
 						}
 						if(plugin.Playing.size()>= 18){
-							plugin.config.getString("Tribute_eighteen_spawn");
-							String[] coords = plugin.config.getString("Tribute_eighteen_spawn").split(",");
+							plugin.spawns.getString("Tribute_eighteen_spawn");
+							String[] coords = plugin.spawns.getString("Tribute_eighteen_spawn").split(",");
 							Player Tribute_eighteen = plugin.getServer().getPlayerExact(plugin.Playing.get(17));
 							double x = Double.parseDouble(coords[0]);
 							double y = Double.parseDouble(coords[1]);
@@ -1216,8 +1332,8 @@ public class HaCommands implements CommandExecutor {
 							Tribute_eighteen.setFoodLevel(20);
 						}
 						if(plugin.Playing.size()>= 19){
-							plugin.config.getString("Tribute_nineteen_spawn");
-							String[] coords = plugin.config.getString("Tribute_nineteen_spawn").split(",");
+							plugin.spawns.getString("Tribute_nineteen_spawn");
+							String[] coords = plugin.spawns.getString("Tribute_nineteen_spawn").split(",");
 							Player Tribute_nineteen = plugin.getServer().getPlayerExact(plugin.Playing.get(18));
 							double x = Double.parseDouble(coords[0]);
 							double y = Double.parseDouble(coords[1]);
@@ -1230,8 +1346,8 @@ public class HaCommands implements CommandExecutor {
 							Tribute_nineteen.setFoodLevel(20);
 						}
 						if(plugin.Playing.size()>= 20){
-							plugin.config.getString("Tribute_twenty_spawn");
-							String[] coords = plugin.config.getString("Tribute_twenty_spawn").split(",");
+							plugin.spawns.getString("Tribute_twenty_spawn");
+							String[] coords = plugin.spawns.getString("Tribute_twenty_spawn").split(",");
 							Player Tribute_twenty = plugin.getServer().getPlayerExact(plugin.Playing.get(19));
 							double x = Double.parseDouble(coords[0]);
 							double y = Double.parseDouble(coords[1]);
@@ -1244,8 +1360,8 @@ public class HaCommands implements CommandExecutor {
 							Tribute_twenty.setFoodLevel(20);
 						}
 						if(plugin.Playing.size()>= 21){
-							plugin.config.getString("Tribute_twentyone_spawn");
-							String[] coords = plugin.config.getString("Tribute_twentyone_spawn").split(",");
+							plugin.spawns.getString("Tribute_twentyone_spawn");
+							String[] coords = plugin.spawns.getString("Tribute_twentyone_spawn").split(",");
 							Player Tribute_twentyone = plugin.getServer().getPlayerExact(plugin.Playing.get(20));
 							double x = Double.parseDouble(coords[0]);
 							double y = Double.parseDouble(coords[1]);
@@ -1258,8 +1374,8 @@ public class HaCommands implements CommandExecutor {
 							Tribute_twentyone.setFoodLevel(20);
 						}
 						if(plugin.Playing.size()>= 22){
-							plugin.config.getString("Tribute_twentytwo_spawn");
-							String[] coords = plugin.config.getString("Tribute_twentytwo_spawn").split(",");
+							plugin.spawns.getString("Tribute_twentytwo_spawn");
+							String[] coords = plugin.spawns.getString("Tribute_twentytwo_spawn").split(",");
 							Player Tribute_twentytwo = plugin.getServer().getPlayerExact(plugin.Playing.get(21));
 							double x = Double.parseDouble(coords[0]);
 							double y = Double.parseDouble(coords[1]);
@@ -1272,8 +1388,8 @@ public class HaCommands implements CommandExecutor {
 							Tribute_twentytwo.setFoodLevel(20);
 						}
 						if(plugin.Playing.size()>= 23){
-							plugin.config.getString("Tribute_twentythree_spawn");
-							String[] coords = plugin.config.getString("Tribute_twentythree_spawn").split(",");
+							plugin.spawns.getString("Tribute_twentythree_spawn");
+							String[] coords = plugin.spawns.getString("Tribute_twentythree_spawn").split(",");
 							Player Tribute_twentythree = plugin.getServer().getPlayerExact(plugin.Playing.get(22));
 							double x = Double.parseDouble(coords[0]);
 							double y = Double.parseDouble(coords[1]);
@@ -1286,8 +1402,8 @@ public class HaCommands implements CommandExecutor {
 							Tribute_twentythree.setFoodLevel(20);
 						}
 						if(plugin.Playing.size()>= 24){
-							plugin.config.getString("Tribute_twentyfour_spawn");
-							String[] coords = plugin.config.getString("Tribute_twentyfour_spawn").split(",");
+							plugin.spawns.getString("Tribute_twentyfour_spawn");
+							String[] coords = plugin.spawns.getString("Tribute_twentyfour_spawn").split(",");
 							Player Tribute_twentyfour = plugin.getServer().getPlayerExact(plugin.Playing.get(23));
 							double x = Double.parseDouble(coords[0]);
 							double y = Double.parseDouble(coords[1]);
