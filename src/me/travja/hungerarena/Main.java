@@ -1,13 +1,18 @@
 package me.Travja.HungerArena;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import net.milkbowl.vault.economy.Economy;
 import org.bukkit.ChatColor;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.RegisteredServiceProvider;
@@ -44,7 +49,10 @@ public class Main extends JavaPlugin{
 	public boolean canjoin;
 	public boolean exists;
 	public boolean restricted;
+	public boolean open = true;
 	public FileConfiguration config;
+	public FileConfiguration spawns = null;
+	public File spawnsFile = null;
 	public ItemStack Reward;
 	public ItemStack Cost;
 	public boolean vault = false;
@@ -53,6 +61,9 @@ public class Main extends JavaPlugin{
 		config = this.getConfig();
 		config.options().copyDefaults(true);
 		this.saveDefaultConfig();
+		this.getSpawns();
+		spawns.options().copyDefaults(true);
+		this.saveSpawns();
 		log.info("[HungerArena] enabled v" + getDescription().getVersion());
 		getServer().getPluginManager().registerEvents(DeathListener, this);
 		getServer().getPluginManager().registerEvents(SpectatorListener, this);
@@ -116,4 +127,33 @@ public class Main extends JavaPlugin{
 		vault = true;
 		return econ != null;
 	}
+    public void reloadSpawns() {
+        if (spawnsFile == null) {
+        spawnsFile = new File(getDataFolder(), "spawns.yml");
+        }
+        spawns = YamlConfiguration.loadConfiguration(spawnsFile);
+     
+        // Look for defaults in the jar
+        InputStream defConfigStream = this.getResource("spawns.yml");
+        if (defConfigStream != null) {
+            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
+            spawns.setDefaults(defConfig);
+        }
+    }
+    public FileConfiguration getSpawns() {
+        if (spawns == null) {
+            this.reloadSpawns();
+        }
+        return spawns;
+    }
+    public void saveSpawns() {
+        if (spawns == null || spawnsFile == null) {
+        return;
+        }
+        try {
+            getSpawns().save(spawnsFile);
+        } catch (IOException ex) {
+            this.getLogger().log(Level.SEVERE, "Could not save config to " + spawnsFile, ex);
+        }
+    }
 }

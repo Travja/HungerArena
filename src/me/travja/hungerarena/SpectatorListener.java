@@ -37,8 +37,8 @@ public class SpectatorListener implements Listener {
 			p.sendMessage(ChatColor.RED + "You are spectating, you can't interfere with the game!");
 		}
 	}
-        
-        @EventHandler
+
+	@EventHandler
 	public void SpectatorInteractEntity(PlayerInteractEntityEvent event){
 		Player p = event.getPlayer();
 		String pname = p.getName();
@@ -87,8 +87,8 @@ public class SpectatorListener implements Listener {
 			p.sendMessage(ChatColor.RED + "You are spectating, you can't interfere with the game!");
 		}
 	}
-        
-        @EventHandler
+
+	@EventHandler
 	public void SpectatorBlockPlace(BlockPlaceEvent event){
 		Player p = event.getPlayer();
 		String pname = p.getName();
@@ -97,35 +97,35 @@ public class SpectatorListener implements Listener {
 			p.sendMessage(ChatColor.RED + "You are spectating, you can't interfere with the game!");
 		}
 	}
-        
-        @EventHandler
+
+	@EventHandler
 	public void SpectatorQuit(PlayerQuitEvent event){
 		Player p = event.getPlayer();
 		String pname = p.getName();
 		if(plugin.Watching.contains(pname)){
-                    plugin.Watching.remove(pname);
-                    String[] Spawncoords = plugin.config.getString("Spawn_coords").split(",");
-		    String w = Spawncoords[3];
-		    World spawnw = plugin.getServer().getWorld(w);
-		    double spawnx = Double.parseDouble(Spawncoords[0]);
-		    double spawny = Double.parseDouble(Spawncoords[1]);
-		    double spawnz = Double.parseDouble(Spawncoords[2]);
-		    final Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
-                    p.teleport(Spawn);
+			plugin.Watching.remove(pname);
+			String[] Spawncoords = plugin.spawns.getString("Spawn_coords").split(",");
+			String w = Spawncoords[3];
+			World spawnw = plugin.getServer().getWorld(w);
+			double spawnx = Double.parseDouble(Spawncoords[0]);
+			double spawny = Double.parseDouble(Spawncoords[1]);
+			double spawnz = Double.parseDouble(Spawncoords[2]);
+			final Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
+			p.teleport(Spawn);
 		}
 	}
-        
+
 	@EventHandler
 	public void MobNerf(EntityTargetEvent event){
 		Entity target = event.getTarget();
-                Entity e = event.getEntity();
-                if (e instanceof Player) {
-                    return;
-                }
+		Entity e = event.getEntity();
+		if (e instanceof Player) {
+			return;
+		}
 		if(target instanceof Player){
 			String targetName = ((Player) target).getName();
 			if(plugin.Watching.contains(targetName)){
-			        event.setTarget(null);
+				event.setTarget(null);
 			}
 		}
 	}

@@ -20,7 +20,7 @@ public class DeathListener implements Listener{
 		Player p = event.getPlayer();
 		String pname = p.getName();
 		if(plugin.Dead.contains(pname)){
-			String[] Spawncoords = plugin.config.getString("Spawn_coords").split(",");
+			String[] Spawncoords = plugin.spawns.getString("Spawn_coords").split(",");
 			World spawnw = plugin.getServer().getWorld(Spawncoords[3]);
 			double spawnx = Double.parseDouble(Spawncoords[0]);
 			double spawny = Double.parseDouble(Spawncoords[1]);
@@ -36,21 +36,22 @@ public class DeathListener implements Listener{
 		String pname = p.getName();
 		int players = plugin.Playing.size()-1;
 		String leftmsg = ChatColor.BLUE + "There are now " + players + " tributes left!";
-		String[] Spawncoords = plugin.config.getString("Spawn_coords").split(",");
+		String[] Spawncoords = plugin.spawns.getString("Spawn_coords").split(",");
 		World spawnw = plugin.getServer().getWorld(Spawncoords[3]);
 		double spawnx = Double.parseDouble(Spawncoords[0]);
 		double spawny = Double.parseDouble(Spawncoords[1]);
 		double spawnz = Double.parseDouble(Spawncoords[2]);
 		Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
-		if(plugin.config.getString("Cannon_Death").equalsIgnoreCase("True")){
-			double y = p.getLocation().getY();
-			double newy = y+200;
-			double x = p.getLocation().getX();
-			double z = p.getLocation().getZ();
-			Location strike = new Location(p.getWorld(), x, newy, z);
-			p.getWorld().strikeLightning(strike);
-		}
+
 		if(plugin.Frozen.contains(pname) && plugin.Playing.contains(pname)){
+			if(plugin.config.getString("Cannon_Death").equalsIgnoreCase("True")){
+				double y = p.getLocation().getY();
+				double newy = y+200;
+				double x = p.getLocation().getX();
+				double z = p.getLocation().getZ();
+				Location strike = new Location(p.getWorld(), x, newy, z);
+				p.getWorld().strikeLightning(strike);
+			}
 			event.setDeathMessage("");
 			p.getServer().broadcastMessage(pname + ChatColor.LIGHT_PURPLE + " Stepped off their pedestal too early!");
 			plugin.Frozen.remove(pname);
@@ -59,34 +60,39 @@ public class DeathListener implements Listener{
 			s.broadcastMessage(leftmsg);
 			if(plugin.Playing.size()== 1 && plugin.canjoin== false){
 				//Announce winner
-				String winnername = plugin.Playing.get(i++);
-				Player winner = plugin.getServer().getPlayerExact(winnername);
-				String winnername2 = winner.getName();
-				plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
-				winner.getInventory().clear();
-				winner.teleport(Spawn);
-				winner.getInventory().setBoots(null);
-				winner.getInventory().setChestplate(null);
-				winner.getInventory().setHelmet(null);
-				winner.getInventory().setLeggings(null);
-				winner.getInventory().addItem(plugin.Reward);
-				plugin.Playing.clear();
-				//Show spectators
-				if(!plugin.Watching.isEmpty()){
-					String s1 = plugin.Watching.get(i++);
-					Player spectator = plugin.getServer().getPlayerExact(s1);
-					spectator.setAllowFlight(false);
-					spectator.teleport(Spawn);
-					for(Player online:plugin.getServer().getOnlinePlayers()){
-						online.showPlayer(spectator);
-					}
+				for(i = 0; i < plugin.Playing.size(); i++){
+					String winnername = plugin.Playing.get(i++);
+					Player winner = plugin.getServer().getPlayerExact(winnername);
+					String winnername2 = winner.getName();
+					plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
+					winner.getInventory().clear();
+					winner.teleport(Spawn);
+					winner.getInventory().setBoots(null);
+					winner.getInventory().setChestplate(null);
+					winner.getInventory().setHelmet(null);
+					winner.getInventory().setLeggings(null);
+					winner.getInventory().addItem(plugin.Reward);
+					plugin.Playing.clear();
 				}
+				//Show spectators
+					for(String sname: plugin.Watching){
+						Player spectator = plugin.getServer().getPlayerExact(sname);
+						spectator.setAllowFlight(false);
+						spectator.teleport(spectator.getWorld().getSpawnLocation());
+						for(Player online:plugin.getServer().getOnlinePlayers()){
+							online.showPlayer(spectator);
+						}
+					}
 				if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
-					Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha restart");
+					Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
+						public void run(){
+							Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha restart");
+
+						}
+					}, 220L);
 				}
 			}
-		}
-		if(plugin.Playing.contains(pname)){
+		}else if(plugin.Playing.contains(pname)){
 			if(plugin.config.getString("Cannon_Death").equalsIgnoreCase("True")){
 				double y = p.getLocation().getY();
 				double newy = y+200;
@@ -106,26 +112,30 @@ public class DeathListener implements Listener{
 					s.broadcastMessage(leftmsg);
 					if(plugin.Playing.size()== 1 && plugin.canjoin== true){
 						//Announce winner
-						String winnername = plugin.Playing.get(i++);
-						Player winner = plugin.getServer().getPlayerExact(winnername);
-						String winnername2 = winner.getName();
-						plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
-						winner.getInventory().clear();
-						winner.teleport(Spawn);
-						winner.getInventory().setBoots(null);
-						winner.getInventory().setChestplate(null);
-						winner.getInventory().setHelmet(null);
-						winner.getInventory().setLeggings(null);
-						winner.getInventory().addItem(plugin.Reward);
+						for(i = 0; i < plugin.Playing.size(); i++){
+							String winnername = plugin.Playing.get(i++);
+							Player winner = plugin.getServer().getPlayerExact(winnername);
+							String winnername2 = winner.getName();
+							plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
+							winner.getInventory().clear();
+							winner.teleport(Spawn);
+							winner.getInventory().setBoots(null);
+							winner.getInventory().setChestplate(null);
+							winner.getInventory().setHelmet(null);
+							winner.getInventory().setLeggings(null);
+							winner.getInventory().addItem(plugin.Reward);
+						}
 						plugin.Playing.clear();
 						//Show spectators
 						if(!plugin.Watching.isEmpty()){
-							String s1 = plugin.Watching.get(i++);
-							Player spectator = plugin.getServer().getPlayerExact(s1);
-							spectator.setAllowFlight(false);
-							spectator.teleport(Spawn);
-							for(Player online:plugin.getServer().getOnlinePlayers()){
-								online.showPlayer(spectator);
+							for(i = 0; i < plugin.Watching.size(); i++){
+								String s1 = plugin.Watching.get(i++);
+								Player spectator = plugin.getServer().getPlayerExact(s1);
+								spectator.setAllowFlight(false);
+								spectator.teleport(Spawn);
+								for(Player online:plugin.getServer().getOnlinePlayers()){
+									online.showPlayer(spectator);
+								}
 							}
 						}
 						if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
@@ -142,26 +152,30 @@ public class DeathListener implements Listener{
 					s.broadcastMessage(leftmsg);
 					if(plugin.Playing.size()== 1 && plugin.canjoin== true){
 						//Announce winner
-						String winnername = plugin.Playing.get(i++);
-						Player winner = plugin.getServer().getPlayerExact(winnername);
-						String winnername2 = winner.getName();
-						plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
-						winner.getInventory().clear();
-						winner.teleport(Spawn);
-						winner.getInventory().setBoots(null);
-						winner.getInventory().setChestplate(null);
-						winner.getInventory().setHelmet(null);
-						winner.getInventory().setLeggings(null);
-						winner.getInventory().addItem(plugin.Reward);
+						for(i = 0; i < plugin.Playing.size(); i++){
+							String winnername = plugin.Playing.get(i++);
+							Player winner = plugin.getServer().getPlayerExact(winnername);
+							String winnername2 = winner.getName();
+							plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
+							winner.getInventory().clear();
+							winner.teleport(Spawn);
+							winner.getInventory().setBoots(null);
+							winner.getInventory().setChestplate(null);
+							winner.getInventory().setHelmet(null);
+							winner.getInventory().setLeggings(null);
+							winner.getInventory().addItem(plugin.Reward);
+						}
 						plugin.Playing.clear();
 						//Show spectators
 						if(plugin.Watching.size() != 0){
-							String s1 = plugin.Watching.get(i++);
-							Player spectator = plugin.getServer().getPlayerExact(s1);
-							spectator.setAllowFlight(false);
-							spectator.teleport(Spawn);
-							for(Player online:plugin.getServer().getOnlinePlayers()){
-								online.showPlayer(spectator);
+							for(i = 0; i < plugin.Watching.size(); i++){
+								String s1 = plugin.Watching.get(i++);
+								Player spectator = plugin.getServer().getPlayerExact(s1);
+								spectator.setAllowFlight(false);
+								spectator.teleport(Spawn);
+								for(Player online:plugin.getServer().getOnlinePlayers()){
+									online.showPlayer(spectator);
+								}
 							}
 						}
 						if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
@@ -175,30 +189,34 @@ public class DeathListener implements Listener{
 				s.broadcastMessage(leftmsg);
 				if(plugin.Playing.size()== 1 && plugin.canjoin== true){
 					//Announce winner
-					String winnername = plugin.Playing.get(i++);
-					Player winner = plugin.getServer().getPlayerExact(winnername);
-					String winnername2 = winner.getName();
-					plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
-					winner.getInventory().clear();
-					winner.teleport(Spawn);
-					winner.getInventory().setBoots(null);
-					winner.getInventory().setChestplate(null);
-					winner.getInventory().setHelmet(null);
-					winner.getInventory().setLeggings(null);
-					winner.getInventory().addItem(plugin.Reward);
+					for(i = 0; i < plugin.Playing.size(); i++){
+						String winnername = plugin.Playing.get(i++);
+						Player winner = plugin.getServer().getPlayerExact(winnername);
+						String winnername2 = winner.getName();
+						plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
+						winner.getInventory().clear();
+						winner.teleport(Spawn);
+						winner.getInventory().setBoots(null);
+						winner.getInventory().setChestplate(null);
+						winner.getInventory().setHelmet(null);
+						winner.getInventory().setLeggings(null);
+						winner.getInventory().addItem(plugin.Reward);
+					}
 					// Create the event here
-					PlayerWinGamesEvent winevent = new PlayerWinGamesEvent(winner);
+					//PlayerWinGamesEvent winevent = new PlayerWinGamesEvent(winner);
 					// Call the event
-					Bukkit.getServer().getPluginManager().callEvent(winevent);
+					//Bukkit.getServer().getPluginManager().callEvent(winevent);
 					plugin.Playing.clear();
 					//Show spectators
 					if(!plugin.Watching.isEmpty()){
-						String s1 = plugin.Watching.get(i++);
-						Player spectator = plugin.getServer().getPlayerExact(s1);
-						spectator.setAllowFlight(false);
-						spectator.teleport(Spawn);
-						for(Player online:plugin.getServer().getOnlinePlayers()){
-							online.showPlayer(spectator);
+						for(i = 0; i < plugin.Watching.size(); i++){
+							String s1 = plugin.Watching.get(i++);
+							Player spectator = plugin.getServer().getPlayerExact(s1);
+							spectator.setAllowFlight(false);
+							spectator.teleport(Spawn);
+							for(Player online:plugin.getServer().getOnlinePlayers()){
+								online.showPlayer(spectator);
+							}
 						}
 					}
 					if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
