@@ -7,6 +7,7 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -26,6 +27,29 @@ public class BlockStorage implements Listener {
 	public Main plugin;
 	public BlockStorage(Main m) {
 		this.plugin = m;
+	}
+	@EventHandler
+	public void BlockBreak(BlockBreakEvent event){
+		Block b = event.getBlock();
+		Player p = event.getPlayer();
+		if(plugin.canjoin){
+			if(plugin.Playing.contains(p.getName())){
+				if(plugin.config.getStringList("worlds").isEmpty() || (!plugin.config.getStringList("worlds").isEmpty() && plugin.config.getStringList("worlds").contains(p.getWorld().getName()))){
+					String w = b.getWorld().getName();
+					int x = b.getX();
+					int y = b.getY();
+					int z = b.getZ();
+					int d = b.getTypeId();
+					byte m = b.getData();
+					String coords = w + "," + x + "," + y + "," + z + "," + d + "," + m;
+					System.out.println("Leaf Break: " + coords);
+					List<String> blocks = plugin.config.getStringList("Blocks_Destroyed");
+					blocks.add(coords);
+					plugin.config.set("Blocks_Destroyed", blocks);
+					plugin.saveConfig();
+				}
+			}
+		}
 	}
 	/*@EventHandler
 	public void creeperExplosion(EntityExplodeEvent event){

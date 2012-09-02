@@ -372,6 +372,21 @@ public class HaCommands implements CommandExecutor {
 							plugin.Out.clear();
 							plugin.Playing.clear();
 							plugin.canjoin = false;
+							List<String> blocksbroken = plugin.config.getStringList("Blocks_Destroyed");
+							for(String blocks:blocksbroken){
+								String[] coords = blocks.split(",");
+								World w = plugin.getServer().getWorld(coords[0]);
+								double x = Double.parseDouble(coords[1]);
+								double y = Double.parseDouble(coords[2]);
+								double z = Double.parseDouble(coords[3]);
+								int d = Integer.parseInt(coords[4]);
+								byte m = Byte.parseByte(coords[5]);
+								Location blockl = new Location(w, x, y, z);
+								Block block = w.getBlockAt(blockl);
+								block.setTypeIdAndData(d, m, true);
+								block.getState().update();
+							}
+							plugin.config.getStringList("Blocks_Destroyed").clear();
 							p.performCommand("ha refill");
 							p.sendMessage(ChatColor.AQUA + "The games have been reset!");
 						}else{
