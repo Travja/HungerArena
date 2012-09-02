@@ -18,9 +18,11 @@ public class CommandBlock implements Listener {
 		Player p = event.getPlayer();
 		String pname = p.getName();
 		if(!cmd.contains("/ha") && plugin.Playing.contains(pname) && plugin.canjoin== true){
-			if(!cmd.contains("/login") || !p.hasPermission("HungerArena.UseCommands")){
-				event.setCancelled(true);
-				p.sendMessage(ChatColor.RED + "You are only allowed to use /ha commands!");
+			if(!cmd.contains("/login")){
+				if(!p.hasPermission("HungerArena.UseCommands")){
+					event.setCancelled(true);
+					p.sendMessage(ChatColor.RED + "You are only allowed to use /ha commands!");
+				}
 			}
 		}
 	}
