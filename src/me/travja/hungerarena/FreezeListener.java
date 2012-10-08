@@ -1,6 +1,5 @@
 package me.Travja.HungerArena;
 
-import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -12,13 +11,39 @@ public class FreezeListener implements Listener {
 	public FreezeListener(Main m) {
 		this.plugin = m;
 	}
+	int i = 0;
+	private boolean timeUp;
 	@EventHandler
 	public void onPlayerMove(PlayerMoveEvent event){
 		Player p = event.getPlayer();
 		String pname = p.getName();
 		if(plugin.Frozen.contains(pname) && plugin.config.getString("Frozen_Teleport").equalsIgnoreCase("True")){
 			if(plugin.config.getString("Explode_on_Move").equalsIgnoreCase("true")){
-				if(plugin.Playing.size()>=1){
+				for(String players:plugin.Playing){
+					final Player playing = plugin.getServer().getPlayerExact(players);
+					i = plugin.Playing.indexOf(players);
+					if(!timeUp){
+						if(!playing.getLocation().getBlock().getLocation().equals(plugin.location.get(i))){
+							playing.teleport(plugin.location.get(i));
+							plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
+								public void run(){
+									if(!timeUp){
+										timeUp = true;
+									}
+								}
+							},30L);
+						}
+					}else{
+						if(!playing.getLocation().getBlock().getLocation().equals(plugin.location.get(i))){
+							if(!plugin.Dead.contains(playing.getName())){
+								World world = playing.getLocation().getWorld();
+								world.createExplosion(playing.getLocation(), 0.0F, false);
+								playing.setHealth(0);
+							}
+						}
+					}
+				}
+				/*if(plugin.Playing.size()>=1){
 					String one = plugin.Playing.get(0);
 					if(pname==one){
 						Player tone = plugin.getServer().getPlayerExact(one);
@@ -473,9 +498,16 @@ public class FreezeListener implements Listener {
 							}
 						}
 					}
-				}
+				}*/
 			}else{
-				if(plugin.Playing.size()>=1){
+				for(String players:plugin.Playing){
+					Player playing = plugin.getServer().getPlayerExact(players);
+					i = plugin.Playing.indexOf(players);
+					if(!playing.getLocation().getBlock().getLocation().equals(plugin.location.get(i))){
+						playing.teleport(plugin.location.get(i));
+					}
+				}
+				/*if(plugin.Playing.size()>=1){
 					String one = plugin.Playing.get(0);
 					if(pname==one){
 						Player tone = plugin.getServer().getPlayerExact(one);
@@ -834,7 +866,7 @@ public class FreezeListener implements Listener {
 							ttwentyfour.teleport(twentyfourspwn);
 						}
 					}
-				}
+				}*/
 			}
 		}
 	}

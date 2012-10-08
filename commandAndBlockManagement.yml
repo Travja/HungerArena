@@ -1,0 +1,15 @@
+# Make like this to whitelist/blacklist
+# whitelist:
+# - /broadcast
+# - /pm
+# Anything not in the whitelist will be counted as blacklist!
+
+commands:
+  whitelist: []
+##### Not implemented! #####
+blocks:
+  whitelist: []
+  blacklist: []
+sponsors:
+  blacklist: []
+############################
