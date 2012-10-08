@@ -1,5 +1,7 @@
 package me.Travja.HungerArena;
 
+import java.util.List;
+
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.command.Command;
@@ -12,19 +14,42 @@ public class SpawnsCommand implements CommandExecutor {
 	public SpawnsCommand(Main m) {
 		this.plugin = m;
 	}
-
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
 		Player p = (Player) sender;
 		if(cmd.getName().equalsIgnoreCase("StartPoint")){
 			if(p.hasPermission("HungerArena.StartPoint")){
 				if(!plugin.restricted || (plugin.restricted && plugin.worlds.contains(p.getWorld().getName()))){
-					if(plugin.restricted && !plugin.worlds.contains(p.getWorld().getName())){
-						p.sendMessage(ChatColor.GOLD + "We ran the command, however, this isn't a world you defined in the config...");
-						p.sendMessage(ChatColor.GOLD + "If this is the right world, please disregard this message.");
+					try{
+						int i = Integer.parseInt(args[0]);
+						if(i >= 1 && i <= 24){
+							if(plugin.restricted && !plugin.worlds.contains(p.getWorld().getName())){
+								p.sendMessage(ChatColor.GOLD + "We ran the command, however, this isn't a world you defined in the config...");
+								p.sendMessage(ChatColor.GOLD + "If this is the right world, please disregard this message.");
+							}
+							Location ploc = p.getLocation().getBlock().getLocation();
+							List<String> locations = plugin.spawns.getStringList("Spawns");
+							double x = ploc.getX();
+							double y = ploc.getY();
+							double z = ploc.getZ();
+							String w = ploc.getWorld().getName();
+							String coords = x + "," + y + "," + z + "," + w + ",true";
+							locations.set(i-1, coords);
+							plugin.spawns.set("Spawns", locations);
+							plugin.saveSpawns();
+							plugin.location.add(new Location(ploc.getWorld(), x, y, z));
+							p.sendMessage(ChatColor.AQUA + "You have set the spawn location of Tribute " + i);
+						}else{
+							p.sendMessage(ChatColor.RED + "You can't go past 24 or below 1!");
+						}
+					}catch(Exception e){
+						p.sendMessage(ChatColor.RED + "Argument not an integer!");
 					}
-					Location ploc = p.getLocation().getBlock().getLocation();
-					if(args[0].equalsIgnoreCase("1")){
+				}
+			}else{
+				p.sendMessage(ChatColor.RED + "You don't have permission!");
+			}
+						/*if(args[0].equalsIgnoreCase("1")){
 						double x = ploc.getX();
 						double y = ploc.getY();
 						double z = ploc.getZ();
@@ -239,11 +264,7 @@ public class SpawnsCommand implements CommandExecutor {
 						plugin.spawns.set("Tribute_twentyfour_spawn", x + "," + y + "," + z + "," + w);
 						plugin.saveSpawns();
 						p.sendMessage(ChatColor.AQUA + "You have set the spawn location of Tribute twentyfour!");
-					}
-				}
-			}else{
-				p.sendMessage(ChatColor.RED + "You don't have permission!");
-			}
+					}*/
 		}
 		return false;
 	}

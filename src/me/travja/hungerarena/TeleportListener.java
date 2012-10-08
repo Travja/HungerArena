@@ -1,22 +1,29 @@
 package me.Travja.HungerArena;
 
+import java.util.List;
+
+import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerTeleportEvent;
-import org.bukkit.event.player.PlayerTeleportEvent.TeleportCause;
 
-/**
- *
- * @author YoshiGenius
- */
 public class TeleportListener implements Listener {
     
     public Main plugin;
     public TeleportListener(Main m) {
         this.plugin = m;
     }
-    
+    @EventHandler
+    public void onTP(PlayerTeleportEvent event){
+    	Player p = event.getPlayer();
+    	List<String> worlds = plugin.config.getStringList("worlds");
+    	if(worlds.contains(event.getTo().getWorld().getName()) && plugin.Tele.contains(p)){
+    		event.setCancelled(true);
+    		p.sendMessage(ChatColor.RED + "You are a dead tribute... How are you supposed to get back into the arena....");
+    		plugin.Tele.remove(p);
+    	}
+    }
     /*@EventHandler          Unwanted right now...
     public void onTP(PlayerTeleportEvent evt) {
         @SuppressWarnings("unused")

@@ -7,6 +7,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 public class DeathListener implements Listener{
 	public Main plugin;
@@ -17,7 +19,7 @@ public class DeathListener implements Listener{
 	int i = 0;
 	@EventHandler
 	public void onPlayerRespawn(PlayerRespawnEvent event){
-		Player p = event.getPlayer();
+		final Player p = event.getPlayer();
 		String pname = p.getName();
 		if(plugin.Dead.contains(pname)){
 			String[] Spawncoords = plugin.spawns.getString("Spawn_coords").split(",");
@@ -25,8 +27,12 @@ public class DeathListener implements Listener{
 			double spawnx = Double.parseDouble(Spawncoords[0]);
 			double spawny = Double.parseDouble(Spawncoords[1]);
 			double spawnz = Double.parseDouble(Spawncoords[2]);
-			Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
-			event.setRespawnLocation(Spawn);
+			final Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
+			Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
+				public void run(){
+					p.teleport(Spawn);
+				}
+			}, 10L);
 		}
 	}
 	@EventHandler
@@ -42,7 +48,6 @@ public class DeathListener implements Listener{
 		double spawny = Double.parseDouble(Spawncoords[1]);
 		double spawnz = Double.parseDouble(Spawncoords[2]);
 		Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
-
 		if(plugin.Frozen.contains(pname) && plugin.Playing.contains(pname)){
 			if(plugin.config.getString("Cannon_Death").equalsIgnoreCase("True")){
 				double y = p.getLocation().getY();
@@ -66,23 +71,27 @@ public class DeathListener implements Listener{
 					String winnername2 = winner.getName();
 					plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
 					winner.getInventory().clear();
-					winner.teleport(Spawn);
 					winner.getInventory().setBoots(null);
 					winner.getInventory().setChestplate(null);
 					winner.getInventory().setHelmet(null);
 					winner.getInventory().setLeggings(null);
+					for(PotionEffect pe: winner.getActivePotionEffects()){
+						PotionEffectType potion = pe.getType();
+						winner.removePotionEffect(potion);
+					}
+					winner.teleport(Spawn);
 					winner.getInventory().addItem(plugin.Reward);
 					plugin.Playing.clear();
 				}
 				//Show spectators
-					for(String sname: plugin.Watching){
-						Player spectator = plugin.getServer().getPlayerExact(sname);
-						spectator.setAllowFlight(false);
-						spectator.teleport(spectator.getWorld().getSpawnLocation());
-						for(Player online:plugin.getServer().getOnlinePlayers()){
-							online.showPlayer(spectator);
-						}
+				for(String s1: plugin.Watching){
+					Player spectator = plugin.getServer().getPlayerExact(s1);
+					spectator.setAllowFlight(false);
+					spectator.teleport(Spawn);
+					for(Player online:plugin.getServer().getOnlinePlayers()){
+						online.showPlayer(spectator);
 					}
+				}
 				if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
 					Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 						public void run(){
@@ -118,24 +127,25 @@ public class DeathListener implements Listener{
 							String winnername2 = winner.getName();
 							plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
 							winner.getInventory().clear();
-							winner.teleport(Spawn);
 							winner.getInventory().setBoots(null);
 							winner.getInventory().setChestplate(null);
 							winner.getInventory().setHelmet(null);
 							winner.getInventory().setLeggings(null);
+							for(PotionEffect pe: winner.getActivePotionEffects()){
+								PotionEffectType potion = pe.getType();
+								winner.removePotionEffect(potion);
+							}
+							winner.teleport(Spawn);
 							winner.getInventory().addItem(plugin.Reward);
 						}
 						plugin.Playing.clear();
 						//Show spectators
-						if(!plugin.Watching.isEmpty()){
-							for(i = 0; i < plugin.Watching.size(); i++){
-								String s1 = plugin.Watching.get(i++);
-								Player spectator = plugin.getServer().getPlayerExact(s1);
-								spectator.setAllowFlight(false);
-								spectator.teleport(Spawn);
-								for(Player online:plugin.getServer().getOnlinePlayers()){
-									online.showPlayer(spectator);
-								}
+						for(String s1: plugin.Watching){
+							Player spectator = plugin.getServer().getPlayerExact(s1);
+							spectator.setAllowFlight(false);
+							spectator.teleport(Spawn);
+							for(Player online:plugin.getServer().getOnlinePlayers()){
+								online.showPlayer(spectator);
 							}
 						}
 						if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
@@ -158,24 +168,25 @@ public class DeathListener implements Listener{
 							String winnername2 = winner.getName();
 							plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
 							winner.getInventory().clear();
-							winner.teleport(Spawn);
 							winner.getInventory().setBoots(null);
 							winner.getInventory().setChestplate(null);
 							winner.getInventory().setHelmet(null);
 							winner.getInventory().setLeggings(null);
+							for(PotionEffect pe: winner.getActivePotionEffects()){
+								PotionEffectType potion = pe.getType();
+								winner.removePotionEffect(potion);
+							}
+							winner.teleport(Spawn);
 							winner.getInventory().addItem(plugin.Reward);
 						}
 						plugin.Playing.clear();
 						//Show spectators
-						if(plugin.Watching.size() != 0){
-							for(i = 0; i < plugin.Watching.size(); i++){
-								String s1 = plugin.Watching.get(i++);
-								Player spectator = plugin.getServer().getPlayerExact(s1);
-								spectator.setAllowFlight(false);
-								spectator.teleport(Spawn);
-								for(Player online:plugin.getServer().getOnlinePlayers()){
-									online.showPlayer(spectator);
-								}
+						for(String s1: plugin.Watching){
+							Player spectator = plugin.getServer().getPlayerExact(s1);
+							spectator.setAllowFlight(false);
+							spectator.teleport(Spawn);
+							for(Player online:plugin.getServer().getOnlinePlayers()){
+								online.showPlayer(spectator);
 							}
 						}
 						if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
@@ -195,11 +206,15 @@ public class DeathListener implements Listener{
 						String winnername2 = winner.getName();
 						plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
 						winner.getInventory().clear();
-						winner.teleport(Spawn);
 						winner.getInventory().setBoots(null);
 						winner.getInventory().setChestplate(null);
 						winner.getInventory().setHelmet(null);
 						winner.getInventory().setLeggings(null);
+						for(PotionEffect pe: winner.getActivePotionEffects()){
+							PotionEffectType potion = pe.getType();
+							winner.removePotionEffect(potion);
+						}
+						winner.teleport(Spawn);
 						winner.getInventory().addItem(plugin.Reward);
 					}
 					// Create the event here
@@ -208,15 +223,12 @@ public class DeathListener implements Listener{
 					//Bukkit.getServer().getPluginManager().callEvent(winevent);
 					plugin.Playing.clear();
 					//Show spectators
-					if(!plugin.Watching.isEmpty()){
-						for(i = 0; i < plugin.Watching.size(); i++){
-							String s1 = plugin.Watching.get(i++);
-							Player spectator = plugin.getServer().getPlayerExact(s1);
-							spectator.setAllowFlight(false);
-							spectator.teleport(Spawn);
-							for(Player online:plugin.getServer().getOnlinePlayers()){
-								online.showPlayer(spectator);
-							}
+					for(String s1: plugin.Watching){
+						Player spectator = plugin.getServer().getPlayerExact(s1);
+						spectator.setAllowFlight(false);
+						spectator.teleport(Spawn);
+						for(Player online:plugin.getServer().getOnlinePlayers()){
+							online.showPlayer(spectator);
 						}
 					}
 					if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){

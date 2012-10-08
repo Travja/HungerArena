@@ -117,9 +117,7 @@ public class JoinAndQuitListener implements Listener {
 									Bukkit.getServer().getPluginManager().callEvent(evt);
 								}
 								//Make spectators visible
-								if(!plugin.Watching.isEmpty()){
-									for(i = 0; i < plugin.Playing.size(); i++){
-										String s = plugin.Watching.get(i++);
+									for(String s: plugin.Watching){
 										Player spectator = plugin.getServer().getPlayerExact(s);
 										spectator.setAllowFlight(false);
 										spectator.teleport(Spawn);
@@ -127,7 +125,6 @@ public class JoinAndQuitListener implements Listener {
 											online.showPlayer(spectator);
 										}
 									}
-								}
 								if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
 									Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha restart");
 								}

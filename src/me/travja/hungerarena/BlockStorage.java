@@ -3,22 +3,18 @@ package me.Travja.HungerArena;
 import java.util.List;
 
 import org.bukkit.ChatColor;
-import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.BlockFace;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockBurnEvent;
 import org.bukkit.event.block.BlockFadeEvent;
-import org.bukkit.event.block.BlockFormEvent;
-import org.bukkit.event.block.BlockGrowEvent;
-import org.bukkit.event.block.BlockPhysicsEvent;
-import org.bukkit.event.block.BlockPistonExtendEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
-import org.bukkit.event.block.LeavesDecayEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerBucketFillEvent;
@@ -32,8 +28,13 @@ public class BlockStorage implements Listener {
 	public void BlockBreak(BlockBreakEvent event){
 		Block b = event.getBlock();
 		Player p = event.getPlayer();
-		if(plugin.canjoin){
-			if(plugin.Playing.contains(p.getName())){
+		String pname = p.getName();
+		if(plugin.Playing.contains(pname)){
+			if(plugin.config.getString("Protected_Arena").equalsIgnoreCase("True")){
+				event.setCancelled(true);
+				p.sendMessage(ChatColor.RED + "You can't break blocks when you're playing!");
+			}
+			if(plugin.canjoin){
 				if(plugin.config.getStringList("worlds").isEmpty() || (!plugin.config.getStringList("worlds").isEmpty() && plugin.config.getStringList("worlds").contains(p.getWorld().getName()))){
 					String w = b.getWorld().getName();
 					int x = b.getX();
@@ -42,118 +43,110 @@ public class BlockStorage implements Listener {
 					int d = b.getTypeId();
 					byte m = b.getData();
 					String coords = w + "," + x + "," + y + "," + z + "," + d + "," + m;
-					System.out.println("Leaf Break: " + coords);
-					List<String> blocks = plugin.config.getStringList("Blocks_Destroyed");
-					blocks.add(coords);
-					plugin.config.set("Blocks_Destroyed", blocks);
-					plugin.saveConfig();
+					List<String> blocks = plugin.data.getStringList("Blocks_Destroyed");
+					if(!plugin.data.getStringList("Blocks_Placed").contains(w + "," + x + "," + y + "," + z)){
+						blocks.add(coords);
+						plugin.data.set("Blocks_Destroyed", blocks);
+						plugin.saveData();
+					}
 				}
 			}
 		}
 	}
-	/*@EventHandler
-	public void creeperExplosion(EntityExplodeEvent event){
+	@EventHandler
+	public void Explosion(EntityExplodeEvent event){
+		List<Block> blocksd = event.blockList();
+		Entity e = event.getEntity();
+		if(plugin.canjoin){
+			if(plugin.config.getStringList("worlds").isEmpty() || (!plugin.config.getStringList("worlds").isEmpty() && plugin.config.getStringList("worlds").contains(event.getEntity().getWorld().getName()))){
+				if(e.getType()== EntityType.PRIMED_TNT){
+					if(!plugin.data.getStringList("Blocks_Placed").contains(e.getLocation().getWorld() + "," + e.getLocation().getX() + "," + e.getLocation().getY() + "," + e.getLocation().getZ()) /*|| !plugin.data.getStringList("Blocks_Destroyed").contains(e.getLocation().getWorld() + "," + e.getLocation().getX() + "," + e.getLocation().getY() + "," + e.getLocation().getZ())*/){
+						List<String> blocks = plugin.data.getStringList("Blocks_Destroyed");
+						blocks.add(e.getLocation().getWorld().getName() + "," + e.getLocation().getX() + "," + e.getLocation().getY() + "," + e.getLocation().getZ() + ",46" + ",0");
+						plugin.data.set("Blocks_Destroyed", blocks);
+						plugin.saveData();
+						plugin.getServer().broadcastMessage("TNT blew up!");
+					}
+				}
+				for(Block b:blocksd){
+					String w = event.getEntity().getWorld().getName();
+					int x = b.getX();
+					int y = b.getY();
+					int z = b.getZ();
+					int d = b.getTypeId();
+					byte m = b.getData();
+					String coords = w + "," + x + "," + y + "," + z + "," + d + "," + m;
+					List<String> blocks = plugin.data.getStringList("Blocks_Destroyed");
+					if(!plugin.data.getStringList("Blocks_Placed").contains(w + "," + x + "," + y + "," + z) || !plugin.data.getStringList("Blocks_Destroyed").contains(w + "," + x + "," + y + "," + z)){
+						blocks.add(coords);
+						plugin.data.set("Blocks_Destroyed", blocks);
+						plugin.saveData();
+					}
+				}
+			}
+		}	
+	}
+	@EventHandler
+	public void burningBlocks(BlockBurnEvent event){
+		Block b = event.getBlock();
 		if(plugin.canjoin== true){
-			for(Block b:event.blockList()){
+			if(plugin.config.getStringList("worlds").isEmpty() || (!plugin.config.getStringList("worlds").isEmpty() && plugin.config.getStringList("worlds").contains(b.getWorld().getName()))){
 				String w = b.getWorld().getName();
 				int x = b.getX();
 				int y = b.getY();
 				int z = b.getZ();
 				int d = b.getTypeId();
-				String coords = w + "," + x + "," + y + "," + z + "," + d;
-				System.out.println("Explode: " + coords);
-				List<String> blocks = plugin.config.getStringList("Blocks_Destroyed");
-				blocks.add(coords);
-				plugin.config.set("Blocks_Destroyed", blocks);
-				plugin.saveConfig();
+				byte m = b.getData();
+				String coords = w + "," + x + "," + y + "," + z + "," + d + "," + m;
+				List<String> blocks = plugin.data.getStringList("Blocks_Destroyed");
+				if(!plugin.data.getStringList("Blocks_Placed").contains(w + "," + x + "," + y + "," + z)){
+					blocks.add(coords);
+					plugin.data.set("Blocks_Destroyed", blocks);
+					plugin.saveData();
+				}
 			}
 		}
 	}
 	@EventHandler
-	public void burningBlocks(BlockBurnEvent event){
-		if(plugin.canjoin== true){
-			Block b = event.getBlock();
-			String w = b.getWorld().getName();
-			int x = b.getX();
-			int y = b.getY();
-			int z = b.getZ();
-			int d = b.getTypeId();
-			String coords = w + "," + x + "," + y + "," + z + "," + d;
-			System.out.println("Burn: " + coords);
-			List<String> blocks = plugin.config.getStringList("Blocks_Destroyed");
-			blocks.add(coords);
-			plugin.config.set("Blocks_Destroyed", blocks);
-			plugin.saveConfig();
-		}
-	}
-	@EventHandler
-	public void leafDecay(LeavesDecayEvent event){
-		if(plugin.canjoin== true){
-			Block b = event.getBlock();
-			String w = b.getWorld().getName();
-			int x = b.getX();
-			int y = b.getY();
-			int z = b.getZ();
-			int d = b.getTypeId();
-			String coords = w + "," + x + "," + y + "," + z + "," + d;
-			System.out.println("Decay: " + coords);
-			List<String> blocks = plugin.config.getStringList("Blocks_Destroyed");
-			blocks.add(coords);
-			plugin.config.set("Blocks_Destroyed", blocks);
-			plugin.saveConfig();
-		}
-	}
-	@EventHandler
 	public void blockPlace(BlockPlaceEvent event){
-		if(plugin.canjoin== true){
-			Block b = event.getBlock();
-			String w = b.getWorld().getName();
-			int x = b.getX();
-			int y = b.getY();
-			int z = b.getZ();
-			int d = b.getTypeId();
-			String coords = w + "," + x + "," + y + "," + z + "," + d;
-			if(!(d== 51) && !(d==12) && !(d==13)){
-				System.out.println("Place: " + coords);
-				List<String> blocks = plugin.config.getStringList("Blocks_Placed");
-				blocks.add(coords);
-				plugin.config.set("Blocks_Placed", blocks);
-				plugin.saveConfig();
-			}else if (d == 12 || d == 13) {
-				System.out.println("Sand/Gravel");
-				int newy = y;
-				int replaced = 0;
-				Location l = b.getLocation();
-				while(l.getBlock().getRelative(BlockFace.DOWN).getType()== Material.AIR){
-					newy = newy-1;
-					replaced = 0;
-					System.out.println(newy);
-				}
-				while(l.getBlock().getRelative(BlockFace.DOWN).getType()== Material.WATER){
-					newy = newy-1;
-					replaced = 8;
-				}
-				while(l.getBlock().getRelative(BlockFace.DOWN).getType()== Material.LAVA){
-					newy = newy-1;
-					replaced = 10;
-				}
-				if(l.getBlock().getRelative(BlockFace.DOWN).getType()!= Material.AIR || l.getBlock().getRelative(BlockFace.DOWN).getType()!= Material.WATER || l.getBlock().getRelative(BlockFace.DOWN).getType()!= Material.LAVA){
-					event.getPlayer().sendMessage(ChatColor.GREEN + "Block will land at " + x + ", " + newy + ", " + z + " and replaced " + replaced);
-				}
-				Location location = b.getLocation();
-				if (location.getBlock().getRelative(BlockFace.DOWN).getType() == Material.AIR) {
-					int i = 0;
-					for (i = location.getBlockY(); i > -1; i --) {
-						location = new Location(location.getWorld(), location.getBlockX(), i,  location.getBlockZ());
-						if (location.getBlock().getType() != Material.AIR && location.getBlock().getType() != Material.WATER && location.getBlock().getType() != Material.LAVA) {
-							break;
+		Block b = event.getBlock();
+		Player p = event.getPlayer();
+		if(plugin.Playing.contains(p.getName())){
+			if(plugin.canjoin){
+				if(plugin.config.getStringList("worlds").isEmpty() || (!plugin.config.getStringList("worlds").isEmpty() && plugin.config.getStringList("worlds").contains(b.getWorld().getName()))){
+					//TODO
+					if((b.getType()== Material.SAND || b.getType()== Material.GRAVEL) && (b.getRelative(BlockFace.DOWN).getType()== Material.AIR || b.getRelative(BlockFace.DOWN).getType()== Material.WATER || b.getRelative(BlockFace.DOWN).getType()== Material.LAVA)){
+						int n = b.getY() -1;
+						while(b.getWorld().getBlockAt(b.getX(), n, b.getZ()).getType()== Material.AIR || b.getWorld().getBlockAt(b.getX(), n, b.getZ()).getType()== Material.WATER || b.getWorld().getBlockAt(b.getX(), n, b.getZ()).getType()== Material.LAVA){
+							n = n -1;
+							event.getPlayer().sendMessage(b.getWorld().getBlockAt(b.getX(), n, b.getZ()).getType().toString().toLowerCase());
+							if(b.getWorld().getBlockAt(b.getX(), n, b.getZ()).getType()!= Material.AIR || b.getWorld().getBlockAt(b.getX(), n, b.getZ()).getType()!= Material.WATER || b.getWorld().getBlockAt(b.getX(), n, b.getZ()).getType()!= Material.LAVA){
+								int l = n +1;
+								Block br = b.getWorld().getBlockAt(b.getX(), l, b.getZ());
+								String w = br.getWorld().getName();
+								int x = br.getX();
+								int y = br.getY();
+								int z = br.getZ();
+								String coords = w + "," + x + "," + y + "," + z;
+								p.sendMessage(ChatColor.GREEN + "Sand/Gravel will land at " + coords);
+								List<String> blocks = plugin.data.getStringList("Blocks_Placed");
+								blocks.add(coords);
+								plugin.data.set("Blocks_Placed", blocks);
+								plugin.saveData();
+							}
 						}
-						event.getPlayer().sendMessage("Block will land at: " + location);
-						System.out.println("Sand/Gravel Place: " + coords);
-						List<String> blocks = plugin.config.getStringList("Blocks_Destroyed");
-						blocks.add(coords);
-						plugin.config.set("Blocks_Destroyed", blocks);
-						plugin.saveConfig();
+					}else{
+						if(b.getType()!= Material.SAND || b.getType()!= Material.GRAVEL){
+							String w = b.getWorld().getName();
+							int x = b.getX();
+							int y = b.getY();
+							int z = b.getZ();
+							String coords = w + "," + x + "," + y + "," + z;
+							List<String> blocks = plugin.data.getStringList("Blocks_Placed");
+							blocks.add(coords);
+							plugin.data.set("Blocks_Placed", blocks);
+							plugin.saveData();
+						}
 					}
 				}
 			}
@@ -161,77 +154,68 @@ public class BlockStorage implements Listener {
 	}
 	@EventHandler
 	public void bucketEmpty(PlayerBucketEmptyEvent event){
-		if(plugin.canjoin== true){
-			Block clicked = event.getBlockClicked();
-			BlockFace face = event.getBlockFace();
-			Block b = clicked.getRelative(face);
-			String w = b.getWorld().getName();
-			int x = b.getX();
-			int y = b.getY();
-			int z = b.getZ();
-			int d = b.getTypeId();
-			String coords = w + "," + x + "," + y + "," + z + "," + d;
-			System.out.println("Bucket Empty: " + coords);
-			List<String> blocks = plugin.config.getStringList("Blocks_Placed");
-			blocks.add(coords);
-			plugin.config.set("Blocks_Destroyed", blocks);
-			plugin.saveConfig();
-		}
-	}
-	@EventHandler
-	public void bucketFill(PlayerBucketFillEvent event){
-		if(plugin.canjoin== true){
-			Block b = event.getBlockClicked();
-			String w = b.getWorld().getName();
-			int x = b.getX();
-			int y = b.getY();
-			int z = b.getZ();
-			int d = b.getTypeId();
-			String coords = w + "," + x + "," + y + "," + z + "," + d;
-			System.out.println("Bucket Fill: " + coords);
-			List<String> blocks = plugin.config.getStringList("Blocks_Destroyed");
-			blocks.add(coords);
-			plugin.config.set("Blocks_Destroyed", blocks);
-			plugin.saveConfig();
-		}
-	}
-	@EventHandler
-	public void blockBreak(BlockBreakEvent event){
-		if(plugin.canjoin== true){
-			Block b = event.getBlock();
-			String w = b.getWorld().getName();
-			int x = b.getX();
-			int y = b.getY();
-			int z = b.getZ();
-			int d = b.getTypeId();
-			String coords = w + "," + x + "," + y + "," + z + "," + d;
-			System.out.println("Break: " + coords);
-			List<String> blocks = plugin.config.getStringList("Blocks_Destroyed");
-			blocks.add(coords);
-			plugin.config.set("Blocks_Destroyed", blocks);
-			plugin.saveConfig();
-		}
-	}
-	@EventHandler
-	public void blockMelt(BlockFadeEvent event){
-		if(plugin.canjoin== true){
-			Block b = event.getBlock();
-			String w = b.getWorld().getName();
-			int x = b.getX();
-			int y = b.getY();
-			int z = b.getZ();
-			int d = b.getTypeId();
-			String coords = w + "," + x + "," + y + "," + z + "," + d;
-			if(d != 51 && d != 2){
-				System.out.println("Fade: " + coords);
-				List<String> blocks = plugin.config.getStringList("Blocks_Destroyed");
-				blocks.add(coords);
-				plugin.config.set("Blocks_Destroyed", blocks);
-				plugin.saveConfig();
+		if(plugin.canjoin){
+			if(plugin.Playing.contains(event.getPlayer().getName())){
+				if(plugin.config.getStringList("worlds").isEmpty() || (!plugin.config.getStringList("worlds").isEmpty() && plugin.config.getStringList("worlds").contains(event.getPlayer().getWorld().getName()))){
+					Block b = event.getBlockClicked().getRelative(event.getBlockFace());
+					String w = b.getWorld().getName();
+					int x = b.getX();
+					int y = b.getY();
+					int z = b.getZ();
+					String coords = w + "," + x + "," + y + "," + z;
+					List<String> blocks = plugin.data.getStringList("Blocks_Placed");
+					blocks.add(coords);
+					plugin.data.set("Blocks_Placed", blocks);
+					plugin.saveData();
+				}
 			}
 		}
 	}
 	@EventHandler
+	public void bucketFill(PlayerBucketFillEvent event){
+		if(plugin.canjoin){
+			if(plugin.Playing.contains(event.getPlayer().getName())){
+				if(plugin.config.getStringList("worlds").isEmpty() || (!plugin.config.getStringList("worlds").isEmpty() && plugin.config.getStringList("worlds").contains(event.getPlayer().getWorld().getName()))){
+					Block b = event.getBlockClicked().getRelative(event.getBlockFace());
+					String w = b.getWorld().getName();
+					int x = b.getX();
+					int y = b.getY();
+					int z = b.getZ();
+					int d = b.getTypeId();
+					byte m = b.getData();
+					String coords = w + "," + x + "," + y + "," + z + "," + d + "," + m;
+					List<String> blocks = plugin.data.getStringList("Blocks_Destroyed");
+					if(!plugin.data.getStringList("Blocks_Placed").contains(w + "," + x + "," + y + "," + z)){
+						blocks.add(coords);
+						plugin.data.set("Blocks_Destroyed", blocks);
+						plugin.saveData();
+					}
+				}
+			}
+		}
+	}
+	@EventHandler
+	public void blockMelt(BlockFadeEvent event){
+		if(plugin.canjoin){
+			if(plugin.config.getStringList("worlds").isEmpty() || (!plugin.config.getStringList("worlds").isEmpty() && plugin.config.getStringList("worlds").contains(event.getBlock().getWorld().getName()))){
+				Block b = event.getBlock();
+				String w = b.getWorld().getName();
+				int x = b.getX();
+				int y = b.getY();
+				int z = b.getZ();
+				int d = b.getTypeId();
+				byte m = b.getData();
+				String coords = w + "," + x + "," + y + "," + z + "," + d + "," + m;
+				List<String> blocks = plugin.data.getStringList("Blocks_Destroyed");
+				if(!plugin.data.getStringList("Blocks_Placed").contains(w + "," + x + "," + y + "," + z)){
+					blocks.add(coords);
+					plugin.data.set("Blocks_Destroyed", blocks);
+					plugin.saveData();
+				}
+			}
+		}
+	}
+	/*@EventHandler
 	public void blockGrow(BlockGrowEvent event){
 		if(plugin.canjoin== true){
 			Block b = event.getBlock();
@@ -242,9 +226,9 @@ public class BlockStorage implements Listener {
 			int d = b.getTypeId();
 			String coords = w + "," + x + "," + y + "," + z + "," + d;
 			System.out.println("Grow: " + coords);
-			List<String> blocks = plugin.config.getStringList("Blocks_Placed");
+			List<String> blocks = plugin.data.getStringList("Blocks_Placed");
 			blocks.add(coords);
-			plugin.config.set("Blocks_Destroyed", blocks);
+			plugin.data.set("Blocks_Destroyed", blocks);
 			plugin.saveConfig();
 		}
 	}
@@ -259,9 +243,9 @@ public class BlockStorage implements Listener {
 			int d = b.getTypeId();
 			String coords = w + "," + x + "," + y + "," + z + "," + d;
 			System.out.println("Snowfall: " + coords);
-			List<String> blocks = plugin.config.getStringList("Blocks_Placed");
+			List<String> blocks = plugin.data.getStringList("Blocks_Placed");
 			blocks.add(coords);
-			plugin.config.set("Blocks_Destroyed", blocks);
+			plugin.data.set("Blocks_Destroyed", blocks);
 			plugin.saveConfig();
 		}
 	}
@@ -276,9 +260,9 @@ public class BlockStorage implements Listener {
 				int d = b.getTypeId();
 				String coords = w + "," + x + "," + y + "," + z + "," + d;
 				System.out.println("Piston: " + coords);
-				List<String> blocks = plugin.config.getStringList("Blocks_Destroyed");
+				List<String> blocks = plugin.data.getStringList("Blocks_Destroyed");
 				blocks.add(coords);
-				plugin.config.set("Blocks_Destroyed", blocks);
+				plugin.data.set("Blocks_Destroyed", blocks);
 				plugin.saveConfig();
 			}
 		}
@@ -297,9 +281,9 @@ public class BlockStorage implements Listener {
 				int d = b.getTypeId();
 				String coords = w + "," + x + "," + y + "," + z + "," + d;
 				System.out.println("Lava Change: " + coords);
-				List<String> blocks = plugin.config.getStringList("Blocks_Placed");
+				List<String> blocks = plugin.data.getStringList("Blocks_Placed");
 				blocks.add(coords);
-				plugin.config.set("Blocks_Destroyed", blocks);
+				plugin.data.set("Blocks_Destroyed", blocks);
 				plugin.saveConfig();
 			}else if(changed == Material.WATER){
 				Block b = event.getBlock();
@@ -310,9 +294,9 @@ public class BlockStorage implements Listener {
 				int d = b.getTypeId();
 				String coords = w + "," + x + "," + y + "," + z + "," + d;
 				System.out.println("Water Change: " + coords);
-				List<String> blocks = plugin.config.getStringList("Blocks_Placed");
+				List<String> blocks = plugin.data.getStringList("Blocks_Placed");
 				blocks.add(coords);
-				plugin.config.set("Blocks_Destroyed", blocks);
+				plugin.data.set("Blocks_Destroyed", blocks);
 				plugin.saveConfig();
 			}
 		}else if (block.getType() == Material.SAND || block.getType() == Material.GRAVEL) {
@@ -325,9 +309,9 @@ public class BlockStorage implements Listener {
 				int d = b.getTypeId();
 				String coords = w + "," + x + "," + y + "," + z + "," + d;
 				System.out.println("Sand/Gravel Fall: " + coords);
-				List<String> blocks = plugin.config.getStringList("Blocks_Placed");
+				List<String> blocks = plugin.data.getStringList("Blocks_Placed");
 				blocks.add(coords);
-				plugin.config.set("Blocks_Destroyed", blocks);
+				plugin.data.set("Blocks_Destroyed", blocks);
 				plugin.saveConfig();
 			}
 		}

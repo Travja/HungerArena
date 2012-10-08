@@ -1,6 +1,7 @@
 package me.Travja.HungerArena;
 
 import java.util.List;
+
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -13,6 +14,8 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 public class HaCommands implements CommandExecutor {
 	public Main plugin;
@@ -20,7 +23,18 @@ public class HaCommands implements CommandExecutor {
 		this.plugin = m;
 	}
 	int i = 0;
-	@SuppressWarnings({ "unchecked", "deprecation" })
+	int start = 0;
+	int cstart = 0;
+	@SuppressWarnings("deprecation")
+	private void clearInv(Player p){
+		p.getInventory().clear();
+		p.getInventory().setBoots(null);
+		p.getInventory().setChestplate(null);
+		p.getInventory().setHelmet(null);
+		p.getInventory().setLeggings(null);
+		p.updateInventory();
+	}
+	@SuppressWarnings("unchecked")
 	@Override
 	public boolean onCommand(final CommandSender sender, Command cmd, String commandLabel, String[] args){
 		String[] Spawncoords = plugin.spawns.getString("Spawn_coords").split(",");
@@ -35,35 +49,49 @@ public class HaCommands implements CommandExecutor {
 			final String pname = p.getName();
 			ChatColor c = ChatColor.AQUA;
 			if(cmd.getName().equalsIgnoreCase("Ha")){
-				if(plugin.restricted && !plugin.worlds.contains(p.getWorld().getName())){
+				if(args.length== 0){
+					p.sendMessage(ChatColor.GREEN + "[HungerArena] by " + ChatColor.AQUA + "travja!");
+					return false;
+				}else if(args[0].equalsIgnoreCase("SetSpawn")){
+					if(p.hasPermission("HungerArena.SetSpawn")){
+						double x = p.getLocation().getX();
+						double y = p.getLocation().getY();
+						double z = p.getLocation().getZ();
+						String w = p.getWorld().getName();
+						plugin.spawns.set("Spawn_coords", x + "," + y + "," + z + "," + w);
+						plugin.spawns.set("Spawns_set", "true");
+						plugin.saveSpawns();
+						p.sendMessage(ChatColor.AQUA + "You have set the spawn for dead tributes!");
+					}else{
+						p.sendMessage(ChatColor.RED + "You don't have permission!");
+					}
+				}else if(args[0].equalsIgnoreCase("Help")){
+					p.sendMessage(ChatColor.GREEN + "----HungerArena Help----");
+					sender.sendMessage(c + "/ha - Displays author message!");
+					sender.sendMessage(c + "/sponsor [Player] [ItemID] [Amount] - Lets you sponsor someone!");
+					sender.sendMessage(c + "/startpoint [1,2,3,4,etc] - Sets the starting points of tributes!");
+					sender.sendMessage(c + "/ha close - Prevents anyone from joining!");
+					sender.sendMessage(c + "/ha help - Displays this screen!");
+					sender.sendMessage(c + "/ha join - Makes you join the game!");
+					sender.sendMessage(c + "/ha kick [Player] - Kicks a player from the arena!");
+					sender.sendMessage(c + "/ha leave - Makes you leave the game!");
+					sender.sendMessage(c + "/ha list - Shows a list of players in the game and their health!");
+					sender.sendMessage(c + "/ha open - Opens the game allowing people to join!");
+					sender.sendMessage(c + "/ha ready - Votes for the game to start!");
+					sender.sendMessage(c + "/ha refill - Refills all chests!");
+					sender.sendMessage(c + "/ha reload - Reloads the config!");
+					sender.sendMessage(c + "/ha restart - Makes it so dead tributes can join again!");
+					sender.sendMessage(c + "/ha rlist - See who's ready!");
+					sender.sendMessage(c + "/ha setspawn - Sets the spawn for dead tributes!");
+					sender.sendMessage(c + "/ha start - Unfreezes tributes allowing them to fight!");
+					sender.sendMessage(c + "/ha watch - Lets you watch the tributes!");
+					sender.sendMessage(c + "/ha warpall - Warps all tribute into position!");
+					sender.sendMessage(ChatColor.GREEN + "----------------------");
+				}else if(plugin.restricted && !plugin.worlds.contains(p.getWorld().getName())){
 					p.sendMessage(ChatColor.RED + "That can't be run in this world!");
 				}else if((plugin.restricted && plugin.worlds.contains(p.getWorld().getName())) || !plugin.restricted){
-					if(args.length== 0){
-						p.sendMessage(ChatColor.GREEN + "[HungerArena] by " + ChatColor.AQUA + "travja!");
-						return false;
-					}
-					if(args[0].equalsIgnoreCase("Help")){
-						p.sendMessage(ChatColor.GREEN + "----HungerArena Help----");
-						p.sendMessage(c + "/ha - Displays author message!");
-						sender.sendMessage(c + "/ha help - Displays this screen!");
-						sender.sendMessage(c + "/ha join - Makes you join the game!");
-						sender.sendMessage(c + "/ha ready - Votes for the game to start!");
-						sender.sendMessage(c + "/ha leave - Makes you leave the game!");
-						sender.sendMessage(c + "/ha watch - Lets you watch the tributes!");
-						sender.sendMessage(c + "/sponsor [Player] [ItemID] [Amount] - Lets you sponsor someone!");
-						sender.sendMessage(c + "/ha setspawn - Sets the spawn for dead tributes!");
-						sender.sendMessage(c + "/ha kick [Player] - Kicks a player from the arena!");
-						sender.sendMessage(c + "/ha restart - Makes it so dead tributes can join again!");
-						sender.sendMessage(c + "/ha warpall - Warps all tribute into position!");
-						sender.sendMessage(c + "/ha reload - Reloads the config!");
-						sender.sendMessage(c + "/ha refill - Refills all chests!");
-						sender.sendMessage(c + "/ha start - Unfreezes tributes allowing them to fight!");
-						sender.sendMessage(c + "/ha list - Shows a list of players in the game and their health!");
-						sender.sendMessage(c + "/ha rlist - See who's ready!");
-						sender.sendMessage(c + "/startpoint [1,2,3,4,etc] - Sets the starting points of tributes!");
-						sender.sendMessage(ChatColor.GREEN + "----------------------");
-						//////////////////////////////////////// LISTING ///////////////////////////////////////////////
-					}else if(args[0].equalsIgnoreCase("List")){
+					//////////////////////////////////////// LISTING ///////////////////////////////////////////////
+					if(args[0].equalsIgnoreCase("List")){
 						if(p.hasPermission("HungerArena.GameMaker")){
 							sender.sendMessage(ChatColor.AQUA + "-----People Playing-----");
 							if(!plugin.Playing.isEmpty()){
@@ -94,20 +122,7 @@ public class HaCommands implements CommandExecutor {
 							p.sendMessage(ChatColor.RED + "You don't have permission!");
 						}
 						////////////////////////////////////////////////////////////////////////////////////////////////
-					}else if(args[0].equalsIgnoreCase("SetSpawn")){
-						if(p.hasPermission("HungerArena.SetSpawn")){
-							double x = p.getLocation().getX();
-							double y = p.getLocation().getY();
-							double z = p.getLocation().getZ();
-							String w = p.getWorld().getName();
-							plugin.spawns.set("Spawn_coords", x + "," + y + "," + z + "," + w);
-							plugin.spawns.set("Spawns_set", "true");
-							plugin.saveSpawns();
-							p.sendMessage(ChatColor.AQUA + "You have set the spawn for dead tributes!");
-						}else{
-							p.sendMessage(ChatColor.RED + "You don't have permission!");
-						}
-						///////////////////////////////////// JOINING/LEAVING ////////////////////////////////////////////////////
+						///////////////////////////////////// JOINING/LEAVING //////////////////////////////////////////
 					}else if(args[0].equalsIgnoreCase("Join")){
 						if(p.hasPermission("HungerArena.Join")){
 							if(plugin.Playing.contains(pname)){
@@ -129,12 +144,7 @@ public class HaCommands implements CommandExecutor {
 								p.sendMessage(ChatColor.GOLD + "You're inventory will be cleared! Type /ha confirm to procede");
 							}else{
 								plugin.Playing.add(pname);
-								p.getInventory().clear();
-								p.getInventory().setBoots(null);
-								p.getInventory().setChestplate(null);
-								p.getInventory().setHelmet(null);
-								p.getInventory().setLeggings(null);
-								p.updateInventory();
+								clearInv(p);
 								plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined the Game!");
 								if(plugin.Playing.size()== 24){
 									Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha warpall");
@@ -148,12 +158,7 @@ public class HaCommands implements CommandExecutor {
 							plugin.Playing.add(pname);
 							plugin.NeedConfirm.remove(pname);
 							p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
-							p.getInventory().clear();
-							p.getInventory().setBoots(null);
-							p.getInventory().setChestplate(null);
-							p.getInventory().setHelmet(null);
-							p.getInventory().setLeggings(null);
-							p.updateInventory();
+							clearInv(p);
 							plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined the Game!");
 							if(plugin.Playing.size()== 24){
 								p.performCommand("ha warpall");
@@ -182,12 +187,8 @@ public class HaCommands implements CommandExecutor {
 							plugin.Playing.remove(pname);
 							p.sendMessage(ChatColor.AQUA + "You have left the game!");
 							p.getServer().broadcastMessage(ChatColor.RED + pname + " Quit!");
-							p.getInventory().clear();
+							clearInv(p);
 							p.teleport(Spawn);
-							p.getInventory().setBoots(null);
-							p.getInventory().setChestplate(null);
-							p.getInventory().setHelmet(null);
-							p.getInventory().setLeggings(null);
 							if(plugin.Frozen.contains(pname)){
 								plugin.Frozen.remove(pname);
 							}
@@ -196,11 +197,7 @@ public class HaCommands implements CommandExecutor {
 							plugin.Quit.add(pname);
 							p.sendMessage(ChatColor.AQUA + "You have left the game!");
 							p.getServer().broadcastMessage(ChatColor.RED + pname + " Quit!");
-							p.getInventory().clear();
-							p.getInventory().setBoots(null);
-							p.getInventory().setChestplate(null);
-							p.getInventory().setHelmet(null);
-							p.getInventory().setLeggings(null);
+							clearInv(p);
 							p.teleport(Spawn);
 							if(plugin.Frozen.contains(pname)){
 								plugin.Frozen.remove(pname);
@@ -212,12 +209,8 @@ public class HaCommands implements CommandExecutor {
 									Player winner = plugin.getServer().getPlayerExact(winnername);
 									String winnername2 = winner.getName();
 									plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
-									winner.getInventory().clear();
+									clearInv(winner);
 									winner.teleport(Spawn);
-									winner.getInventory().setBoots(null);
-									winner.getInventory().setChestplate(null);
-									winner.getInventory().setHelmet(null);
-									winner.getInventory().setLeggings(null);
 									winner.getInventory().addItem(plugin.Reward);
 									Bukkit.getServer().getPluginManager().callEvent(new PlayerWinGamesEvent(winner));
 								}
@@ -272,38 +265,28 @@ public class HaCommands implements CommandExecutor {
 							if(plugin.Playing.contains(target.getName())){
 								plugin.Playing.remove(target.getName());
 								plugin.getServer().broadcastMessage(ChatColor.RED + target.getName() + " was kicked from the game!");
+								clearInv(target);
 								target.teleport(Spawn);
-								target.getInventory().clear();
-								target.getInventory().setBoots(null);
-								target.getInventory().setChestplate(null);
-								target.getInventory().setHelmet(null);
-								target.getInventory().setLeggings(null);
 								plugin.Quit.add(target.getName());
 								if(plugin.Playing.size()== 1 && plugin.canjoin== true){
+									//Announce winner
 									for(i = 0; i < plugin.Playing.size(); i++){
 										String winnername = plugin.Playing.get(i++);
 										Player winner = plugin.getServer().getPlayerExact(winnername);
 										String winnername2 = winner.getName();
 										plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
-										winner.getInventory().clear();
+										clearInv(winner);
 										winner.teleport(Spawn);
-										winner.getInventory().setBoots(null);
-										winner.getInventory().setChestplate(null);
-										winner.getInventory().setHelmet(null);
-										winner.getInventory().setLeggings(null);
 										winner.getInventory().addItem(plugin.Reward);
-										Bukkit.getServer().getPluginManager().callEvent(new PlayerWinGamesEvent(winner));
+										plugin.Playing.clear();
 									}
-									plugin.Playing.clear();
-									if(!plugin.Watching.isEmpty()){
-										for(i = 0; i < plugin.Watching.size(); i++){
-											String s = plugin.Watching.get(i++);
-											Player spectator = plugin.getServer().getPlayerExact(s);
-											spectator.setAllowFlight(false);
-											spectator.teleport(Spawn);
-											for(Player online:plugin.getServer().getOnlinePlayers()){
-												online.showPlayer(spectator);
-											}
+									//Show spectators
+									for(String s1: plugin.Watching){
+										Player spectator = plugin.getServer().getPlayerExact(s1);
+										spectator.setAllowFlight(false);
+										spectator.teleport(Spawn);
+										for(Player online:plugin.getServer().getOnlinePlayers()){
+											online.showPlayer(spectator);
 										}
 									}
 									if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
@@ -342,6 +325,7 @@ public class HaCommands implements CommandExecutor {
 									}
 									list056 = list056+1;
 									chest.getInventory().setContents(itemsinchest);
+									chest.update();
 								}
 							}
 							if(limit== list056){
@@ -372,7 +356,21 @@ public class HaCommands implements CommandExecutor {
 							plugin.Out.clear();
 							plugin.Playing.clear();
 							plugin.canjoin = false;
-							List<String> blocksbroken = plugin.config.getStringList("Blocks_Destroyed");
+							List<String> blocksbroken = plugin.data.getStringList("Blocks_Destroyed");
+							List<String> blocksplaced = plugin.data.getStringList("Blocks_Placed");
+							for(String blocks:blocksplaced){
+								String[] coords = blocks.split(",");
+								World w = plugin.getServer().getWorld(coords[0]);
+								double x = Double.parseDouble(coords[1]);
+								double y = Double.parseDouble(coords[2]);
+								double z = Double.parseDouble(coords[3]);
+								int d = 0;
+								byte m = 0;
+								Location blockl = new Location(w, x, y, z);
+								Block block = w.getBlockAt(blockl);
+								block.setTypeIdAndData(d, m, true);
+								block.getState().update();
+							}
 							for(String blocks:blocksbroken){
 								String[] coords = blocks.split(",");
 								World w = plugin.getServer().getWorld(coords[0]);
@@ -386,7 +384,12 @@ public class HaCommands implements CommandExecutor {
 								block.setTypeIdAndData(d, m, true);
 								block.getState().update();
 							}
-							plugin.config.getStringList("Blocks_Destroyed").clear();
+							blocksplaced.clear();
+							blocksbroken.clear();
+							plugin.data.set("Blocks_Destroyed", blocksbroken);
+							plugin.data.set("Blocks_Placed", blocksplaced);
+							plugin.data.options().copyDefaults();
+							plugin.saveData();
 							p.performCommand("ha refill");
 							p.sendMessage(ChatColor.AQUA + "The games have been reset!");
 						}else{
@@ -400,11 +403,7 @@ public class HaCommands implements CommandExecutor {
 								for(String players: plugin.Playing){
 									Player tributes = plugin.getServer().getPlayerExact(players);
 									tributes.teleport(tributes.getWorld().getSpawnLocation());
-									tributes.getInventory().clear();
-									tributes.getInventory().setBoots(null);
-									tributes.getInventory().setChestplate(null);
-									tributes.getInventory().setHelmet(null);
-									tributes.getInventory().setLeggings(null);
+									clearInv(p);
 								}
 								for(String sname: plugin.Watching){
 									Player spectators = plugin.getServer().getPlayerExact(sname);
@@ -425,7 +424,7 @@ public class HaCommands implements CommandExecutor {
 								p.performCommand("ha refill");
 								p.sendMessage(ChatColor.GOLD + "Games Closed!");
 							}else{
-								p.sendMessage(ChatColor.RED + "Games alredy close, type /ha open to re-open them!");
+								p.sendMessage(ChatColor.RED + "Games already closed, type /ha open to re-open them!");
 							}
 						}else{
 							p.sendMessage(ChatColor.RED + "No Perms!");
@@ -450,35 +449,10 @@ public class HaCommands implements CommandExecutor {
 							if(plugin.spawns.getString("Spawns_set").equalsIgnoreCase("false")){
 								sender.sendMessage(ChatColor.RED + "/ha setspawn hasn't been run!");
 							}else{
+								//TODO Make warping way more efficient
 								if(plugin.Playing.size()== 1){
 									sender.sendMessage(ChatColor.RED + "There are not enough players!");
-								}
-								if(plugin.Playing.size()>= 2){
-									plugin.spawns.getString("Tribute_one_spawn");
-									String[] onecoords = plugin.spawns.getString("Tribute_one_spawn").split(",");
-									Player Tribute_one = plugin.getServer().getPlayerExact(plugin.Playing.get(0));
-									double x = Double.parseDouble(onecoords[0]);
-									double y = Double.parseDouble(onecoords[1]);
-									double z = Double.parseDouble(onecoords[2]);
-									String world = onecoords[3];
-									World w = plugin.getServer().getWorld(world);
-									Location oneloc = new Location(w, x, y, z);
-									Tribute_one.teleport(oneloc);
-									plugin.Frozen.add(Tribute_one.getName());
-									Tribute_one.setFoodLevel(20);
-									plugin.spawns.getString("Tribute_two_spawn");
-									String[] twocoords = plugin.spawns.getString("Tribute_two_spawn").split(",");
-									Player Tribute_two = plugin.getServer().getPlayerExact(plugin.Playing.get(1));
-									double twox = Double.parseDouble(twocoords[0]);
-									double twoy = Double.parseDouble(twocoords[1]);
-									double twoz = Double.parseDouble(twocoords[2]);
-									String twoworld = twocoords[3];
-									World twow = plugin.getServer().getWorld(twoworld);
-									Location twoloc = new Location(twow, twox, twoy, twoz);
-									Tribute_two.teleport(twoloc);
-									plugin.Frozen.add(Tribute_two.getName());
-									Tribute_two.setFoodLevel(20);
-									p.getWorld().setTime(0);
+								}else{
 									if(plugin.config.getString("Auto_Start").equalsIgnoreCase("true")){
 										plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 											public void run(){
@@ -486,319 +460,28 @@ public class HaCommands implements CommandExecutor {
 											}
 										}, 20L);
 									}
+									for(String playing:plugin.Playing){
+										Player tribute = plugin.getServer().getPlayerExact(playing);
+										tribute.teleport(plugin.location.get(i));
+										tribute.setHealth(20);
+										tribute.setFoodLevel(20);
+										tribute.setSaturation(20);
+										clearInv(p);
+										for(PotionEffect pe: tribute.getActivePotionEffects()){
+											PotionEffectType potion = pe.getType();
+											tribute.removePotionEffect(potion);
+										}
+										if(tribute.getAllowFlight()){
+											tribute.setAllowFlight(false);
+										}
+										plugin.Frozen.add(tribute.getName());
+										i = i+1;
+									}
 									plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 										public void run(){
 											p.sendMessage(ChatColor.AQUA + "All Tributes warped!");
 										}
 									}, 20L);
-								}
-								if(plugin.Playing.size()>= 3){
-									plugin.spawns.getString("Tribute_three_spawn");
-									String[] coords = plugin.spawns.getString("Tribute_three_spawn").split(",");
-									Player Tribute_three = plugin.getServer().getPlayerExact(plugin.Playing.get(2));
-									double x = Double.parseDouble(coords[0]);
-									double y = Double.parseDouble(coords[1]);
-									double z = Double.parseDouble(coords[2]);
-									String world = coords[3];
-									World w = plugin.getServer().getWorld(world);
-									Location loc = new Location(w, x, y, z);
-									Tribute_three.teleport(loc);
-									plugin.Frozen.add(Tribute_three.getName());
-									Tribute_three.setFoodLevel(20);
-								}
-								if(plugin.Playing.size()>= 4){
-									plugin.spawns.getString("Tribute_four_spawn");
-									String[] coords = plugin.spawns.getString("Tribute_four_spawn").split(",");
-									Player Tribute_four = plugin.getServer().getPlayerExact(plugin.Playing.get(3));
-									double x = Double.parseDouble(coords[0]);
-									double y = Double.parseDouble(coords[1]);
-									double z = Double.parseDouble(coords[2]);
-									String world = coords[3];
-									World w = plugin.getServer().getWorld(world);
-									Location loc = new Location(w, x, y, z);
-									Tribute_four.teleport(loc);
-									plugin.Frozen.add(Tribute_four.getName());
-									Tribute_four.setFoodLevel(20);
-								}
-								if(plugin.Playing.size()>= 5){
-									plugin.spawns.getString("Tribute_five_spawn");
-									String[] coords = plugin.spawns.getString("Tribute_five_spawn").split(",");
-									Player Tribute_five = plugin.getServer().getPlayerExact(plugin.Playing.get(4));
-									double x = Double.parseDouble(coords[0]);
-									double y = Double.parseDouble(coords[1]);
-									double z = Double.parseDouble(coords[2]);
-									String world = coords[3];
-									World w = plugin.getServer().getWorld(world);
-									Location loc = new Location(w, x, y, z);
-									Tribute_five.teleport(loc);
-									plugin.Frozen.add(Tribute_five.getName());
-									Tribute_five.setFoodLevel(20);
-								}
-								if(plugin.Playing.size()>= 6){
-									plugin.spawns.getString("Tribute_six_spawn");
-									String[] coords = plugin.spawns.getString("Tribute_six_spawn").split(",");
-									Player Tribute_six = plugin.getServer().getPlayerExact(plugin.Playing.get(5));
-									double x = Double.parseDouble(coords[0]);
-									double y = Double.parseDouble(coords[1]);
-									double z = Double.parseDouble(coords[2]);
-									String world = coords[3];
-									World w = plugin.getServer().getWorld(world);
-									Location loc = new Location(w, x, y, z);
-									Tribute_six.teleport(loc);
-									plugin.Frozen.add(Tribute_six.getName());
-									Tribute_six.setFoodLevel(20);
-								}
-								if(plugin.Playing.size()>= 7){
-									plugin.spawns.getString("Tribute_seven_spawn");
-									String[] coords = plugin.spawns.getString("Tribute_seven_spawn").split(",");
-									Player Tribute_seven = plugin.getServer().getPlayerExact(plugin.Playing.get(6));
-									double x = Double.parseDouble(coords[0]);
-									double y = Double.parseDouble(coords[1]);
-									double z = Double.parseDouble(coords[2]);
-									String world = coords[3];
-									World w = plugin.getServer().getWorld(world);
-									Location loc = new Location(w, x, y, z);
-									Tribute_seven.teleport(loc);
-									plugin.Frozen.add(Tribute_seven.getName());
-									Tribute_seven.setFoodLevel(20);
-								}
-								if(plugin.Playing.size()>= 8){
-									plugin.spawns.getString("Tribute_eight_spawn");
-									String[] coords = plugin.spawns.getString("Tribute_eight_spawn").split(",");
-									Player Tribute_eight = plugin.getServer().getPlayerExact(plugin.Playing.get(7));
-									double x = Double.parseDouble(coords[0]);
-									double y = Double.parseDouble(coords[1]);
-									double z = Double.parseDouble(coords[2]);
-									String world = coords[3];
-									World w = plugin.getServer().getWorld(world);
-									Location loc = new Location(w, x, y, z);
-									Tribute_eight.teleport(loc);
-									plugin.Frozen.add(Tribute_eight.getName());
-									Tribute_eight.setFoodLevel(20);
-								}
-								if(plugin.Playing.size()>= 9){
-									plugin.spawns.getString("Tribute_nine_spawn");
-									String[] coords = plugin.spawns.getString("Tribute_nine_spawn").split(",");
-									Player Tribute_nine = plugin.getServer().getPlayerExact(plugin.Playing.get(8));
-									double x = Double.parseDouble(coords[0]);
-									double y = Double.parseDouble(coords[1]);
-									double z = Double.parseDouble(coords[2]);
-									String world = coords[3];
-									World w = plugin.getServer().getWorld(world);
-									Location loc = new Location(w, x, y, z);
-									Tribute_nine.teleport(loc);
-									plugin.Frozen.add(Tribute_nine.getName());
-									Tribute_nine.setFoodLevel(20);
-								}
-								if(plugin.Playing.size()>= 10){
-									plugin.spawns.getString("Tribute_ten_spawn");
-									String[] coords = plugin.spawns.getString("Tribute_ten_spawn").split(",");
-									Player Tribute_ten = plugin.getServer().getPlayerExact(plugin.Playing.get(9));
-									double x = Double.parseDouble(coords[0]);
-									double y = Double.parseDouble(coords[1]);
-									double z = Double.parseDouble(coords[2]);
-									String world = coords[3];
-									World w = plugin.getServer().getWorld(world);
-									Location loc = new Location(w, x, y, z);
-									Tribute_ten.teleport(loc);
-									plugin.Frozen.add(Tribute_ten.getName());
-									Tribute_ten.setFoodLevel(20);
-								}
-								if(plugin.Playing.size()>= 11){
-									plugin.spawns.getString("Tribute_eleven_spawn");
-									String[] coords = plugin.spawns.getString("Tribute_eleven_spawn").split(",");
-									Player Tribute_eleven = plugin.getServer().getPlayerExact(plugin.Playing.get(10));
-									double x = Double.parseDouble(coords[0]);
-									double y = Double.parseDouble(coords[1]);
-									double z = Double.parseDouble(coords[2]);
-									String world = coords[3];
-									World w = plugin.getServer().getWorld(world);
-									Location loc = new Location(w, x, y, z);
-									Tribute_eleven.teleport(loc);
-									plugin.Frozen.add(Tribute_eleven.getName());
-									Tribute_eleven.setFoodLevel(20);
-								}
-								if(plugin.Playing.size()>= 12){
-									plugin.spawns.getString("Tribute_twelve_spawn");
-									String[] coords = plugin.spawns.getString("Tribute_twelve_spawn").split(",");
-									Player Tribute_twelve = plugin.getServer().getPlayerExact(plugin.Playing.get(11));
-									double x = Double.parseDouble(coords[0]);
-									double y = Double.parseDouble(coords[1]);
-									double z = Double.parseDouble(coords[2]);
-									String world = coords[3];
-									World w = plugin.getServer().getWorld(world);
-									Location loc = new Location(w, x, y, z);
-									Tribute_twelve.teleport(loc);
-									plugin.Frozen.add(Tribute_twelve.getName());
-									Tribute_twelve.setFoodLevel(20);
-								}
-								if(plugin.Playing.size()>= 13){
-									plugin.spawns.getString("Tribute_thirteen_spawn");
-									String[] coords = plugin.spawns.getString("Tribute_thirteen_spawn").split(",");
-									Player Tribute_thirteen = plugin.getServer().getPlayerExact(plugin.Playing.get(12));
-									double x = Double.parseDouble(coords[0]);
-									double y = Double.parseDouble(coords[1]);
-									double z = Double.parseDouble(coords[2]);
-									String world = coords[3];
-									World w = plugin.getServer().getWorld(world);
-									Location loc = new Location(w, x, y, z);
-									Tribute_thirteen.teleport(loc);
-									plugin.Frozen.add(Tribute_thirteen.getName());
-									Tribute_thirteen.setFoodLevel(20);
-								}
-								if(plugin.Playing.size()>= 14){
-									plugin.spawns.getString("Tribute_fourteen_spawn");
-									String[] coords = plugin.spawns.getString("Tribute_fourteen_spawn").split(",");
-									Player Tribute_fourteen = plugin.getServer().getPlayerExact(plugin.Playing.get(13));
-									double x = Double.parseDouble(coords[0]);
-									double y = Double.parseDouble(coords[1]);
-									double z = Double.parseDouble(coords[2]);
-									String world = coords[3];
-									World w = plugin.getServer().getWorld(world);
-									Location loc = new Location(w, x, y, z);
-									Tribute_fourteen.teleport(loc);
-									plugin.Frozen.add(Tribute_fourteen.getName());
-									Tribute_fourteen.setFoodLevel(20);
-								}
-								if(plugin.Playing.size()>= 15){
-									plugin.spawns.getString("Tribute_fifteen_spawn");
-									String[] coords = plugin.spawns.getString("Tribute_fifteen_spawn").split(",");
-									Player Tribute_fifteen = plugin.getServer().getPlayerExact(plugin.Playing.get(14));
-									double x = Double.parseDouble(coords[0]);
-									double y = Double.parseDouble(coords[1]);
-									double z = Double.parseDouble(coords[2]);
-									String world = coords[3];
-									World w = plugin.getServer().getWorld(world);
-									Location loc = new Location(w, x, y, z);
-									Tribute_fifteen.teleport(loc);
-									plugin.Frozen.add(Tribute_fifteen.getName());
-									Tribute_fifteen.setFoodLevel(20);
-								}
-								if(plugin.Playing.size()>= 16){
-									plugin.spawns.getString("Tribute_sixteen_spawn");
-									String[] coords = plugin.spawns.getString("Tribute_sixteen_spawn").split(",");
-									Player Tribute_sixteen = plugin.getServer().getPlayerExact(plugin.Playing.get(15));
-									double x = Double.parseDouble(coords[0]);
-									double y = Double.parseDouble(coords[1]);
-									double z = Double.parseDouble(coords[2]);
-									String world = coords[3];
-									World w = plugin.getServer().getWorld(world);
-									Location loc = new Location(w, x, y, z);
-									Tribute_sixteen.teleport(loc);
-									plugin.Frozen.add(Tribute_sixteen.getName());
-									Tribute_sixteen.setFoodLevel(20);
-								}
-								if(plugin.Playing.size()>= 17){
-									plugin.spawns.getString("Tribute_seventeen_spawn");
-									String[] coords = plugin.spawns.getString("Tribute_seventeen_spawn").split(",");
-									Player Tribute_seventeen = plugin.getServer().getPlayerExact(plugin.Playing.get(16));
-									double x = Double.parseDouble(coords[0]);
-									double y = Double.parseDouble(coords[1]);
-									double z = Double.parseDouble(coords[2]);
-									String world = coords[3];
-									World w = plugin.getServer().getWorld(world);
-									Location loc = new Location(w, x, y, z);
-									Tribute_seventeen.teleport(loc);
-									plugin.Frozen.add(Tribute_seventeen.getName());
-									Tribute_seventeen.setFoodLevel(20);
-								}
-								if(plugin.Playing.size()>= 18){
-									plugin.spawns.getString("Tribute_eighteen_spawn");
-									String[] coords = plugin.spawns.getString("Tribute_eighteen_spawn").split(",");
-									Player Tribute_eighteen = plugin.getServer().getPlayerExact(plugin.Playing.get(17));
-									double x = Double.parseDouble(coords[0]);
-									double y = Double.parseDouble(coords[1]);
-									double z = Double.parseDouble(coords[2]);
-									String world = coords[3];
-									World w = plugin.getServer().getWorld(world);
-									Location loc = new Location(w, x, y, z);
-									Tribute_eighteen.teleport(loc);
-									plugin.Frozen.add(Tribute_eighteen.getName());
-									Tribute_eighteen.setFoodLevel(20);
-								}
-								if(plugin.Playing.size()>= 19){
-									plugin.spawns.getString("Tribute_nineteen_spawn");
-									String[] coords = plugin.spawns.getString("Tribute_nineteen_spawn").split(",");
-									Player Tribute_nineteen = plugin.getServer().getPlayerExact(plugin.Playing.get(18));
-									double x = Double.parseDouble(coords[0]);
-									double y = Double.parseDouble(coords[1]);
-									double z = Double.parseDouble(coords[2]);
-									String world = coords[3];
-									World w = plugin.getServer().getWorld(world);
-									Location loc = new Location(w, x, y, z);
-									Tribute_nineteen.teleport(loc);
-									plugin.Frozen.add(Tribute_nineteen.getName());
-									Tribute_nineteen.setFoodLevel(20);
-								}
-								if(plugin.Playing.size()>= 20){
-									plugin.spawns.getString("Tribute_twenty_spawn");
-									String[] coords = plugin.spawns.getString("Tribute_twenty_spawn").split(",");
-									Player Tribute_twenty = plugin.getServer().getPlayerExact(plugin.Playing.get(19));
-									double x = Double.parseDouble(coords[0]);
-									double y = Double.parseDouble(coords[1]);
-									double z = Double.parseDouble(coords[2]);
-									String world = coords[3];
-									World w = plugin.getServer().getWorld(world);
-									Location loc = new Location(w, x, y, z);
-									Tribute_twenty.teleport(loc);
-									plugin.Frozen.add(Tribute_twenty.getName());
-									Tribute_twenty.setFoodLevel(20);
-								}
-								if(plugin.Playing.size()>= 21){
-									plugin.spawns.getString("Tribute_twentyone_spawn");
-									String[] coords = plugin.spawns.getString("Tribute_twentyone_spawn").split(",");
-									Player Tribute_twentyone = plugin.getServer().getPlayerExact(plugin.Playing.get(20));
-									double x = Double.parseDouble(coords[0]);
-									double y = Double.parseDouble(coords[1]);
-									double z = Double.parseDouble(coords[2]);
-									String world = coords[3];
-									World w = plugin.getServer().getWorld(world);
-									Location loc = new Location(w, x, y, z);
-									Tribute_twentyone.teleport(loc);
-									plugin.Frozen.add(Tribute_twentyone.getName());
-									Tribute_twentyone.setFoodLevel(20);
-								}
-								if(plugin.Playing.size()>= 22){
-									plugin.spawns.getString("Tribute_twentytwo_spawn");
-									String[] coords = plugin.spawns.getString("Tribute_twentytwo_spawn").split(",");
-									Player Tribute_twentytwo = plugin.getServer().getPlayerExact(plugin.Playing.get(21));
-									double x = Double.parseDouble(coords[0]);
-									double y = Double.parseDouble(coords[1]);
-									double z = Double.parseDouble(coords[2]);
-									String world = coords[3];
-									World w = plugin.getServer().getWorld(world);
-									Location loc = new Location(w, x, y, z);
-									Tribute_twentytwo.teleport(loc);
-									plugin.Frozen.add(Tribute_twentytwo.getName());
-									Tribute_twentytwo.setFoodLevel(20);
-								}
-								if(plugin.Playing.size()>= 23){
-									plugin.spawns.getString("Tribute_twentythree_spawn");
-									String[] coords = plugin.spawns.getString("Tribute_twentythree_spawn").split(",");
-									Player Tribute_twentythree = plugin.getServer().getPlayerExact(plugin.Playing.get(22));
-									double x = Double.parseDouble(coords[0]);
-									double y = Double.parseDouble(coords[1]);
-									double z = Double.parseDouble(coords[2]);
-									String world = coords[3];
-									World w = plugin.getServer().getWorld(world);
-									Location loc = new Location(w, x, y, z);
-									Tribute_twentythree.teleport(loc);
-									plugin.Frozen.add(Tribute_twentythree.getName());
-									Tribute_twentythree.setFoodLevel(20);
-								}
-								if(plugin.Playing.size()>= 24){
-									plugin.spawns.getString("Tribute_twentyfour_spawn");
-									String[] coords = plugin.spawns.getString("Tribute_twentyfour_spawn").split(",");
-									Player Tribute_twentyfour = plugin.getServer().getPlayerExact(plugin.Playing.get(23));
-									double x = Double.parseDouble(coords[0]);
-									double y = Double.parseDouble(coords[1]);
-									double z = Double.parseDouble(coords[2]);
-									String world = coords[3];
-									World w = plugin.getServer().getWorld(world);
-									Location loc = new Location(w, x, y, z);
-									Tribute_twentyfour.teleport(loc);
-									plugin.Frozen.add(Tribute_twentyfour.getName());
-									Tribute_twentyfour.setFoodLevel(20);
 								}
 							}
 						}
@@ -806,69 +489,29 @@ public class HaCommands implements CommandExecutor {
 						String begin = plugin.config.getString("Start_Message");
 						begin = begin.replaceAll("(&([a-f0-9]))", "\u00A7$2");
 						final String msg = begin;
+						i = 10;
 						if(p.hasPermission("HungerArena.Start")){
 							if(plugin.config.getString("Countdown").equalsIgnoreCase("true")){
-								plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
+								start = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable(){
 									public void run(){
-										plugin.getServer().broadcastMessage("10");
-									}
-								}, 20L);
-								plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-									public void run(){
-										plugin.getServer().broadcastMessage("9");
-									}
-								}, 40L);
-								plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-									public void run(){
-										plugin.getServer().broadcastMessage("8");
-									}
-								}, 60L);
-								plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-									public void run(){
-										plugin.getServer().broadcastMessage("7");
-									}
-								}, 80L);
-								plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-									public void run(){
-										plugin.getServer().broadcastMessage("6");
-									}
-								}, 100L);
-								plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-									public void run(){
-										plugin.getServer().broadcastMessage("5");
-									}
-								}, 120L);
-								plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-									public void run(){
-										plugin.getServer().broadcastMessage("4");
-									}
-								}, 140L);
-								plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-									public void run(){
-										plugin.getServer().broadcastMessage("3");
-									}
-								}, 160L);
-								plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-									public void run(){
-										plugin.getServer().broadcastMessage("2");
-									}
-								}, 180L);
-								plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-									public void run(){
-										plugin.getServer().broadcastMessage("1");
-									}
-								}, 200L);
-								plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-									public void run(){
-										plugin.Frozen.clear();
-										plugin.getServer().broadcastMessage(msg);
+										for(Player wp: p.getWorld().getPlayers()){
+											wp.sendMessage(String.valueOf(i));
+										}
+										i = i-1;
 										plugin.canjoin = true;
+										if(i== 0){
+											plugin.Frozen.clear();
+											plugin.getServer().broadcastMessage(msg);
+											plugin.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha Refill");
+											plugin.getServer().getScheduler().cancelTask(start);
+										}
 									}
-								}, 220L);
+								}, 20L, 20L);
 							}else{
 								plugin.Frozen.clear();
 								p.getServer().broadcastMessage(msg);
 								plugin.canjoin = true;
+								plugin.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha Refill");
 							}
 						}else{
 							p.sendMessage(ChatColor.RED + "You don't have permission!");
@@ -888,22 +531,24 @@ public class HaCommands implements CommandExecutor {
 					ChatColor c = ChatColor.AQUA;
 					sender.sendMessage(ChatColor.GREEN + "----HungerArena Help----");
 					sender.sendMessage(c + "/ha - Displays author message!");
+					sender.sendMessage(c + "/sponsor [Player] [ItemID] [Amount] - Lets you sponsor someone!");
+					sender.sendMessage(c + "/startpoint [1,2,3,4,etc] - Sets the starting points of tributes!");
+					sender.sendMessage(c + "/ha close - Prevents anyone from joining!");
 					sender.sendMessage(c + "/ha help - Displays this screen!");
 					sender.sendMessage(c + "/ha join - Makes you join the game!");
-					sender.sendMessage(c + "/ha ready - Votes for the game to start!");
-					sender.sendMessage(c + "/ha leave - Makes you leave the game!");
-					sender.sendMessage(c + "/ha watch - Lets you watch the tributes!");
-					sender.sendMessage(c + "/sponsor [Player] [ItemID] [Amount] - Lets you sponsor someone!");
-					sender.sendMessage(c + "/ha setspawn - Sets the spawn for dead tributes!");
 					sender.sendMessage(c + "/ha kick [Player] - Kicks a player from the arena!");
-					sender.sendMessage(c + "/ha restart - Makes it so dead tributes can join again!");
-					sender.sendMessage(c + "/ha warpall - Warps all tribute into position!");
-					sender.sendMessage(c + "/ha reload - Reloads the config!");
-					sender.sendMessage(c + "/ha refill - Refills all chests!");
-					sender.sendMessage(c + "/ha start - Unfreezes tributes allowing them to fight!");
+					sender.sendMessage(c + "/ha leave - Makes you leave the game!");
 					sender.sendMessage(c + "/ha list - Shows a list of players in the game and their health!");
+					sender.sendMessage(c + "/ha open - Opens the game allowing people to join!");
+					sender.sendMessage(c + "/ha ready - Votes for the game to start!");
+					sender.sendMessage(c + "/ha refill - Refills all chests!");
+					sender.sendMessage(c + "/ha reload - Reloads the config!");
+					sender.sendMessage(c + "/ha restart - Makes it so dead tributes can join again!");
 					sender.sendMessage(c + "/ha rlist - See who's ready!");
-					sender.sendMessage(c + "/startpoint [1,2,3,4,etc] - Sets the starting points of tributes!");
+					sender.sendMessage(c + "/ha setspawn - Sets the spawn for dead tributes!");
+					sender.sendMessage(c + "/ha start - Unfreezes tributes allowing them to fight!");
+					sender.sendMessage(c + "/ha watch - Lets you watch the tributes!");
+					sender.sendMessage(c + "/ha warpall - Warps all tribute into position!");
 					sender.sendMessage(ChatColor.GREEN + "----------------------");
 					return false;
 				}else if(args[0].equalsIgnoreCase("List")){
@@ -935,12 +580,8 @@ public class HaCommands implements CommandExecutor {
 					if(plugin.Playing.contains(target.getName())){
 						plugin.Playing.remove(target.getName());
 						plugin.getServer().broadcastMessage(ChatColor.RED + target.getName() + " was kicked from the game!");
+						clearInv(target);
 						target.teleport(Spawn);
-						target.getInventory().clear();
-						target.getInventory().setBoots(null);
-						target.getInventory().setChestplate(null);
-						target.getInventory().setHelmet(null);
-						target.getInventory().setLeggings(null);
 						plugin.Quit.add(target.getName());
 						if(plugin.Playing.size()== 1 && plugin.canjoin== true){
 							//Announce winner
@@ -949,26 +590,18 @@ public class HaCommands implements CommandExecutor {
 								Player winner = plugin.getServer().getPlayerExact(winnername);
 								String winnername2 = winner.getName();
 								plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
-								winner.getInventory().clear();
+								clearInv(winner);
 								winner.teleport(Spawn);
-								winner.getInventory().setBoots(null);
-								winner.getInventory().setChestplate(null);
-								winner.getInventory().setHelmet(null);
-								winner.getInventory().setLeggings(null);
 								winner.getInventory().addItem(plugin.Reward);
-								Bukkit.getServer().getPluginManager().callEvent(new PlayerWinGamesEvent(winner));
+								plugin.Playing.clear();
 							}
-							plugin.Playing.clear();
-							//Make spectators visible
-							if(!plugin.Watching.isEmpty()){
-								for(i = 0; i < plugin.Watching.size(); i++){
-									String s = plugin.Watching.get(i++);
-									Player spectator = plugin.getServer().getPlayerExact(s);
-									spectator.setAllowFlight(false);
-									spectator.teleport(Spawn);
-									for(Player online:plugin.getServer().getOnlinePlayers()){
-										online.showPlayer(spectator);
-									}
+							//Show spectators
+							for(String s1: plugin.Watching){
+								Player spectator = plugin.getServer().getPlayerExact(s1);
+								spectator.setAllowFlight(false);
+								spectator.teleport(Spawn);
+								for(Player online:plugin.getServer().getOnlinePlayers()){
+									online.showPlayer(spectator);
 								}
 							}
 							if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
@@ -1003,6 +636,7 @@ public class HaCommands implements CommandExecutor {
 							}
 							list056 = list056+1;
 							chest.getInventory().setContents(itemsinchest);
+							chest.update();
 						}
 					}
 					if(limit== list056){
@@ -1029,49 +663,79 @@ public class HaCommands implements CommandExecutor {
 					plugin.Out.clear();
 					plugin.Playing.clear();
 					plugin.canjoin = false;
+					List<String> blocksbroken = plugin.data.getStringList("Blocks_Destroyed");
+					List<String> blocksplaced = plugin.data.getStringList("Blocks_Placed");
+					for(String blocks:blocksplaced){
+						String[] coords = blocks.split(",");
+						World w = plugin.getServer().getWorld(coords[0]);
+						double x = Double.parseDouble(coords[1]);
+						double y = Double.parseDouble(coords[2]);
+						double z = Double.parseDouble(coords[3]);
+						int d = 0;
+						byte m = 0;
+						Location blockl = new Location(w, x, y, z);
+						Block block = w.getBlockAt(blockl);
+						block.setTypeIdAndData(d, m, true);
+						block.getState().update();
+					}
+					for(String blocks:blocksbroken){
+						String[] coords = blocks.split(",");
+						World w = plugin.getServer().getWorld(coords[0]);
+						double x = Double.parseDouble(coords[1]);
+						double y = Double.parseDouble(coords[2]);
+						double z = Double.parseDouble(coords[3]);
+						int d = Integer.parseInt(coords[4]);
+						byte m = Byte.parseByte(coords[5]);
+						Location blockl = new Location(w, x, y, z);
+						Block block = w.getBlockAt(blockl);
+						block.setTypeIdAndData(d, m, true);
+						block.getState().update();
+					}
+					blocksplaced.clear();
+					blocksbroken.clear();
+					plugin.data.set("Blocks_Destroyed", blocksbroken);
+					plugin.data.set("Blocks_Placed", blocksplaced);
+					plugin.data.options().copyDefaults();
+					plugin.saveData();
 					Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha refill");
 					sender.sendMessage(ChatColor.AQUA + "The games have been reset!");
 					/////////////////////////////////// Toggle //////////////////////////////////////////////////
 				}else if(args[0].equalsIgnoreCase("close")){
-						if(plugin.open){
-							plugin.open = false;
-							for(String players: plugin.Playing){
-								Player tributes = plugin.getServer().getPlayerExact(players);
-								tributes.teleport(tributes.getWorld().getSpawnLocation());
-								tributes.getInventory().clear();
-								tributes.getInventory().setBoots(null);
-								tributes.getInventory().setChestplate(null);
-								tributes.getInventory().setHelmet(null);
-								tributes.getInventory().setLeggings(null);
-							}
-							for(String sname: plugin.Watching){
-								Player spectators = plugin.getServer().getPlayerExact(sname);
-								spectators.teleport(spectators.getWorld().getSpawnLocation());
-								spectators.setAllowFlight(false);
-								for(Player online:plugin.getServer().getOnlinePlayers()){
-									online.showPlayer(spectators);
-								}
-							}
-							plugin.Dead.clear();
-							plugin.Quit.clear();
-							plugin.Watching.clear();
-							plugin.Frozen.clear();
-							plugin.Ready.clear();
-							plugin.NeedConfirm.clear();
-							plugin.Out.clear();
-							plugin.Playing.clear();
-							Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha refill");
-							sender.sendMessage(ChatColor.GOLD + "Games Closed!");
-						}else{
-							sender.sendMessage(ChatColor.RED + "Games alredy close, type /ha open to re-open them!");
+					if(plugin.open){
+						plugin.open = false;
+						for(String players: plugin.Playing){
+							Player tributes = plugin.getServer().getPlayerExact(players);
+							tributes.teleport(tributes.getWorld().getSpawnLocation());
+							clearInv(tributes);
 						}
+						for(String sname: plugin.Watching){
+							Player spectators = plugin.getServer().getPlayerExact(sname);
+							spectators.teleport(spectators.getWorld().getSpawnLocation());
+							spectators.setAllowFlight(false);
+							for(Player online:plugin.getServer().getOnlinePlayers()){
+								online.showPlayer(spectators);
+							}
+						}
+						plugin.Dead.clear();
+						plugin.Quit.clear();
+						plugin.Watching.clear();
+						plugin.Frozen.clear();
+						plugin.Ready.clear();
+						plugin.NeedConfirm.clear();
+						plugin.Out.clear();
+						plugin.Playing.clear();
+						Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha refill");
+						sender.sendMessage(ChatColor.GOLD + "Games Closed!");
+					}else{
+						sender.sendMessage(ChatColor.RED + "Games alredy close, type /ha open to re-open them!");
+					}
 				}else if(args[0].equalsIgnoreCase("open")){
-						if(!plugin.open){
-							plugin.open = true;
-							sender.sendMessage(ChatColor.GOLD + "Games Opened!!");
-						}else{
-							sender.sendMessage(ChatColor.RED + "Games already open, type /ha close to close them!");
-						}
+					if(!plugin.open){
+						plugin.open = true;
+						sender.sendMessage(ChatColor.GOLD + "Games Opened!!");
+					}else{
+						sender.sendMessage(ChatColor.RED + "Games already open, type /ha close to close them!");
+					}
 					////////////////////////////////////////////////////////////////////////////////////////////
 				}else if(args[0].equalsIgnoreCase("Reload")){
 					plugin.reloadConfig();
@@ -1080,35 +744,10 @@ public class HaCommands implements CommandExecutor {
 					if(plugin.spawns.getString("Spawns_set").equalsIgnoreCase("false")){
 						sender.sendMessage(ChatColor.RED + "/ha setspawn hasn't been run!");
 					}else{
+						//TODO Make warping way more efficient
 						if(plugin.Playing.size()== 1){
 							sender.sendMessage(ChatColor.RED + "There are not enough players!");
-						}
-						if(plugin.Playing.size()>= 2){
-							plugin.spawns.getString("Tribute_one_spawn");
-							String[] onecoords = plugin.spawns.getString("Tribute_one_spawn").split(",");
-							Player Tribute_one = plugin.getServer().getPlayerExact(plugin.Playing.get(0));
-							double x = Double.parseDouble(onecoords[0]);
-							double y = Double.parseDouble(onecoords[1]);
-							double z = Double.parseDouble(onecoords[2]);
-							String world = onecoords[3];
-							World w = plugin.getServer().getWorld(world);
-							Location oneloc = new Location(w, x, y, z);
-							Tribute_one.teleport(oneloc);
-							plugin.Frozen.add(Tribute_one.getName());
-							Tribute_one.setFoodLevel(20);
-							plugin.spawns.getString("Tribute_two_spawn");
-							String[] twocoords = plugin.spawns.getString("Tribute_two_spawn").split(",");
-							Player Tribute_two = plugin.getServer().getPlayerExact(plugin.Playing.get(1));
-							double twox = Double.parseDouble(twocoords[0]);
-							double twoy = Double.parseDouble(twocoords[1]);
-							double twoz = Double.parseDouble(twocoords[2]);
-							String twoworld = twocoords[3];
-							World twow = plugin.getServer().getWorld(twoworld);
-							Location twoloc = new Location(twow, twox, twoy, twoz);
-							Tribute_two.teleport(twoloc);
-							plugin.Frozen.add(Tribute_two.getName());
-							Tribute_two.setFoodLevel(20);
-							Tribute_two.getWorld().setTime(0);
+						}else{
 							if(plugin.config.getString("Auto_Start").equalsIgnoreCase("true")){
 								plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 									public void run(){
@@ -1121,382 +760,59 @@ public class HaCommands implements CommandExecutor {
 									sender.sendMessage(ChatColor.AQUA + "All Tributes warped!");
 								}
 							}, 20L);
+							for(String playing:plugin.Playing){
+								Player tribute = plugin.getServer().getPlayerExact(playing);
+								tribute.teleport(plugin.location.get(i));
+								tribute.setHealth(20);
+								tribute.setFoodLevel(20);
+								tribute.setSaturation(20);
+								clearInv(tribute);
+								for(PotionEffect pe: tribute.getActivePotionEffects()){
+									PotionEffectType potion = pe.getType();
+									tribute.removePotionEffect(potion);
+								}
+								if(tribute.getAllowFlight()){
+									tribute.setAllowFlight(false);
+								}
+								plugin.Frozen.add(tribute.getName());
+								i = i+1;
+							}
 						}
-						if(plugin.Playing.size()>= 3){
-							plugin.spawns.getString("Tribute_three_spawn");
-							String[] coords = plugin.spawns.getString("Tribute_three_spawn").split(",");
-							Player Tribute_three = plugin.getServer().getPlayerExact(plugin.Playing.get(2));
-							double x = Double.parseDouble(coords[0]);
-							double y = Double.parseDouble(coords[1]);
-							double z = Double.parseDouble(coords[2]);
-							String world = coords[3];
-							World w = plugin.getServer().getWorld(world);
-							Location loc = new Location(w, x, y, z);
-							Tribute_three.teleport(loc);
-							plugin.Frozen.add(Tribute_three.getName());
-							Tribute_three.setFoodLevel(20);
-						}
-						if(plugin.Playing.size()>= 4){
-							plugin.spawns.getString("Tribute_four_spawn");
-							String[] coords = plugin.spawns.getString("Tribute_four_spawn").split(",");
-							Player Tribute_four = plugin.getServer().getPlayerExact(plugin.Playing.get(3));
-							double x = Double.parseDouble(coords[0]);
-							double y = Double.parseDouble(coords[1]);
-							double z = Double.parseDouble(coords[2]);
-							String world = coords[3];
-							World w = plugin.getServer().getWorld(world);
-							Location loc = new Location(w, x, y, z);
-							Tribute_four.teleport(loc);
-							plugin.Frozen.add(Tribute_four.getName());
-							Tribute_four.setFoodLevel(20);
-						}
-						if(plugin.Playing.size()>= 5){
-							plugin.spawns.getString("Tribute_five_spawn");
-							String[] coords = plugin.spawns.getString("Tribute_five_spawn").split(",");
-							Player Tribute_five = plugin.getServer().getPlayerExact(plugin.Playing.get(4));
-							double x = Double.parseDouble(coords[0]);
-							double y = Double.parseDouble(coords[1]);
-							double z = Double.parseDouble(coords[2]);
-							String world = coords[3];
-							World w = plugin.getServer().getWorld(world);
-							Location loc = new Location(w, x, y, z);
-							Tribute_five.teleport(loc);
-							plugin.Frozen.add(Tribute_five.getName());
-							Tribute_five.setFoodLevel(20);
-						}
-						if(plugin.Playing.size()>= 6){
-							plugin.spawns.getString("Tribute_six_spawn");
-							String[] coords = plugin.spawns.getString("Tribute_six_spawn").split(",");
-							Player Tribute_six = plugin.getServer().getPlayerExact(plugin.Playing.get(5));
-							double x = Double.parseDouble(coords[0]);
-							double y = Double.parseDouble(coords[1]);
-							double z = Double.parseDouble(coords[2]);
-							String world = coords[3];
-							World w = plugin.getServer().getWorld(world);
-							Location loc = new Location(w, x, y, z);
-							Tribute_six.teleport(loc);
-							plugin.Frozen.add(Tribute_six.getName());
-							Tribute_six.setFoodLevel(20);
-						}
-						if(plugin.Playing.size()>= 7){
-							plugin.spawns.getString("Tribute_seven_spawn");
-							String[] coords = plugin.spawns.getString("Tribute_seven_spawn").split(",");
-							Player Tribute_seven = plugin.getServer().getPlayerExact(plugin.Playing.get(6));
-							double x = Double.parseDouble(coords[0]);
-							double y = Double.parseDouble(coords[1]);
-							double z = Double.parseDouble(coords[2]);
-							String world = coords[3];
-							World w = plugin.getServer().getWorld(world);
-							Location loc = new Location(w, x, y, z);
-							Tribute_seven.teleport(loc);
-							plugin.Frozen.add(Tribute_seven.getName());
-							Tribute_seven.setFoodLevel(20);
-						}
-						if(plugin.Playing.size()>= 8){
-							plugin.spawns.getString("Tribute_eight_spawn");
-							String[] coords = plugin.spawns.getString("Tribute_eight_spawn").split(",");
-							Player Tribute_eight = plugin.getServer().getPlayerExact(plugin.Playing.get(7));
-							double x = Double.parseDouble(coords[0]);
-							double y = Double.parseDouble(coords[1]);
-							double z = Double.parseDouble(coords[2]);
-							String world = coords[3];
-							World w = plugin.getServer().getWorld(world);
-							Location loc = new Location(w, x, y, z);
-							Tribute_eight.teleport(loc);
-							plugin.Frozen.add(Tribute_eight.getName());
-							Tribute_eight.setFoodLevel(20);
-						}
-						if(plugin.Playing.size()>= 9){
-							plugin.spawns.getString("Tribute_nine_spawn");
-							String[] coords = plugin.spawns.getString("Tribute_nine_spawn").split(",");
-							Player Tribute_nine = plugin.getServer().getPlayerExact(plugin.Playing.get(8));
-							double x = Double.parseDouble(coords[0]);
-							double y = Double.parseDouble(coords[1]);
-							double z = Double.parseDouble(coords[2]);
-							String world = coords[3];
-							World w = plugin.getServer().getWorld(world);
-							Location loc = new Location(w, x, y, z);
-							Tribute_nine.teleport(loc);
-							plugin.Frozen.add(Tribute_nine.getName());
-							Tribute_nine.setFoodLevel(20);
-						}
-						if(plugin.Playing.size()>= 10){
-							plugin.spawns.getString("Tribute_ten_spawn");
-							String[] coords = plugin.spawns.getString("Tribute_ten_spawn").split(",");
-							Player Tribute_ten = plugin.getServer().getPlayerExact(plugin.Playing.get(9));
-							double x = Double.parseDouble(coords[0]);
-							double y = Double.parseDouble(coords[1]);
-							double z = Double.parseDouble(coords[2]);
-							String world = coords[3];
-							World w = plugin.getServer().getWorld(world);
-							Location loc = new Location(w, x, y, z);
-							Tribute_ten.teleport(loc);
-							plugin.Frozen.add(Tribute_ten.getName());
-							Tribute_ten.setFoodLevel(20);
-						}
-						if(plugin.Playing.size()>= 11){
-							plugin.spawns.getString("Tribute_eleven_spawn");
-							String[] coords = plugin.spawns.getString("Tribute_eleven_spawn").split(",");
-							Player Tribute_eleven = plugin.getServer().getPlayerExact(plugin.Playing.get(10));
-							double x = Double.parseDouble(coords[0]);
-							double y = Double.parseDouble(coords[1]);
-							double z = Double.parseDouble(coords[2]);
-							String world = coords[3];
-							World w = plugin.getServer().getWorld(world);
-							Location loc = new Location(w, x, y, z);
-							Tribute_eleven.teleport(loc);
-							plugin.Frozen.add(Tribute_eleven.getName());
-							Tribute_eleven.setFoodLevel(20);
-						}
-						if(plugin.Playing.size()>= 12){
-							plugin.spawns.getString("Tribute_twelve_spawn");
-							String[] coords = plugin.spawns.getString("Tribute_twelve_spawn").split(",");
-							Player Tribute_twelve = plugin.getServer().getPlayerExact(plugin.Playing.get(11));
-							double x = Double.parseDouble(coords[0]);
-							double y = Double.parseDouble(coords[1]);
-							double z = Double.parseDouble(coords[2]);
-							String world = coords[3];
-							World w = plugin.getServer().getWorld(world);
-							Location loc = new Location(w, x, y, z);
-							Tribute_twelve.teleport(loc);
-							plugin.Frozen.add(Tribute_twelve.getName());
-							Tribute_twelve.setFoodLevel(20);
-						}
-						if(plugin.Playing.size()>= 13){
-							plugin.spawns.getString("Tribute_thirteen_spawn");
-							String[] coords = plugin.spawns.getString("Tribute_thirteen_spawn").split(",");
-							Player Tribute_thirteen = plugin.getServer().getPlayerExact(plugin.Playing.get(12));
-							double x = Double.parseDouble(coords[0]);
-							double y = Double.parseDouble(coords[1]);
-							double z = Double.parseDouble(coords[2]);
-							String world = coords[3];
-							World w = plugin.getServer().getWorld(world);
-							Location loc = new Location(w, x, y, z);
-							Tribute_thirteen.teleport(loc);
-							plugin.Frozen.add(Tribute_thirteen.getName());
-							Tribute_thirteen.setFoodLevel(20);
-						}
-						if(plugin.Playing.size()>= 14){
-							plugin.spawns.getString("Tribute_fourteen_spawn");
-							String[] coords = plugin.spawns.getString("Tribute_fourteen_spawn").split(",");
-							Player Tribute_fourteen = plugin.getServer().getPlayerExact(plugin.Playing.get(13));
-							double x = Double.parseDouble(coords[0]);
-							double y = Double.parseDouble(coords[1]);
-							double z = Double.parseDouble(coords[2]);
-							String world = coords[3];
-							World w = plugin.getServer().getWorld(world);
-							Location loc = new Location(w, x, y, z);
-							Tribute_fourteen.teleport(loc);
-							plugin.Frozen.add(Tribute_fourteen.getName());
-							Tribute_fourteen.setFoodLevel(20);
-						}
-						if(plugin.Playing.size()>= 15){
-							plugin.spawns.getString("Tribute_fifteen_spawn");
-							String[] coords = plugin.spawns.getString("Tribute_fifteen_spawn").split(",");
-							Player Tribute_fifteen = plugin.getServer().getPlayerExact(plugin.Playing.get(14));
-							double x = Double.parseDouble(coords[0]);
-							double y = Double.parseDouble(coords[1]);
-							double z = Double.parseDouble(coords[2]);
-							String world = coords[3];
-							World w = plugin.getServer().getWorld(world);
-							Location loc = new Location(w, x, y, z);
-							Tribute_fifteen.teleport(loc);
-							plugin.Frozen.add(Tribute_fifteen.getName());
-							Tribute_fifteen.setFoodLevel(20);
-						}
-						if(plugin.Playing.size()>= 16){
-							plugin.spawns.getString("Tribute_sixteen_spawn");
-							String[] coords = plugin.spawns.getString("Tribute_sixteen_spawn").split(",");
-							Player Tribute_sixteen = plugin.getServer().getPlayerExact(plugin.Playing.get(15));
-							double x = Double.parseDouble(coords[0]);
-							double y = Double.parseDouble(coords[1]);
-							double z = Double.parseDouble(coords[2]);
-							String world = coords[3];
-							World w = plugin.getServer().getWorld(world);
-							Location loc = new Location(w, x, y, z);
-							Tribute_sixteen.teleport(loc);
-							plugin.Frozen.add(Tribute_sixteen.getName());
-							Tribute_sixteen.setFoodLevel(20);
-						}
-						if(plugin.Playing.size()>= 17){
-							plugin.spawns.getString("Tribute_seventeen_spawn");
-							String[] coords = plugin.spawns.getString("Tribute_seventeen_spawn").split(",");
-							Player Tribute_seventeen = plugin.getServer().getPlayerExact(plugin.Playing.get(16));
-							double x = Double.parseDouble(coords[0]);
-							double y = Double.parseDouble(coords[1]);
-							double z = Double.parseDouble(coords[2]);
-							String world = coords[3];
-							World w = plugin.getServer().getWorld(world);
-							Location loc = new Location(w, x, y, z);
-							Tribute_seventeen.teleport(loc);
-							plugin.Frozen.add(Tribute_seventeen.getName());
-							Tribute_seventeen.setFoodLevel(20);
-						}
-						if(plugin.Playing.size()>= 18){
-							plugin.spawns.getString("Tribute_eighteen_spawn");
-							String[] coords = plugin.spawns.getString("Tribute_eighteen_spawn").split(",");
-							Player Tribute_eighteen = plugin.getServer().getPlayerExact(plugin.Playing.get(17));
-							double x = Double.parseDouble(coords[0]);
-							double y = Double.parseDouble(coords[1]);
-							double z = Double.parseDouble(coords[2]);
-							String world = coords[3];
-							World w = plugin.getServer().getWorld(world);
-							Location loc = new Location(w, x, y, z);
-							Tribute_eighteen.teleport(loc);
-							plugin.Frozen.add(Tribute_eighteen.getName());
-							Tribute_eighteen.setFoodLevel(20);
-						}
-						if(plugin.Playing.size()>= 19){
-							plugin.spawns.getString("Tribute_nineteen_spawn");
-							String[] coords = plugin.spawns.getString("Tribute_nineteen_spawn").split(",");
-							Player Tribute_nineteen = plugin.getServer().getPlayerExact(plugin.Playing.get(18));
-							double x = Double.parseDouble(coords[0]);
-							double y = Double.parseDouble(coords[1]);
-							double z = Double.parseDouble(coords[2]);
-							String world = coords[3];
-							World w = plugin.getServer().getWorld(world);
-							Location loc = new Location(w, x, y, z);
-							Tribute_nineteen.teleport(loc);
-							plugin.Frozen.add(Tribute_nineteen.getName());
-							Tribute_nineteen.setFoodLevel(20);
-						}
-						if(plugin.Playing.size()>= 20){
-							plugin.spawns.getString("Tribute_twenty_spawn");
-							String[] coords = plugin.spawns.getString("Tribute_twenty_spawn").split(",");
-							Player Tribute_twenty = plugin.getServer().getPlayerExact(plugin.Playing.get(19));
-							double x = Double.parseDouble(coords[0]);
-							double y = Double.parseDouble(coords[1]);
-							double z = Double.parseDouble(coords[2]);
-							String world = coords[3];
-							World w = plugin.getServer().getWorld(world);
-							Location loc = new Location(w, x, y, z);
-							Tribute_twenty.teleport(loc);
-							plugin.Frozen.add(Tribute_twenty.getName());
-							Tribute_twenty.setFoodLevel(20);
-						}
-						if(plugin.Playing.size()>= 21){
-							plugin.spawns.getString("Tribute_twentyone_spawn");
-							String[] coords = plugin.spawns.getString("Tribute_twentyone_spawn").split(",");
-							Player Tribute_twentyone = plugin.getServer().getPlayerExact(plugin.Playing.get(20));
-							double x = Double.parseDouble(coords[0]);
-							double y = Double.parseDouble(coords[1]);
-							double z = Double.parseDouble(coords[2]);
-							String world = coords[3];
-							World w = plugin.getServer().getWorld(world);
-							Location loc = new Location(w, x, y, z);
-							Tribute_twentyone.teleport(loc);
-							plugin.Frozen.add(Tribute_twentyone.getName());
-							Tribute_twentyone.setFoodLevel(20);
-						}
-						if(plugin.Playing.size()>= 22){
-							plugin.spawns.getString("Tribute_twentytwo_spawn");
-							String[] coords = plugin.spawns.getString("Tribute_twentytwo_spawn").split(",");
-							Player Tribute_twentytwo = plugin.getServer().getPlayerExact(plugin.Playing.get(21));
-							double x = Double.parseDouble(coords[0]);
-							double y = Double.parseDouble(coords[1]);
-							double z = Double.parseDouble(coords[2]);
-							String world = coords[3];
-							World w = plugin.getServer().getWorld(world);
-							Location loc = new Location(w, x, y, z);
-							Tribute_twentytwo.teleport(loc);
-							plugin.Frozen.add(Tribute_twentytwo.getName());
-							Tribute_twentytwo.setFoodLevel(20);
-						}
-						if(plugin.Playing.size()>= 23){
-							plugin.spawns.getString("Tribute_twentythree_spawn");
-							String[] coords = plugin.spawns.getString("Tribute_twentythree_spawn").split(",");
-							Player Tribute_twentythree = plugin.getServer().getPlayerExact(plugin.Playing.get(22));
-							double x = Double.parseDouble(coords[0]);
-							double y = Double.parseDouble(coords[1]);
-							double z = Double.parseDouble(coords[2]);
-							String world = coords[3];
-							World w = plugin.getServer().getWorld(world);
-							Location loc = new Location(w, x, y, z);
-							Tribute_twentythree.teleport(loc);
-							plugin.Frozen.add(Tribute_twentythree.getName());
-							Tribute_twentythree.setFoodLevel(20);
-						}
-						if(plugin.Playing.size()>= 24){
-							plugin.spawns.getString("Tribute_twentyfour_spawn");
-							String[] coords = plugin.spawns.getString("Tribute_twentyfour_spawn").split(",");
-							Player Tribute_twentyfour = plugin.getServer().getPlayerExact(plugin.Playing.get(23));
-							double x = Double.parseDouble(coords[0]);
-							double y = Double.parseDouble(coords[1]);
-							double z = Double.parseDouble(coords[2]);
-							String world = coords[3];
-							World w = plugin.getServer().getWorld(world);
-							Location loc = new Location(w, x, y, z);
-							Tribute_twentyfour.teleport(loc);
-							plugin.Frozen.add(Tribute_twentyfour.getName());
-							Tribute_twentyfour.setFoodLevel(20);
-						}
+
 					}
 				}else if(args[0].equalsIgnoreCase("Start")){
 					String begin = plugin.config.getString("Start_Message");
 					begin = begin.replaceAll("(&([a-f0-9]))", "\u00A7$2");
 					final String msg = begin;
 					if(plugin.config.getString("Countdown").equalsIgnoreCase("true")){
-						plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
+						cstart = plugin.getServer().getScheduler().scheduleSyncRepeatingTask(plugin, new Runnable(){
 							public void run(){
-								plugin.getServer().broadcastMessage("10");
-							}
-						}, 20L);
-						plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-							public void run(){
-								plugin.getServer().broadcastMessage("9");
-							}
-						}, 40L);
-						plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-							public void run(){
-								plugin.getServer().broadcastMessage("8");
-							}
-						}, 60L);
-						plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-							public void run(){
-								plugin.getServer().broadcastMessage("7");
-							}
-						}, 80L);
-						plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-							public void run(){
-								plugin.getServer().broadcastMessage("6");
-							}
-						}, 100L);
-						plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-							public void run(){
-								plugin.getServer().broadcastMessage("5");
-							}
-						}, 120L);
-						plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-							public void run(){
-								plugin.getServer().broadcastMessage("4");
-							}
-						}, 140L);
-						plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-							public void run(){
-								plugin.getServer().broadcastMessage("3");
-							}
-						}, 160L);
-						plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-							public void run(){
-								plugin.getServer().broadcastMessage("2");
-							}
-						}, 180L);
-						plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-							public void run(){
-								plugin.getServer().broadcastMessage("1");
-							}
-						}, 200L);
-						plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-							public void run(){
-								plugin.Frozen.clear();
-								plugin.getServer().broadcastMessage(msg);
+								List<String> worlds = plugin.config.getStringList("worlds");
+								if(worlds.isEmpty()){
+									sender.getServer().broadcastMessage(String.valueOf(i));
+								}else{
+									for(String world: worlds){
+										World w = plugin.getServer().getWorld(world);
+										for(Player wp: w.getPlayers()){
+											wp.sendMessage(String.valueOf(i));
+										}
+									}
+								}
+								i = i-1;
 								plugin.canjoin = true;
+								if(i== 0){
+									plugin.Frozen.clear();
+									plugin.getServer().broadcastMessage(msg);
+									plugin.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha Refill");
+									plugin.getServer().getScheduler().cancelTask(cstart);
+								}
 							}
-						}, 220L);
+						}, 20L, 20L);
 					}else{
 						plugin.Frozen.clear();
-						plugin.getServer().broadcastMessage(msg);
+						sender.getServer().broadcastMessage(msg);
 						plugin.canjoin = true;
+						plugin.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha Refill");
 					}
 				}else{
 					sender.sendMessage(ChatColor.RED + "Unknown command, type /ha help to see all commands!");
