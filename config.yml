@@ -51,17 +51,24 @@ Cannon_Death: 'true'
 
 # What the reward for winning is
 Reward:
-    ID: 264
-    Amount: 10
+- 264,10
+Sponsor_Cost:
+- 264,1
+EntryFee:
+  enabled: false
+  eco: false
+  cost: 50
+  fee:
+  - 265,1
 # True means give money to winner, false means don't.
-eco:
+rewardEco:
   enabled: false
   reward: 100
+sponsorEco:
+  enabled: false
+  cost: 50
 # How much money to give the winner.
 # What sponsors have to pay to sponsor tributes
-Sponsor_Cost:
-    ID: 264
-    Amount: 1
 ################################
 ################################
 ################################

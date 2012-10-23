@@ -83,6 +83,7 @@ public class HaCommands implements CommandExecutor {
 					sender.sendMessage(c + "/ha restart - Makes it so dead tributes can join again!");
 					sender.sendMessage(c + "/ha rlist - See who's ready!");
 					sender.sendMessage(c + "/ha setspawn - Sets the spawn for dead tributes!");
+					sender.sendMessage(c + "/ha tp [player] - Teleports you to a tribute!");
 					sender.sendMessage(c + "/ha start - Unfreezes tributes allowing them to fight!");
 					sender.sendMessage(c + "/ha watch - Lets you watch the tributes!");
 					sender.sendMessage(c + "/ha warpall - Warps all tribute into position!");
@@ -92,12 +93,22 @@ public class HaCommands implements CommandExecutor {
 				}else if((plugin.restricted && plugin.worlds.contains(p.getWorld().getName())) || !plugin.restricted){
 					//////////////////////////////////////// LISTING ///////////////////////////////////////////////
 					if(args[0].equalsIgnoreCase("List")){
-						if(p.hasPermission("HungerArena.GameMaker")){
+						if(p.hasPermission("HungerArena.GameMaker") || plugin.Watching.contains(pname)){
 							sender.sendMessage(ChatColor.AQUA + "-----People Playing-----");
 							if(!plugin.Playing.isEmpty()){
 								for(String playernames: plugin.Playing){
 									Player players = plugin.getServer().getPlayerExact(playernames);
 									sender.sendMessage(ChatColor.GREEN + playernames + " Life: " + players.getHealth() + "/20");
+								}
+							}else if(plugin.Playing.isEmpty()){
+								p.sendMessage(ChatColor.GRAY + "No one is playing!");
+							}
+							p.sendMessage(ChatColor.AQUA + "----------------------");
+						}else if(p.hasPermission("HungerArena.List")){
+							sender.sendMessage(ChatColor.AQUA + "-----People Playing-----");
+							if(!plugin.Playing.isEmpty()){
+								for(String playernames: plugin.Playing){
+									sender.sendMessage(ChatColor.GREEN + playernames);
 								}
 							}else if(plugin.Playing.isEmpty()){
 								p.sendMessage(ChatColor.GRAY + "No one is playing!");
@@ -140,14 +151,130 @@ public class HaCommands implements CommandExecutor {
 							}else if(plugin.NeedConfirm.contains(pname)){
 								p.sendMessage(ChatColor.RED + "You need to do /ha confirm");
 							}else if(plugin.config.getString("Need_Confirm").equalsIgnoreCase("true")){
-								plugin.NeedConfirm.add(pname);
-								p.sendMessage(ChatColor.GOLD + "You're inventory will be cleared! Type /ha confirm to procede");
+								if(plugin.vault){
+									if(plugin.config.getBoolean("EntryFee.enabled") && plugin.config.getBoolean("EntryFee.eco")){
+										if(!(plugin.econ.getBalance(pname) < plugin.config.getDouble("EntryFee.cost"))){
+											i = 0;
+											for(ItemStack fee: plugin.Fee){
+												int total = plugin.Fee.size();
+												if(p.getInventory().contains(fee)){
+													i = i+1;
+													if(total == i){
+														plugin.NeedConfirm.add(pname);
+														p.sendMessage(ChatColor.GOLD + "You're inventory will be cleared! Type /ha confirm to procede");
+													}
+												}
+											}
+											if(plugin.Fee.size() > i){
+												p.sendMessage(ChatColor.RED + "You are missing some items and can't join the games...");
+											}
+										}else{
+											p.sendMessage(ChatColor.RED + "You don't have enough money to join!");
+										}
+									}else if(plugin.config.getBoolean("EntryFee.enabled") && !plugin.config.getBoolean("EntryFee.eco")){
+										i = 0;
+										for(ItemStack fee: plugin.Fee){
+											int total = plugin.Fee.size();
+											if(p.getInventory().contains(fee)){
+												i = i+1;
+												if(total == i){
+													plugin.NeedConfirm.add(pname);
+													p.sendMessage(ChatColor.GOLD + "You're inventory will be cleared! Type /ha confirm to procede");
+												}
+											}
+										}
+										if(plugin.Fee.size() > i){
+											p.sendMessage(ChatColor.RED + "You are missing some items and can't join the games...");
+										}
+									}else if(!plugin.config.getBoolean("EntryFee.enabled") && plugin.config.getBoolean("EntryFee.eco")){
+										if(!(plugin.econ.getBalance(pname) < plugin.config.getDouble("EntryFee.cost"))){
+											plugin.NeedConfirm.add(pname);
+											p.sendMessage(ChatColor.GOLD + "You're inventory will be cleared! Type /ha confirm to procede");
+										}else{
+											p.sendMessage(ChatColor.RED + "You don't have enough money to join!");
+										}
+									}
+								}else{
+									plugin.NeedConfirm.add(pname);
+									p.sendMessage(ChatColor.GOLD + "You're inventory will be cleared! Type /ha confirm to procede");
+								}
+							}else if(plugin.config.getString("Need_Confirm").equalsIgnoreCase("false")){
+								if(plugin.vault){
+									if(plugin.config.getBoolean("EntryFee.enabled") && plugin.config.getBoolean("EntryFee.eco")){
+										if(!(plugin.econ.getBalance(pname) < plugin.config.getDouble("EntryFee.cost"))){
+											i = 0;
+											for(ItemStack fee: plugin.Fee){
+												int total = plugin.Fee.size();
+												if(p.getInventory().contains(fee)){
+													i = i+1;
+													if(total == i){
+														plugin.econ.withdrawPlayer(pname, plugin.config.getDouble("EntryFee.cost"));
+														plugin.Playing.add(pname);
+														clearInv(p);
+														p.sendMessage(ChatColor.GOLD + "Do /ha ready to vote to start the games!");
+														plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined the Game!");
+														if(plugin.Playing.size()== 24){
+															Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha warpall");
+														}
+													}
+												}
+											}
+											if(plugin.Fee.size() > i){
+												p.sendMessage(ChatColor.RED + "You are missing some items and can't join the games...");
+											}
+										}else{
+											p.sendMessage(ChatColor.RED + "You don't have enough money to join!");
+										}
+									}else if(plugin.config.getBoolean("EntryFee.enabled") && !plugin.config.getBoolean("EntryFee.eco")){
+										i = 0;
+										for(ItemStack fee: plugin.Fee){
+											int total = plugin.Fee.size();
+											if(p.getInventory().contains(fee)){
+												i = i+1;
+												if(total == i){
+													plugin.Playing.add(pname);
+													clearInv(p);
+													p.sendMessage(ChatColor.GOLD + "Do /ha ready to vote to start the games!");
+													plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined the Game!");
+													if(plugin.Playing.size()== 24){
+														Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha warpall");
+													}
+												}
+											}
+										}
+										if(plugin.Fee.size() > i){
+											p.sendMessage(ChatColor.RED + "You are missing some items and can't join the games...");
+										}
+									}else if(!plugin.config.getBoolean("EntryFee.enabled") && plugin.config.getBoolean("EntryFee.eco")){
+										if(!(plugin.econ.getBalance(pname) < plugin.config.getDouble("EntryFee.cost"))){
+											plugin.econ.withdrawPlayer(pname, plugin.config.getDouble("EntryFee.cost"));
+											plugin.Playing.add(pname);
+											p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
+											clearInv(p);
+											plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined the Game!");
+											if(plugin.Playing.size()== 24){
+												p.performCommand("ha warpall");
+											}
+										}else{
+											p.sendMessage(ChatColor.RED + "You don't have enough money to join!");
+										}
+									}else{
+										plugin.Playing.add(pname);
+										p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
+										clearInv(p);
+										plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined the Game!");
+										if(plugin.Playing.size()== 24){
+											p.performCommand("ha warpall");
+										}
+									}
+								}
 							}else{
 								plugin.Playing.add(pname);
+								p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
 								clearInv(p);
 								plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined the Game!");
 								if(plugin.Playing.size()== 24){
-									Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha warpall");
+									p.performCommand("ha warpall");
 								}
 							}
 						}else{
@@ -155,13 +282,76 @@ public class HaCommands implements CommandExecutor {
 						}
 					}else if(args[0].equalsIgnoreCase("Confirm")){
 						if(plugin.NeedConfirm.contains(pname)){
-							plugin.Playing.add(pname);
-							plugin.NeedConfirm.remove(pname);
-							p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
-							clearInv(p);
-							plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined the Game!");
-							if(plugin.Playing.size()== 24){
-								p.performCommand("ha warpall");
+							if(plugin.config.getBoolean("EntryFee.enabled") && plugin.config.getBoolean("EntryFee.eco")){
+								if(!(plugin.econ.getBalance(pname) < plugin.config.getDouble("EntryFee.cost"))){
+									i = 0;
+									for(ItemStack fee: plugin.Fee){
+										int total = plugin.Fee.size();
+										if(p.getInventory().contains(fee)){
+											i = i+1;
+											if(total == i){
+												plugin.econ.withdrawPlayer(pname, plugin.config.getDouble("EntryFee.cost"));
+												plugin.Playing.add(pname);
+												plugin.NeedConfirm.remove(pname);
+												p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
+												clearInv(p);
+												plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined the Game!");
+												if(plugin.Playing.size()== 24){
+													p.performCommand("ha warpall");
+												}
+											}
+										}
+									}
+									if(plugin.Fee.size() > i){
+										p.sendMessage(ChatColor.RED + "You are missing some items and can't join the games...");
+									}
+								}else{
+									p.sendMessage(ChatColor.RED + "You don't have enough money to join!");
+								}
+							}else if(plugin.config.getBoolean("EntryFee.enabled") && !plugin.config.getBoolean("EntryFee.eco")){
+								i = 0;
+								for(ItemStack fee: plugin.Fee){
+									int total = plugin.Fee.size();
+									if(p.getInventory().contains(fee)){
+										i = i+1;
+										if(total == i){
+											plugin.Playing.add(pname);
+											plugin.NeedConfirm.remove(pname);
+											p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
+											clearInv(p);
+											plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined the Game!");
+											if(plugin.Playing.size()== 24){
+												p.performCommand("ha warpall");
+											}
+										}
+									}
+								}
+								if(plugin.Fee.size() > i){
+									p.sendMessage(ChatColor.RED + "You are missing some items and can't join the games...");
+								}
+							}else if(!plugin.config.getBoolean("EntryFee.enabled") && plugin.config.getBoolean("EntryFee.eco")){
+								if(!(plugin.econ.getBalance(pname) < plugin.config.getDouble("EntryFee.cost"))){
+									plugin.econ.withdrawPlayer(pname, plugin.config.getDouble("EntryFee.cost"));
+									plugin.Playing.add(pname);
+									plugin.NeedConfirm.remove(pname);
+									p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
+									clearInv(p);
+									plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined the Game!");
+									if(plugin.Playing.size()== 24){
+										p.performCommand("ha warpall");
+									}
+								}else{
+									p.sendMessage(ChatColor.RED + "You don't have enough money to join!");
+								}
+							}else{
+								plugin.Playing.add(pname);
+								plugin.NeedConfirm.remove(pname);
+								p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
+								clearInv(p);
+								plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined the Game!");
+								if(plugin.Playing.size()== 24){
+									p.performCommand("ha warpall");
+								}
 							}
 						}
 					}else if(args[0].equalsIgnoreCase("Ready")){
@@ -192,6 +382,7 @@ public class HaCommands implements CommandExecutor {
 							if(plugin.Frozen.contains(pname)){
 								plugin.Frozen.remove(pname);
 							}
+							plugin.winner();
 						}else{
 							plugin.Playing.remove(pname);
 							plugin.Quit.add(pname);
@@ -202,35 +393,9 @@ public class HaCommands implements CommandExecutor {
 							if(plugin.Frozen.contains(pname)){
 								plugin.Frozen.remove(pname);
 							}
-							if(plugin.Playing.size()== 1){
-								//Announce the Winner
-								for(i = 0; i < plugin.Playing.size(); i++){
-									String winnername = plugin.Playing.get(i++);
-									Player winner = plugin.getServer().getPlayerExact(winnername);
-									String winnername2 = winner.getName();
-									plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
-									clearInv(winner);
-									winner.teleport(Spawn);
-									winner.getInventory().addItem(plugin.Reward);
-									Bukkit.getServer().getPluginManager().callEvent(new PlayerWinGamesEvent(winner));
-								}
-								plugin.Playing.clear();
-								//Show spectators
-								for(i = 0; i < plugin.Watching.size(); i++){
-									String s = plugin.Watching.get(i++);
-									Player spectator = plugin.getServer().getPlayerExact(s);
-									spectator.setAllowFlight(false);
-									spectator.teleport(Spawn);
-									for(Player online:plugin.getServer().getOnlinePlayers()){
-										online.showPlayer(spectator);
-									}
-								}
-								if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
-									Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha restart");
-								}
-							}
 						}
 						////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+						//////////////////////////////// SPECTATOR RELATED //////////////////////////////////
 					}else if(args[0].equalsIgnoreCase("Watch")){
 						if(sender.hasPermission("HungerArena.Watch")){
 							if(!plugin.Watching.contains(pname) && !plugin.Playing.contains(pname) && plugin.canjoin== true){
@@ -256,6 +421,19 @@ public class HaCommands implements CommandExecutor {
 						}else{
 							p.sendMessage(ChatColor.RED + "You don't have permission!");
 						}
+					}else if(args[0].equalsIgnoreCase("tp")){
+						if(plugin.Watching.contains(pname)){
+							if(plugin.Playing.contains(plugin.getServer().getPlayer(args[1]).getName())){
+								Player target = plugin.getServer().getPlayerExact(args[1]);
+								p.teleport(target);
+								p.sendMessage(ChatColor.AQUA + "You've been teleported to " + target.getName());
+							}else{
+								p.sendMessage(ChatColor.RED + "That person isn't in game!");
+							}
+						}else{
+							p.sendMessage(ChatColor.RED + "You have to be spectating to teleport to tributes!");
+						}
+						/////////////////////////////////////////////////////////////////////////////////
 					}else if(args[0].equalsIgnoreCase("Kick")){
 						if (args.length != 2) {
 							return false;
@@ -268,31 +446,7 @@ public class HaCommands implements CommandExecutor {
 								clearInv(target);
 								target.teleport(Spawn);
 								plugin.Quit.add(target.getName());
-								if(plugin.Playing.size()== 1 && plugin.canjoin== true){
-									//Announce winner
-									for(i = 0; i < plugin.Playing.size(); i++){
-										String winnername = plugin.Playing.get(i++);
-										Player winner = plugin.getServer().getPlayerExact(winnername);
-										String winnername2 = winner.getName();
-										plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
-										clearInv(winner);
-										winner.teleport(Spawn);
-										winner.getInventory().addItem(plugin.Reward);
-										plugin.Playing.clear();
-									}
-									//Show spectators
-									for(String s1: plugin.Watching){
-										Player spectator = plugin.getServer().getPlayerExact(s1);
-										spectator.setAllowFlight(false);
-										spectator.teleport(Spawn);
-										for(Player online:plugin.getServer().getOnlinePlayers()){
-											online.showPlayer(spectator);
-										}
-									}
-									if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
-										Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha restart");
-									}
-								}
+								plugin.winner();
 							}else{
 								sender.sendMessage(ChatColor.RED + "That player isn't in the game!");
 							}
@@ -547,6 +701,7 @@ public class HaCommands implements CommandExecutor {
 					sender.sendMessage(c + "/ha rlist - See who's ready!");
 					sender.sendMessage(c + "/ha setspawn - Sets the spawn for dead tributes!");
 					sender.sendMessage(c + "/ha start - Unfreezes tributes allowing them to fight!");
+					sender.sendMessage(c + "/ha tp [player] - Teleports you to a tribute!");
 					sender.sendMessage(c + "/ha watch - Lets you watch the tributes!");
 					sender.sendMessage(c + "/ha warpall - Warps all tribute into position!");
 					sender.sendMessage(ChatColor.GREEN + "----------------------");
@@ -583,31 +738,7 @@ public class HaCommands implements CommandExecutor {
 						clearInv(target);
 						target.teleport(Spawn);
 						plugin.Quit.add(target.getName());
-						if(plugin.Playing.size()== 1 && plugin.canjoin== true){
-							//Announce winner
-							for(i = 0; i < plugin.Playing.size(); i++){
-								String winnername = plugin.Playing.get(i++);
-								Player winner = plugin.getServer().getPlayerExact(winnername);
-								String winnername2 = winner.getName();
-								plugin.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
-								clearInv(winner);
-								winner.teleport(Spawn);
-								winner.getInventory().addItem(plugin.Reward);
-								plugin.Playing.clear();
-							}
-							//Show spectators
-							for(String s1: plugin.Watching){
-								Player spectator = plugin.getServer().getPlayerExact(s1);
-								spectator.setAllowFlight(false);
-								spectator.teleport(Spawn);
-								for(Player online:plugin.getServer().getOnlinePlayers()){
-									online.showPlayer(spectator);
-								}
-							}
-							if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
-								Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha restart");
-							}
-						}
+						plugin.winner();
 					}else{
 						sender.sendMessage(ChatColor.RED + "That player isn't in the game!");
 					}

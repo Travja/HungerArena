@@ -10,6 +10,6 @@ commands:
 blocks:
   whitelist: []
   blacklist: []
+############################
 sponsors:
   blacklist: []
-############################

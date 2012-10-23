@@ -79,57 +79,19 @@ public class JoinAndQuitListener implements Listener {
 			p.teleport(Spawn);
 		}
 	}
-
 	@EventHandler
 	public void onPlayerQuit(PlayerQuitEvent event){
 		final Player p = event.getPlayer();
 		final String pname = p.getName();
-		String[] Spawncoords = plugin.spawns.getString("Spawn_coords").split(",");
-		String w = Spawncoords[3];
-		World spawnw = plugin.getServer().getWorld(w);
-		double spawnx = Double.parseDouble(Spawncoords[0]);
-		double spawny = Double.parseDouble(Spawncoords[1]);
-		double spawnz = Double.parseDouble(Spawncoords[2]);
-		final Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
 		if(plugin.Playing.contains(pname)){
 			plugin.Out.add(pname);
 			plugin.Playing.remove(pname);
 			plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 				public void run(){
 					if(plugin.Out.contains(pname)){
-						if(plugin.canjoin== true){
 							plugin.Quit.add(pname);
 							plugin.Out.remove(pname);
-							if(plugin.Playing.size()== 1){
-								//Announce Winner
-								for(i = 0; i < plugin.Playing.size(); i++){
-									String winnername = plugin.Playing.get(i++);
-									Player winner = plugin.getServer().getPlayerExact(winnername);
-									String winnername2 = winner.getName();
-									p.getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
-									winner.getInventory().clear();
-									winner.getInventory().setBoots(null);
-									winner.getInventory().setChestplate(null);
-									winner.getInventory().setHelmet(null);
-									winner.getInventory().setLeggings(null);
-									winner.getInventory().addItem(plugin.Reward);
-									PlayerWinGamesEvent evt = new PlayerWinGamesEvent(winner);
-									Bukkit.getServer().getPluginManager().callEvent(evt);
-								}
-								//Make spectators visible
-									for(String s: plugin.Watching){
-										Player spectator = plugin.getServer().getPlayerExact(s);
-										spectator.setAllowFlight(false);
-										spectator.teleport(Spawn);
-										for(Player online:plugin.getServer().getOnlinePlayers()){
-											online.showPlayer(spectator);
-										}
-									}
-								if(plugin.config.getString("Auto_Restart").equalsIgnoreCase("True")){
-									Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha restart");
-								}
-							}
-						}
+							plugin.winner();
 					}else{
 						plugin.Quit.add(pname);
 					}
