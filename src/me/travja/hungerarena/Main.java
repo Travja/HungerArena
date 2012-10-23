@@ -11,6 +11,7 @@ import java.util.logging.Logger;
 
 import net.milkbowl.vault.economy.Economy;
 
+import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -22,6 +23,8 @@ import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.potion.PotionEffect;
+import org.bukkit.potion.PotionEffectType;
 
 public class Main extends JavaPlugin{
 	static final Logger log = Logger.getLogger("Minecraft");
@@ -63,10 +66,13 @@ public class Main extends JavaPlugin{
 	public File dataFile = null;
 	public File managementFile = null;
 	public FileConfiguration management = null;
-	public ItemStack Reward;
-	public ItemStack Cost;
+	public ArrayList<ItemStack> Reward = new ArrayList<ItemStack>();
+	public ArrayList<ItemStack> Cost = new ArrayList<ItemStack>();
+	public ArrayList<ItemStack> Fee = new ArrayList<ItemStack>();
 	public boolean vault = false;
+	public boolean eco = false;
 	public Economy econ = null;
+	int i = 0;
 	public void onEnable(){
 		config = this.getConfig();
 		config.options().copyDefaults(true);
@@ -110,27 +116,44 @@ public class Main extends JavaPlugin{
 		}
 		System.out.println("[HungerArena] Loaded " + location.size() + " tribute spawns!");
 		if (setupEconomy()) {
-			log.info(ChatColor.AQUA + "[HungerArena] Found Vault! Hooking in for economy!");
+			log.info("[HungerArena] Found Vault! Hooking in for economy!");
 		}
 		if (config.getDouble("config.version") != 1.3) {
 			config.set("config.version", 1.3);
-			config.set("eco.enabled", false);
-			config.set("eco.reward", 100);
+			config.set("rewardEco.enabled", false);
+			config.set("rewardEco.reward", 100);
 		}
-		if (config.getBoolean("eco.enabled", true)) {
+		if (config.getBoolean("rewardEco.enabled", true) || config.getBoolean("sponsorEco.enabled", true) || config.getBoolean("EntryFee.eco", true)) {
 			if (vault == true) {
-				log.info(ChatColor.AQUA + "Economy hook deployed.");
-			} else {
-				log.info(ChatColor.RED + "You want economy support... yet you don't have Vault. Sorry, can't give you it.");
+				log.info("Economy hook deployed.");
+				eco = true;
+			}else{
+				log.info("You want economy support... yet you either don't have Vault or don't have an economy plugin. Sorry, can't give you it.");
 			}
 		}
-		if (config.getBoolean("eco.enabled", false)) {
+		if (!eco) {
 			if (vault == true) {
 				log.info(ChatColor.GREEN + "We see that you have Vault on your server. To set economy support to true, enable it in the config.");
 			}
 		}
-		Reward = new ItemStack(config.getInt("Reward.ID"), config.getInt("Reward.Amount"));
-		Cost = new ItemStack(config.getInt("Sponsor_Cost.ID"), config.getInt("Sponsor_Cost.Amount"));
+		try{
+			for(String rewards: config.getStringList("Reward")){
+				String[] rinfo = rewards.split(",");
+				Reward.add(new ItemStack(Integer.parseInt(rinfo[0]), Integer.parseInt(rinfo[1])));
+			}
+			for(String scost: config.getStringList("Sponsor_Cost")){
+				String[] sinfo = scost.split(",");
+				Cost.add(new ItemStack(Integer.parseInt(sinfo[0]), Integer.parseInt(sinfo[1])));
+			}
+			if(config.getBoolean("EntryFee.enabled")){
+				for(String fee: config.getStringList("EntryFee.fee")){
+					String[] finfo = fee.split(",");
+					Fee.add(new ItemStack(Integer.parseInt(finfo[0]), Integer.parseInt(finfo[1])));
+				}
+			}
+		}catch(Exception e){
+			log.warning("Could not add a reward/sponsor/entry cost! One of the rewards/costs is not a number!");
+		}
 		worlds = config.getStringList("worlds");
 		if(worlds.isEmpty()){
 			restricted = false;
@@ -240,6 +263,59 @@ public class Main extends JavaPlugin{
 			getManagement().save(managementFile);
 		} catch (IOException ex) {
 			this.getLogger().log(Level.SEVERE, "Could not save config to " + managementFile, ex);
+		}
+	}
+	public void winner(){
+		String[] Spawncoords = spawns.getString("Spawn_coords").split(",");
+		World spawnw = getServer().getWorld(Spawncoords[3]);
+		double spawnx = Double.parseDouble(Spawncoords[0]);
+		double spawny = Double.parseDouble(Spawncoords[1]);
+		double spawnz = Double.parseDouble(Spawncoords[2]);
+		Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
+		if(Playing.size()== 1 && canjoin== false){
+			//Announce winner
+			for(i = 0; i < Playing.size(); i++){
+				String winnername = Playing.get(i++);
+				Player winner = getServer().getPlayerExact(winnername);
+				String winnername2 = winner.getName();
+				getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
+				winner.getInventory().clear();
+				winner.getInventory().setBoots(null);
+				winner.getInventory().setChestplate(null);
+				winner.getInventory().setHelmet(null);
+				winner.getInventory().setLeggings(null);
+				for(PotionEffect pe: winner.getActivePotionEffects()){
+					PotionEffectType potion = pe.getType();
+					winner.removePotionEffect(potion);
+				}
+				Tele.add(winner);
+				winner.teleport(Spawn);
+				if(!config.getBoolean("rewardEco.enabled")){
+					for(ItemStack Rewards: Reward){
+						winner.getInventory().addItem(Rewards);
+					}
+				}else{
+					econ.depositPlayer(winner.getName(), config.getDouble("eco.reward"));
+				}
+				Playing.clear();
+			}
+			//Show spectators
+			for(String s1: Watching){
+				Player spectator = getServer().getPlayerExact(s1);
+				spectator.setAllowFlight(false);
+				spectator.teleport(Spawn);
+				for(Player online:getServer().getOnlinePlayers()){
+					online.showPlayer(spectator);
+				}
+			}
+			if(config.getString("Auto_Restart").equalsIgnoreCase("True")){
+				Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable(){
+					public void run(){
+						Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha restart");
+
+					}
+				}, 220L);
+			}
 		}
 	}
 }
