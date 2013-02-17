@@ -3,27 +3,9 @@ Spawn_coords: 100,100,100,world
 # If /ha setspawn has been run
 Spawns_set: 'false'
 Spawns:
-- 100,100,100,world,false
-- 100,100,100,world,false
-- 100,100,100,world,false
-- 100,100,100,world,false
-- 100,100,100,world,false
-- 100,100,100,world,false
-- 100,100,100,world,false
-- 100,100,100,world,false
-- 100,100,100,world,false
-- 100,100,100,world,false
-- 100,100,100,world,false
-- 100,100,100,world,false
-- 100,100,100,world,false
-- 100,100,100,world,false
-- 100,100,100,world,false
-- 100,100,100,world,false
-- 100,100,100,world,false
-- 100,100,100,world,false
-- 100,100,100,world,false
-- 100,100,100,world,false
-- 100,100,100,world,false
-- 100,100,100,world,false
-- 100,100,100,world,false
-- 100,100,100,world,false
+  1:
+    1:
+    2:
+  2:
+    1:
+    2:

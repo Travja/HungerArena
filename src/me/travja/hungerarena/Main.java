@@ -4,8 +4,10 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -27,17 +29,22 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 public class Main extends JavaPlugin{
-	static final Logger log = Logger.getLogger("Minecraft");
-	public ArrayList<String> Playing = new ArrayList<String>();
-	public ArrayList<String> Ready = new ArrayList<String>();
-	public ArrayList<String> Dead = new ArrayList<String>();
-	public ArrayList<String> Quit = new ArrayList<String>();
-	public ArrayList<String> Out = new ArrayList<String>();
-	public ArrayList<String> Watching = new ArrayList<String>();
-	public ArrayList<String> NeedConfirm = new ArrayList<String>();
-	public ArrayList<Location> location = new ArrayList<Location>();
+	static Logger log;
+	public HashMap<Integer, List<String>> Playing = new HashMap<Integer, List<String>>();
+	public HashMap<Integer, List<String>> Ready = new HashMap<Integer, List<String>>();
+	public HashMap<Integer, List<String>> Dead = new HashMap<Integer, List<String>>();
+	public HashMap<Integer, List<String>> Quit = new HashMap<Integer, List<String>>();
+	public HashMap<Integer, List<String>> Out = new HashMap<Integer, List<String>>();
+	public HashMap<Integer, List<String>> Watching = new HashMap<Integer, List<String>>();
+	public HashMap<Integer, List<String>> NeedConfirm = new HashMap<Integer, List<String>>();
+	public HashMap<Integer, HashMap<Integer, Location>> location = new HashMap<Integer, HashMap<Integer, Location>>();
 	public ArrayList<Player> Tele = new ArrayList<Player>();
-	public HashSet<String> Frozen = new HashSet<String>();
+	public HashMap<Integer, List<String>> inArena = new HashMap<Integer, List<String>>();
+	public HashMap<Integer, List<String>> Frozen = new HashMap<Integer, List<String>>();
+	public HashMap<Integer, List<String>> arena = new HashMap<Integer, List<String>>();
+	public HashMap<Integer, Boolean> canjoin = new HashMap<Integer, Boolean>();
+	public HashMap<Integer, Integer> maxPlayers = new HashMap<Integer, Integer>();
+	public HashMap<Integer, Boolean> open = new HashMap<Integer, Boolean>();
 	public List<String> worlds;
 	public Listener DeathListener = new DeathListener(this);
 	public Listener SpectatorListener = new SpectatorListener(this);
@@ -55,10 +62,8 @@ public class Main extends JavaPlugin{
 	public CommandExecutor HaCommands = new HaCommands(this);
 	public CommandExecutor SponsorCommands = new SponsorCommands(this);
 	public CommandExecutor SpawnsCommand = new SpawnsCommand(this);
-	public boolean canjoin;
 	public boolean exists;
 	public boolean restricted;
-	public boolean open = true;
 	public FileConfiguration config;
 	public FileConfiguration spawns = null;
 	public File spawnsFile = null;
@@ -73,7 +78,13 @@ public class Main extends JavaPlugin{
 	public boolean eco = false;
 	public Economy econ = null;
 	int i = 0;
+	int v = 0;
+	int start = 0;
+	int deathtime = 0;
+	int timetodeath = 0;
+	int a = 0;
 	public void onEnable(){
+		log = this.getLogger();
 		config = this.getConfig();
 		config.options().copyDefaults(true);
 		this.saveDefaultConfig();
@@ -86,7 +97,6 @@ public class Main extends JavaPlugin{
 		management = this.getManagement();
 		management.options().copyDefaults(true);
 		this.saveManagement();
-		log.info("[HungerArena] enabled v" + getDescription().getVersion());
 		getServer().getPluginManager().registerEvents(DeathListener, this);
 		getServer().getPluginManager().registerEvents(SpectatorListener, this);
 		getServer().getPluginManager().registerEvents(FreezeListener, this);
@@ -102,21 +112,52 @@ public class Main extends JavaPlugin{
 		getCommand("Ha").setExecutor(HaCommands);
 		getCommand("Sponsor").setExecutor(SponsorCommands);
 		getCommand("Startpoint").setExecutor(SpawnsCommand);
-		for(String spawnlocations:spawns.getStringList("Spawns")){
-			String[] coords = spawnlocations.split(",");
-			if(coords[4].equalsIgnoreCase("true")){
-				double x = Double.parseDouble(coords[0]);
-				double y = Double.parseDouble(coords[1]);
-				double z = Double.parseDouble(coords[2]);
-				String world = coords[3];
-				World w = getServer().getWorld(world);
-				Location loc = new Location(w, x, y, z);
-				location.add(loc);
+		i = 1;
+		//TODO THIS CRAP
+		if(spawns.getConfigurationSection("Spawns")!= null){
+			Map<String, Object> temp = spawns.getConfigurationSection("Spawns").getValues(false);
+			for(Entry<String, Object> entry: temp.entrySet()){
+				if(spawns.getConfigurationSection("Spawns." + entry.getKey())!= null){
+					Map<String, Object> temp2 = spawns.getConfigurationSection("Spawns." + entry.getKey()).getValues(false);
+					for(Map.Entry<String, Object> e: temp2.entrySet()){
+						if(spawns.get("Spawns." + entry.getKey() + "." + e.getKey())!= null){
+							String[] coords = ((String) spawns.get("Spawns." + entry.getKey() + "." + e.getKey())).split(",");
+							Integer a = Integer.parseInt(entry.getKey());
+							Integer s = Integer.parseInt(e.getKey());
+							if(location.get(a)== null)
+								location.put(a, new HashMap<Integer, Location>());
+							log.info("Added spawn number " + s + " in arena " + a + "!");
+							location.get(a).put(s, new Location(getServer().getWorld(coords[0]), Double.parseDouble(coords[1]), Double.parseDouble(coords[2]), Double.parseDouble(coords[3])));
+						}
+					}
+				}
 			}
 		}
-		System.out.println("[HungerArena] Loaded " + location.size() + " tribute spawns!");
+		for(i = 1; i <= location.size(); i++){
+			log.info("Loaded " + location.get(i).size() + " tribute spawns for arena " + i + "!");
+			Playing.put(i, new ArrayList<String>());
+			Ready.put(i, new ArrayList<String>());
+			Dead.put(i, new ArrayList<String>());
+			Quit.put(i, new ArrayList<String>());
+			Out.put(i, new ArrayList<String>());
+			Watching.put(i, new ArrayList<String>());
+			NeedConfirm.put(i, new ArrayList<String>());
+			inArena.put(i, new ArrayList<String>());
+			Frozen.put(i, new ArrayList<String>());
+			arena.put(i, new ArrayList<String>());
+			canjoin.put(i, false);
+			if(location.get(i).size()== config.getInt("maxPlayers")){
+				maxPlayers.put(i, location.get(i).size());
+			}else if(location.size()< config.getInt("maxPlayers")){
+				maxPlayers.put(i, location.get(i).size());
+			}else if(location.size()> config.getInt("maxPlayers")){
+				maxPlayers.put(i, config.getInt("maxPlayers"));
+			}
+			log.info("Max players is for arena " + i + " is " + maxPlayers.get(i));
+			open.put(i, true);
+		}
 		if (setupEconomy()) {
-			log.info("[HungerArena] Found Vault! Hooking in for economy!");
+			log.info("Found Vault! Hooking in for economy!");
 		}
 		if (config.getDouble("config.version") != 1.3) {
 			config.set("config.version", 1.3);
@@ -133,7 +174,7 @@ public class Main extends JavaPlugin{
 		}
 		if (!eco) {
 			if (vault == true) {
-				log.info(ChatColor.GREEN + "We see that you have Vault on your server. To set economy support to true, enable it in the config.");
+				log.info("We see that you have Vault on your server. To set economy support to true, enable it in the config.");
 			}
 		}
 		try{
@@ -160,10 +201,11 @@ public class Main extends JavaPlugin{
 		}else if(!worlds.isEmpty()){
 			restricted = true;
 		}
+		log.info("Enabled v" + getDescription().getVersion());
 	}
 
 	public void onDisable(){
-		log.info("[HungerArena] disabled v" + getDescription().getVersion());
+		log.info("Disabled v" + getDescription().getVersion());
 	}
 
 	public boolean setupEconomy() {
@@ -265,17 +307,17 @@ public class Main extends JavaPlugin{
 			this.getLogger().log(Level.SEVERE, "Could not save config to " + managementFile, ex);
 		}
 	}
-	public void winner(){
+	public void winner(Integer a){
 		String[] Spawncoords = spawns.getString("Spawn_coords").split(",");
 		World spawnw = getServer().getWorld(Spawncoords[3]);
 		double spawnx = Double.parseDouble(Spawncoords[0]);
 		double spawny = Double.parseDouble(Spawncoords[1]);
 		double spawnz = Double.parseDouble(Spawncoords[2]);
 		Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
-		if(Playing.size()== 1 && canjoin== false){
+		if(Playing.size()== 1 && canjoin.get(a)== true){
 			//Announce winner
-			for(i = 0; i < Playing.size(); i++){
-				String winnername = Playing.get(i++);
+			for(i = 1; i < Playing.get(a).size(); i++){
+				String winnername = Playing.get(a).get(i++);
 				Player winner = getServer().getPlayerExact(winnername);
 				String winnername2 = winner.getName();
 				getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
@@ -284,6 +326,7 @@ public class Main extends JavaPlugin{
 				winner.getInventory().setChestplate(null);
 				winner.getInventory().setHelmet(null);
 				winner.getInventory().setLeggings(null);
+				winner.setLevel(0);
 				for(PotionEffect pe: winner.getActivePotionEffects()){
 					PotionEffectType potion = pe.getType();
 					winner.removePotionEffect(potion);
@@ -295,12 +338,16 @@ public class Main extends JavaPlugin{
 						winner.getInventory().addItem(Rewards);
 					}
 				}else{
-					econ.depositPlayer(winner.getName(), config.getDouble("eco.reward"));
+					for(ItemStack Rewards: Reward){
+						winner.getInventory().addItem(Rewards);
+					}
+					econ.depositPlayer(winner.getName(), config.getDouble("rewardEco.reward"));
 				}
 				Playing.clear();
+				getServer().getScheduler().cancelTask(deathtime);
 			}
 			//Show spectators
-			for(String s1: Watching){
+			for(String s1: Watching.get(a)){
 				Player spectator = getServer().getPlayerExact(s1);
 				spectator.setAllowFlight(false);
 				spectator.teleport(Spawn);
@@ -317,5 +364,140 @@ public class Main extends JavaPlugin{
 				}, 220L);
 			}
 		}
+	}
+	public void startGames(final Integer a){
+		String begin = config.getString("Start_Message");
+		begin = begin.replaceAll("(&([a-f0-9]))", "\u00A7$2");
+		final String msg = begin;
+		i = 10;
+		if(config.getString("Countdown").equalsIgnoreCase("true")){
+			start = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable(){
+				public void run(){
+					if(i > 0){
+						if(worlds.isEmpty()){
+							if(config.getBoolean("broadcastAll")){
+								getServer().broadcastMessage(String.valueOf(i));
+							}else{
+								for(String gn: Playing.get(a)){
+									Player g = getServer().getPlayer(gn);
+									g.sendMessage(String.valueOf(i));
+								}
+							}
+						}else{
+							for(String world: worlds){
+								World w = getServer().getWorld(world);
+								if(config.getBoolean("broadcastAll")){
+									for(Player wp: w.getPlayers()){
+										wp.sendMessage(String.valueOf(i));
+									}
+								}else{
+									for(String gn: Playing.get(a)){
+										Player g = getServer().getPlayer(gn);
+										g.sendMessage(String.valueOf(i));
+									}
+								}
+							}
+						}
+					}
+					i = i-1;
+					canjoin.put(a, true);
+					if(i== -1){
+						Frozen.get(a).clear();
+						if(config.getBoolean("broadcastAll")){
+							getServer().broadcastMessage(msg);
+						}else{
+							for(String gn: Playing.get(a)){
+								Player g = getServer().getPlayer(gn);
+								g.sendMessage(msg);
+							}
+						}
+						getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha Refill " + a);
+						getServer().getScheduler().cancelTask(start);
+						if(config.getInt("DeathMatch")!= 0){
+							int death = config.getInt("DeathMatch");
+							timetodeath = death;
+							deathtime = getServer().getScheduler().scheduleSyncRepeatingTask(Bukkit.getPluginManager().getPlugin("HungerArena"), new Runnable(){
+								public void run(){
+									timetodeath = timetodeath-1;
+									if(config.getBoolean("broadcastAll")){
+										for(Player wp: location.get(a).get(0).getWorld().getPlayers()){
+											if(timetodeath!= 0){
+												wp.sendMessage(ChatColor.RED + String.valueOf(timetodeath) + " mins till the death match!");
+											}
+										}
+									}else{
+										for(String gn: Playing.get(a)){
+											Player g = getServer().getPlayer(gn);
+											g.sendMessage(ChatColor.RED + String.valueOf(timetodeath) + " mins till the death match!");
+										}
+									}
+									if(timetodeath== 0){
+										for(String playing: Playing.get(a)){
+											Player tribute = getServer().getPlayerExact(playing);
+											tribute.teleport(location.get(a).get(i));
+											i = i+1;
+											for(PotionEffect pe: tribute.getActivePotionEffects()){
+												PotionEffectType potion = pe.getType();
+												tribute.removePotionEffect(potion);
+											}
+											if(tribute.getAllowFlight()){
+												tribute.setAllowFlight(false);
+											}
+										}
+										if(config.getBoolean("broadcastAll")){
+											for(Player wp: location.get(a).get(0).getWorld().getPlayers()){
+												wp.sendMessage(ChatColor.RED + "The final battle has begun! " + Playing.size() + " tributes will be facing off!");
+											}
+										}else{
+											for(String gn: Playing.get(a)){
+												Player g = getServer().getPlayer(gn);
+												g.sendMessage(ChatColor.RED + "The final battle has begun! " + Playing.size() + " tributes will be facing off!");
+											}
+										}
+										getServer().getScheduler().cancelTask(deathtime);
+									}
+								}
+							}, 1200L, 1200L);
+						}
+					}
+				}
+			}, 20L, 20L);
+		}else{
+			Frozen.get(a).clear();
+			if(config.getBoolean("broadcastAll")){
+				getServer().broadcastMessage(msg);
+			}else{
+				for(String gn: Playing.get(a)){
+					Player g = getServer().getPlayer(gn);
+					g.sendMessage(msg);
+				}
+			}
+			canjoin.put(a, true);
+			getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha Refill " + a);
+		}
+	}
+	public Integer getArena(Player p){
+		int x = 0;
+		for(x = 1; x < Playing.size(); x++){
+			if(Playing.get(x)!= null){
+				if(Playing.get(x).contains(p.getName())){
+					return x;
+				}
+			}
+		}
+		return null;
+	}
+	public boolean isSpectating(Player p){
+		int x = 0;
+		if(!Watching.isEmpty()){
+			for(x= 1; x <= Watching.size(); x++){
+				if(Watching.get(x).contains(p.getName())){
+					x = Watching.size()+1;
+					return true;
+				}else if(Watching.size()== x)
+					return false;
+			}
+		}
+		return false;
 	}
 }
