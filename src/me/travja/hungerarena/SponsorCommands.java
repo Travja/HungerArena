@@ -22,9 +22,8 @@ public class SponsorCommands implements CommandExecutor {
 				int i = 0;
 				Player p = (Player) sender;
 				String pname = p.getName();
-				String epname = p.getName();
 				if(p.hasPermission("HungerArena.Sponsor")){
-					if(!plugin.Playing.contains(epname)){
+					if(plugin.getArena(p)== null){
 						if(args.length== 0){
 							p.sendMessage(ChatColor.RED + "You didn't specify a tribute!");
 							return false;
@@ -37,7 +36,7 @@ public class SponsorCommands implements CommandExecutor {
 						}
 						if(args.length== 3){
 							Player target = Bukkit.getServer().getPlayer(args[0]);
-							if(!plugin.Playing.contains(target.getName())){
+							if(plugin.getArena(target)== null){
 								p.sendMessage(ChatColor.RED + "That person isn't playing!");
 							}else{
 								try{
@@ -70,10 +69,34 @@ public class SponsorCommands implements CommandExecutor {
 											if(args[0].equalsIgnoreCase(pname)){
 												p.sendMessage(ChatColor.RED + "You can't sponsor yourself!");
 											}else if(!(plugin.econ.getBalance(pname) < plugin.config.getDouble("sponsorEco.cost"))){
-												target.sendMessage(ChatColor.AQUA + "You have been Sponsored!");
-												target.getInventory().addItem(sponsoritem);
-												p.sendMessage("You have sponsored " + target.getName() + "!");
-												plugin.econ.withdrawPlayer(pname, plugin.config.getDouble("sponsorEco.cost"));
+												if(!plugin.Cost.isEmpty()){
+													for(ItemStack Costs: plugin.Cost){
+														if(p.getInventory().contains(Costs)){
+															i = i+1;
+															if(plugin.Cost.size()== i){
+																if(args[0].equalsIgnoreCase(pname)){
+																	p.sendMessage(ChatColor.RED + "You can't sponsor yourself!");
+																}else{
+																	target.sendMessage(ChatColor.AQUA + "You have been Sponsored!");
+																	target.getInventory().addItem(sponsoritem);
+																	p.sendMessage("You have sponsored " + target.getName() + "!");
+																	plugin.econ.withdrawPlayer(pname, plugin.config.getDouble("sponsorEco.cost"));
+																	for(ItemStack aCosts: plugin.Cost){
+																		p.getInventory().removeItem(aCosts);
+																	}
+																}
+															}
+														}
+													}
+													if(plugin.Cost.size() > i){
+														p.sendMessage(ChatColor.RED + "You don't have the necessary items to sponsor!");
+													}
+												}else{
+													target.sendMessage(ChatColor.AQUA + "You have been Sponsored!");
+													target.getInventory().addItem(sponsoritem);
+													p.sendMessage("You have sponsored " + target.getName() + "!");
+													plugin.econ.withdrawPlayer(pname, plugin.config.getDouble("sponsorEco.cost"));
+												}
 											}else{
 												p.sendMessage(ChatColor.RED + "You don't have enough money to do that!");
 											}
@@ -114,7 +137,7 @@ public class SponsorCommands implements CommandExecutor {
 					try{
 						if((!plugin.management.getStringList("sponsors.blacklist").isEmpty() && !plugin.management.getStringList("sponsors.blacklist").contains(ID)) || plugin.management.getStringList("sponsors.blacklist").isEmpty()){
 							ItemStack sponsoritem = new ItemStack(ID, Amount);
-							if(!plugin.Playing.contains(target.getName())){
+							if(plugin.getArena(target)== null){
 								sender.sendMessage(ChatColor.RED + "That person isn't playing!");
 							}else{
 								sender.sendMessage(ChatColor.RED + "You can't sponsor yourself!");

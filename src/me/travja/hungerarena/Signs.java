@@ -30,11 +30,12 @@ public class Signs implements Listener {
 				String line3 = sign.getLine(2);
 				String line4 = sign.getLine(3);
 				if(line1.equalsIgnoreCase(ChatColor.BLUE + "[HungerArena]") || line1.equalsIgnoreCase(ChatColor.BLUE + "[HA]")){
-					if(line2.equals("")){
-						p.performCommand("ha");
-					}else{
+					if(!line2.equals(""))
 						p.performCommand("ha " + line2);
-					}
+					else if(!line3.equals(""))
+						p.performCommand("ha " + line2 + " " + line3);
+					else
+						p.performCommand("ha");
 				}
 				if(line1.equalsIgnoreCase(ChatColor.BLUE + "[Sponsor]")){
 					p.performCommand("sponsor " + line2 + " " + line3 + " " + line4);

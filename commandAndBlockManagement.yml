@@ -6,10 +6,8 @@
 
 commands:
   whitelist: []
-##### Not implemented! #####
 blocks:
+  useWhitelistAsBlacklist: false
   whitelist: []
-  blacklist: []
-############################
 sponsors:
   blacklist: []

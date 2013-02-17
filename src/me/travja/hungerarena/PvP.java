@@ -14,44 +14,49 @@ public class PvP implements Listener {
 	public PvP(Main m) {
 		this.plugin = m;
 	}
+	int a = 0;
 	@EventHandler(priority= EventPriority.MONITOR)
 	public void PlayerPvP(EntityDamageByEntityEvent event){
-		Entity p = event.getEntity();
-		Entity d = event.getDamager();
-		if(p instanceof Player && d instanceof Player){
-			String pname = ((Player) p).getName();
-			String dname = ((Player) d).getName();
-			if(plugin.Playing.contains(pname) && plugin.Playing.contains(dname)){
-				if(plugin.canjoin){
+		Entity pl = event.getEntity();
+		Entity dl = event.getDamager();
+		if(pl instanceof Player && dl instanceof Player){
+			Player p = (Player) pl;
+			Player d = (Player) dl;
+			if(plugin.getArena(p)!= null && plugin.getArena(d)!= null){
+				a = plugin.getArena(p);
+				if(plugin.canjoin.get(a)){
 					if(event.isCancelled()){
 						event.setCancelled(false);
 					}
 				}
-			}else if(plugin.Playing.contains(pname)){
-				if(!plugin.canjoin){
+			}
+			if(plugin.getArena(p)!= null){
+				a = plugin.getArena(p);
+				if(!plugin.canjoin.get(a)){
 					if(!event.isCancelled()){
 						event.setCancelled(true);
 					}
 				}
-			}else if(!plugin.Playing.contains(pname) && plugin.Playing.contains(dname)){
+			}
+			if(plugin.getArena(p)== null && plugin.getArena(d)!= null){
 				if(!event.isCancelled()){
 					event.setCancelled(true);
 				}
 			}
-		}else if(p instanceof Player && d instanceof Projectile){
-			Projectile projectile = (Projectile) d;
-			String pname = ((Player) p).getName();
+		}else if(pl instanceof Player && dl instanceof Projectile){
+			Projectile projectile = (Projectile) dl;
+			Player p = (Player) pl;
 			if(projectile.getShooter() instanceof Player){
-				if(plugin.Playing.contains(pname)){
+				if(plugin.getArena(p) != null){
 					Player shooter = (Player) projectile.getShooter();
-					if(plugin.Playing.contains(shooter.getName())){
+					if(plugin.getArena(shooter)!= null){
 						event.setCancelled(false);
 					}
 				}
 			}else if(projectile.getShooter() instanceof Entity){
 				Entity e = projectile.getShooter();
 				if(e instanceof Skeleton){
-					if(plugin.Playing.contains(pname)){
+					if(plugin.getArena(p)!= null){
 						event.setCancelled(false);
 					}
 				}

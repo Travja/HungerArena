@@ -18,8 +18,8 @@ public class ChatListener implements Listener {
 	public void TributeChat(AsyncPlayerChatEvent event){
 		Player p = event.getPlayer();
 		String pname = p.getName();
-		if(plugin.Playing.contains(pname)){
-			String msg = "<" + ChatColor.RED + "[Tribute] " + ChatColor.WHITE + p.getName() + ">" + " " + event.getMessage();
+		if(plugin.getArena(p)!= null){
+			String msg = "<" + ChatColor.RED + "[Tribute] " + ChatColor.WHITE + pname + ">" + " " + event.getMessage();
 			if(plugin.config.getString("ChatClose").equalsIgnoreCase("True")){
 				double radius = plugin.config.getDouble("ChatClose_Radius");
 				List<Entity> near = p.getNearbyEntities(radius, radius, radius);
@@ -27,9 +27,8 @@ public class ChatListener implements Listener {
 				if(!(near.size()== 0)){
 					p.sendMessage(msg);
 					for(Entity e:near){
-						if(e instanceof Player){
+						if(e instanceof Player)
 							((Player) e).sendMessage(msg);
-						}
 					}
 				}else if(near.size()== 0){
 					p.sendMessage(msg);
