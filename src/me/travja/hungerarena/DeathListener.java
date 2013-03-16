@@ -46,11 +46,13 @@ public class DeathListener implements Listener{
 		Server s = p.getServer();
 		String pname = p.getName();
 		int players = plugin.Playing.size()-1;
-		String leftmsg = ChatColor.BLUE + "There are now " + players + " tributes left!";
+		String leftmsg = null;
 		for(i = 1; i < plugin.Frozen.size(); i++){
 			if(plugin.Frozen.get(i).contains(pname)){
 				if(plugin.getArena(p)!= null){
 					a = plugin.getArena(p);
+					players = plugin.Playing.get(a).size()-1;
+					leftmsg = ChatColor.BLUE + "There are now " + players + " tributes left!";
 					if(plugin.config.getString("Cannon_Death").equalsIgnoreCase("True")){
 						double y = p.getLocation().getY();
 						double newy = y+200;
@@ -83,6 +85,8 @@ public class DeathListener implements Listener{
 				}
 			}else if(plugin.getArena(p)!= null){
 				a = plugin.getArena(p);
+				players = plugin.Playing.get(a).size()-1;
+				leftmsg = ChatColor.BLUE + "There are now " + players + " tributes left!";
 				if(plugin.config.getString("Cannon_Death").equalsIgnoreCase("True")){
 					double y = p.getLocation().getY();
 					double newy = y+200;

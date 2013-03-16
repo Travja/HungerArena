@@ -17,6 +17,7 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.WorldCreator;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -314,10 +315,10 @@ public class Main extends JavaPlugin{
 		double spawny = Double.parseDouble(Spawncoords[1]);
 		double spawnz = Double.parseDouble(Spawncoords[2]);
 		Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
-		if(Playing.size()== 1 && canjoin.get(a)== true){
+		if(Playing.get(a).size()== 1 && canjoin.get(a)== true){
 			//Announce winner
-			for(i = 1; i < Playing.get(a).size(); i++){
-				String winnername = Playing.get(a).get(i++);
+			for(i = 0; i < Playing.get(a).size(); i++){
+				String winnername = Playing.get(a).get(i);
 				Player winner = getServer().getPlayerExact(winnername);
 				String winnername2 = winner.getName();
 				getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
@@ -332,7 +333,16 @@ public class Main extends JavaPlugin{
 					winner.removePotionEffect(potion);
 				}
 				Tele.add(winner);
+				final World w = winner.getWorld();
 				winner.teleport(Spawn);
+				if(config.getBoolean("reloadWorld")){
+					getServer().unloadWorld(w, false);
+					getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable(){
+						public void run(){
+							getServer().createWorld(new WorldCreator(w.getName()));
+						}
+					},200L);
+				}
 				if(!config.getBoolean("rewardEco.enabled")){
 					for(ItemStack Rewards: Reward){
 						winner.getInventory().addItem(Rewards);
@@ -343,7 +353,7 @@ public class Main extends JavaPlugin{
 					}
 					econ.depositPlayer(winner.getName(), config.getDouble("rewardEco.reward"));
 				}
-				Playing.clear();
+				Playing.get(a).clear();
 				getServer().getScheduler().cancelTask(deathtime);
 			}
 			//Show spectators
@@ -402,7 +412,8 @@ public class Main extends JavaPlugin{
 					i = i-1;
 					canjoin.put(a, true);
 					if(i== -1){
-						Frozen.get(a).clear();
+						if(Frozen.get(a)!= null)
+							Frozen.get(a).clear();
 						if(config.getBoolean("broadcastAll")){
 							getServer().broadcastMessage(msg);
 						}else{
@@ -477,13 +488,10 @@ public class Main extends JavaPlugin{
 		}
 	}
 	public Integer getArena(Player p){
-		int x = 0;
-		for(x = 1; x < Playing.size(); x++){
-			if(Playing.get(x)!= null){
-				if(Playing.get(x).contains(p.getName())){
-					return x;
-				}
-			}
+		for (int x: Playing.keySet()) {
+		    if (Playing.get(x).contains(p.getName())){
+		        return x;
+		    }
 		}
 		return null;
 	}
