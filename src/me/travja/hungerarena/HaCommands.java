@@ -101,34 +101,51 @@ public class HaCommands implements CommandExecutor {
 									if(!plugin.Playing.get(a).isEmpty() && plugin.Playing.containsKey(a)){
 										for(String playernames: plugin.Playing.get(a)){
 											Player players = plugin.getServer().getPlayerExact(playernames);
-											if(p.hasPermission("HungerArena.List")){
-												sender.sendMessage(ChatColor.GREEN + playernames);
-											}else{
+											if(p.hasPermission("HungerArena.GameMaker")){
 												sender.sendMessage(ChatColor.GREEN + playernames + " Life: " + players.getHealth() + "/20");
+											}else if(p.hasPermission("HungerArena.List")){
+												sender.sendMessage(ChatColor.GREEN + playernames);
 											}
 										}
 									}else{
 										p.sendMessage(ChatColor.GRAY + "No one is playing!");
 									}
-									p.sendMessage(ChatColor.AQUA + "---------------------");
+									p.sendMessage(ChatColor.AQUA + "-------------------");
 								}catch(Exception e){
-									p.sendMessage(ChatColor.RED + "Argument not an integer!");
+									p.sendMessage(ChatColor.RED + "Argument not an integer or is an invalid arena!");
 								}
 							}else{
-								p.sendMessage(ChatColor.AQUA + "----- Arena 1 -----");
-								if(!plugin.Playing.get(1).isEmpty() && plugin.Playing.containsKey(1)){
-									for(String playernames: plugin.Playing.get(1)){
-										Player players = plugin.getServer().getPlayerExact(playernames);
-										if(p.hasPermission("HungerArena.List")){
-											sender.sendMessage(ChatColor.GREEN + playernames);
-										}else{
-											sender.sendMessage(ChatColor.GREEN + playernames + " Life: " + players.getHealth() + "/20");
+								if(plugin.getArena(p)== null){
+									p.sendMessage(ChatColor.AQUA + "----- Arena 1 -----");
+									if(!plugin.Playing.get(1).isEmpty() && plugin.Playing.containsKey(1)){
+										for(String playernames: plugin.Playing.get(1)){
+											Player players = plugin.getServer().getPlayerExact(playernames);
+											if(p.hasPermission("HungerArena.GameMaker")){
+												sender.sendMessage(ChatColor.GREEN + playernames + " Life: " + players.getHealth() + "/20");
+											}else if(p.hasPermission("HungerArena.List")){
+												sender.sendMessage(ChatColor.GREEN + playernames);
+											}
 										}
+									}else{
+										p.sendMessage(ChatColor.GRAY + "No one is playing!");
 									}
 								}else{
-									p.sendMessage(ChatColor.GRAY + "No one is playing!");
+									a = plugin.getArena(p);
+									sender.sendMessage(ChatColor.AQUA + "----- Arena " + a + " -----");
+									if(!plugin.Playing.get(a).isEmpty() && plugin.Playing.containsKey(a)){
+										for(String playernames: plugin.Playing.get(a)){
+											Player players = plugin.getServer().getPlayerExact(playernames);
+											if(p.hasPermission("HungerArena.GameMaker")){
+												sender.sendMessage(ChatColor.GREEN + playernames + " Life: " + players.getHealth() + "/20");
+											}else if(p.hasPermission("HungerArena.List")){
+												sender.sendMessage(ChatColor.GREEN + playernames);
+											}
+										}
+									}else{
+										p.sendMessage(ChatColor.GRAY + "No one is playing!");
+									}
 								}
-								p.sendMessage(ChatColor.AQUA + "---------------------");
+								p.sendMessage(ChatColor.AQUA + "-------------------");
 							}
 						}else{
 							p.sendMessage(ChatColor.RED + "You don't have permission!");
@@ -146,7 +163,7 @@ public class HaCommands implements CommandExecutor {
 									}else{
 										p.sendMessage(ChatColor.GRAY + "No one is ready!");
 									}
-									p.sendMessage(ChatColor.AQUA + "---------------------");
+									p.sendMessage(ChatColor.AQUA + "-------------------");
 								}catch(Exception e){
 									p.sendMessage(ChatColor.RED + "Argument not an integer!");
 								}
@@ -159,7 +176,7 @@ public class HaCommands implements CommandExecutor {
 								}else{
 									p.sendMessage(ChatColor.GRAY + "No one is ready!");
 								}
-								p.sendMessage(ChatColor.AQUA + "---------------------");
+								p.sendMessage(ChatColor.AQUA + "-------------------");
 							}
 						}else{
 							p.sendMessage(ChatColor.RED + "You don't have permission!");
@@ -359,7 +376,7 @@ public class HaCommands implements CommandExecutor {
 												}
 											}
 											if(plugin.Playing.get(a).size()== plugin.maxPlayers.get(a)){
-												plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), "ha warpall " + String.valueOf(a));
+												plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), "ha warpall " + a);
 											}
 										}
 									}
@@ -490,8 +507,11 @@ public class HaCommands implements CommandExecutor {
 							}
 						}
 					}else if(args[0].equalsIgnoreCase("Ready")){
+						p.sendMessage(String.valueOf(plugin.getArena(p)));
 						if(plugin.getArena(p)!= null){
 							a = plugin.getArena(p);
+							for(String s:plugin.Playing.get(a))
+								p.sendMessage(s);
 							if(plugin.Playing.get(a).contains(pname)){
 								if(plugin.Ready.get(a).contains(pname)){
 									p.sendMessage(ChatColor.RED + "You're already ready!");
@@ -643,13 +663,7 @@ public class HaCommands implements CommandExecutor {
 								a = Integer.parseInt(args[1]);
 								int list056;
 								list056 = 0;
-								int limit = 0;
-								for(String chests: plugin.config.getStringList("StorageXYZ")){
-									String[] chest = chests.split(",");
-									if(Integer.parseInt(chest[3])== a){
-										limit = limit+1;
-									}
-								}
+								int limit = plugin.config.getStringList("StorageXYZ").size();
 								while(limit > list056){
 									String xyz2 = plugin.getConfig().getStringList("StorageXYZ").get(list056);
 									int chestx = plugin.getConfig().getInt("Storage." + xyz2 + ".Location.X");
@@ -659,26 +673,30 @@ public class HaCommands implements CommandExecutor {
 									String chestw = plugin.getConfig().getString("Storage." + xyz2 + ".Location.W");
 									Block blockatlocation = Bukkit.getWorld(chestw).getBlockAt(chestx, chesty, chestz);  
 									plugin.exists = false;
-									if(blockatlocation.getState() instanceof Chest){
-										plugin.exists = true;
-										Chest chest = (Chest) blockatlocation.getState();
-										if(chesta== a){
-											chest.getInventory().clear();
-											ItemStack[] itemsinchest = null;
-											Object o = plugin.getConfig().get("Storage." + xyz2 + ".ItemsInStorage");
-											if(o instanceof ItemStack[]){
-												itemsinchest = (ItemStack[]) o;
-											}else if(o instanceof List){
-												itemsinchest = (ItemStack[]) ((List<ItemStack>) o).toArray(new ItemStack[0]);
+									if(chesta== a){
+										if(blockatlocation.getState() instanceof Chest){
+											plugin.exists = true;
+											Chest chest = (Chest) blockatlocation.getState();
+											if(chesta== a){
+												chest.getInventory().clear();
+												ItemStack[] itemsinchest = null;
+												Object o = plugin.getConfig().get("Storage." + xyz2 + ".ItemsInStorage");
+												if(o instanceof ItemStack[]){
+													itemsinchest = (ItemStack[]) o;
+												}else if(o instanceof List){
+													itemsinchest = (ItemStack[]) ((List<ItemStack>) o).toArray(new ItemStack[0]);
+												}
+												list056 = list056+1;
+												chest.getInventory().setContents(itemsinchest);
+												chest.update();
 											}
-											list056 = list056+1;
-											chest.getInventory().setContents(itemsinchest);
-											chest.update();
 										}
+									}else{
+										list056 = list056+1;
 									}
-								}
-								if(limit== list056){
-									sender.sendMessage(ChatColor.GREEN + "All for arena " + a + " refilled!");
+									if(limit== list056){
+										sender.sendMessage(ChatColor.GREEN + "All for arena " + a + " refilled!");
+									}
 								}
 							}else{
 								int list056;
@@ -794,13 +812,15 @@ public class HaCommands implements CommandExecutor {
 								p.sendMessage(ChatColor.AQUA + "Arena " + a + " has been reset!");
 							}else{
 								for(i = 1; i <= plugin.Watching.size(); i++){
-									for(b = 0; b < plugin.Watching.get(b).size(); b++){
-										String s = plugin.Watching.get(i).get(b);
-										Player spectator = plugin.getServer().getPlayerExact(s);
-										spectator.setAllowFlight(false);
-										spectator.teleport(Spawn);
-										for(Player online:plugin.getServer().getOnlinePlayers()){
-											online.showPlayer(spectator);
+									for(b = 0; b <= plugin.Watching.get(i).size(); b++){
+										if(plugin.Watching.get(i).get(b)!= null){
+											String s = plugin.Watching.get(i).get(b);
+											Player spectator = plugin.getServer().getPlayerExact(s);
+											spectator.setAllowFlight(false);
+											spectator.teleport(Spawn);
+											for(Player online:plugin.getServer().getOnlinePlayers()){
+												online.showPlayer(spectator);
+											}
 										}
 									}
 								}
@@ -866,17 +886,21 @@ public class HaCommands implements CommandExecutor {
 								a = Integer.parseInt(args[1]);
 								if(plugin.open.get(a)){
 									plugin.open.put(a, false);
-									for(String players: plugin.Playing.get(a)){
-										Player tributes = plugin.getServer().getPlayerExact(players);
-										clearInv(tributes);
-										tributes.teleport(tributes.getWorld().getSpawnLocation());
+									if(plugin.Playing.get(a)!= null){
+										for(String players: plugin.Playing.get(a)){
+											Player tributes = plugin.getServer().getPlayerExact(players);
+											clearInv(tributes);
+											tributes.teleport(tributes.getWorld().getSpawnLocation());
+										}
 									}
-									for(String sname: plugin.Watching.get(a)){
-										Player spectators = plugin.getServer().getPlayerExact(sname);
-										spectators.teleport(spectators.getWorld().getSpawnLocation());
-										spectators.setAllowFlight(false);
-										for(Player online:plugin.getServer().getOnlinePlayers()){
-											online.showPlayer(spectators);
+									if(plugin.Watching.get(a)!= null){
+										for(String sname: plugin.Watching.get(a)){
+											Player spectators = plugin.getServer().getPlayerExact(sname);
+											spectators.teleport(spectators.getWorld().getSpawnLocation());
+											spectators.setAllowFlight(false);
+											for(Player online:plugin.getServer().getOnlinePlayers()){
+												online.showPlayer(spectators);
+											}
 										}
 									}
 									plugin.Dead.get(a).clear();
@@ -897,17 +921,21 @@ public class HaCommands implements CommandExecutor {
 								for(i = 1; i <= plugin.open.size(); i++){
 									if(plugin.open.get(i)){
 										plugin.open.put(i, false);
-										for(String players: plugin.Playing.get(i)){
-											Player tributes = plugin.getServer().getPlayerExact(players);
-											clearInv(tributes);
-											tributes.teleport(tributes.getWorld().getSpawnLocation());
+										if(plugin.Playing.get(i)!= null){
+											for(String players: plugin.Playing.get(i)){
+												Player tributes = plugin.getServer().getPlayerExact(players);
+												clearInv(tributes);
+												tributes.teleport(tributes.getWorld().getSpawnLocation());
+											}
 										}
-										for(String sname: plugin.Watching.get(i)){
-											Player spectators = plugin.getServer().getPlayerExact(sname);
-											spectators.teleport(spectators.getWorld().getSpawnLocation());
-											spectators.setAllowFlight(false);
-											for(Player online:plugin.getServer().getOnlinePlayers()){
-												online.showPlayer(spectators);
+										if(plugin.Watching.get(i)!= null){
+											for(String sname: plugin.Watching.get(i)){
+												Player spectators = plugin.getServer().getPlayerExact(sname);
+												spectators.teleport(spectators.getWorld().getSpawnLocation());
+												spectators.setAllowFlight(false);
+												for(Player online:plugin.getServer().getOnlinePlayers()){
+													online.showPlayer(spectators);
+												}
 											}
 										}
 										plugin.Dead.clear();
@@ -943,9 +971,11 @@ public class HaCommands implements CommandExecutor {
 								for(i = 1; i <= plugin.open.size(); i++){
 									if(!plugin.open.get(i)){
 										plugin.open.put(i, true);
-										p.sendMessage(ChatColor.GOLD + "Arena " + a + " Open!");
+										p.sendMessage(ChatColor.GOLD + "Arena " + i + " Open!");
+										i = i+1;
 									}else{
-										p.sendMessage(ChatColor.RED + "Arena " + a + " already open, type /ha close to close them!");
+										p.sendMessage(ChatColor.RED + "Arena " + i + " already open, type /ha close to close them!");
+										i = i+1;
 									}
 								}
 							}
@@ -1014,7 +1044,17 @@ public class HaCommands implements CommandExecutor {
 						}
 					}else if(args[0].equalsIgnoreCase("Start")){
 						if(p.hasPermission("HungerArena.Start")){
-							plugin.startGames(a);
+							if(args.length!= 2){
+								p.sendMessage(ChatColor.RED + "You need an arena!");
+							}else{
+								a = Integer.parseInt(args[1]);
+								if(plugin.canjoin.get(a)== true)
+									p.sendMessage(ChatColor.RED + "Game already in progress!");
+								else if(plugin.Playing.get(a).isEmpty())
+									p.sendMessage(ChatColor.RED + "No one is in that game!");
+								else
+									plugin.startGames(a);
+							}
 						}else{
 							p.sendMessage(ChatColor.RED + "You don't have permission!");
 						}
@@ -1141,13 +1181,7 @@ public class HaCommands implements CommandExecutor {
 						a = Integer.parseInt(args[1]);
 						int list056;
 						list056 = 0;
-						int limit = 0;
-						for(String chests: plugin.config.getStringList("StorageXYZ")){
-							String[] chest = chests.split(",");
-							if(Integer.parseInt(chest[3])== a){
-								limit = limit+1;
-							}
-						}
+						int limit = plugin.config.getStringList("StorageXYZ").size();
 						while(limit > list056){
 							String xyz2 = plugin.getConfig().getStringList("StorageXYZ").get(list056);
 							int chestx = plugin.getConfig().getInt("Storage." + xyz2 + ".Location.X");
@@ -1157,22 +1191,26 @@ public class HaCommands implements CommandExecutor {
 							String chestw = plugin.getConfig().getString("Storage." + xyz2 + ".Location.W");
 							Block blockatlocation = Bukkit.getWorld(chestw).getBlockAt(chestx, chesty, chestz);  
 							plugin.exists = false;
-							if(blockatlocation.getState() instanceof Chest){
-								plugin.exists = true;
-								Chest chest = (Chest) blockatlocation.getState();
-								if(chesta== a){
-									chest.getInventory().clear();
-									ItemStack[] itemsinchest = null;
-									Object o = plugin.getConfig().get("Storage." + xyz2 + ".ItemsInStorage");
-									if(o instanceof ItemStack[]){
-										itemsinchest = (ItemStack[]) o;
-									}else if(o instanceof List){
-										itemsinchest = (ItemStack[]) ((List<ItemStack>) o).toArray(new ItemStack[0]);
+							if(chesta== a){
+								if(blockatlocation.getState() instanceof Chest){
+									plugin.exists = true;
+									Chest chest = (Chest) blockatlocation.getState();
+									if(chesta== a){
+										chest.getInventory().clear();
+										ItemStack[] itemsinchest = null;
+										Object o = plugin.getConfig().get("Storage." + xyz2 + ".ItemsInStorage");
+										if(o instanceof ItemStack[]){
+											itemsinchest = (ItemStack[]) o;
+										}else if(o instanceof List){
+											itemsinchest = (ItemStack[]) ((List<ItemStack>) o).toArray(new ItemStack[0]);
+										}
+										list056 = list056+1;
+										chest.getInventory().setContents(itemsinchest);
+										chest.update();
 									}
-									list056 = list056+1;
-									chest.getInventory().setContents(itemsinchest);
-									chest.update();
 								}
+							}else{
+								list056 = list056+1;
 							}
 						}
 						if(limit== list056){
@@ -1354,15 +1392,18 @@ public class HaCommands implements CommandExecutor {
 					}
 					/////////////////////////////////// Toggle //////////////////////////////////////////////////
 				}else if(args[0].equalsIgnoreCase("close")){
-						if(args.length>= 2){
-							a = Integer.parseInt(args[1]);
-							if(plugin.open.get(a)){
-								plugin.open.put(a, false);
+					if(args.length>= 2){
+						a = Integer.parseInt(args[1]);
+						if(plugin.open.get(a)){
+							plugin.open.put(a, false);
+							if(plugin.Playing.get(a)!= null){
 								for(String players: plugin.Playing.get(a)){
 									Player tributes = plugin.getServer().getPlayerExact(players);
 									clearInv(tributes);
 									tributes.teleport(tributes.getWorld().getSpawnLocation());
 								}
+							}
+							if(plugin.Watching.get(a)!= null){
 								for(String sname: plugin.Watching.get(a)){
 									Player spectators = plugin.getServer().getPlayerExact(sname);
 									spectators.teleport(spectators.getWorld().getSpawnLocation());
@@ -1371,30 +1412,34 @@ public class HaCommands implements CommandExecutor {
 										online.showPlayer(spectators);
 									}
 								}
-								plugin.Dead.get(a).clear();
-								plugin.Quit.get(a).clear();
-								plugin.Watching.get(a).clear();
-								plugin.Frozen.get(a).clear();
-								plugin.Ready.get(a).clear();
-								plugin.NeedConfirm.get(a).clear();
-								plugin.Out.get(a).clear();
-								plugin.Playing.get(a).clear();
-								plugin.inArena.get(a).clear();
-								plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), "ha refill " + a);
-								sender.sendMessage(ChatColor.GOLD + "Arena " + a + " Closed!");
-							}else{
-								sender.sendMessage(ChatColor.RED + "Arena " + a + " already closed, type /ha open to re-open them!");
 							}
+							plugin.Dead.get(a).clear();
+							plugin.Quit.get(a).clear();
+							plugin.Watching.get(a).clear();
+							plugin.Frozen.get(a).clear();
+							plugin.Ready.get(a).clear();
+							plugin.NeedConfirm.get(a).clear();
+							plugin.Out.get(a).clear();
+							plugin.Playing.get(a).clear();
+							plugin.inArena.get(a).clear();
+							Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha refill " + a);
+							sender.sendMessage(ChatColor.GOLD + "Arena " + a + " Closed!");
 						}else{
-							for(i = 1; i <= plugin.open.size(); i++){
-								if(plugin.open.get(i)){
-									plugin.open.put(i, false);
-									for(String players: plugin.Playing.get(a)){
+							sender.sendMessage(ChatColor.RED + "Arena " + a + " already closed, type /ha open to re-open them!");
+						}
+					}else{
+						for(i = 1; i <= plugin.open.size(); i++){
+							if(plugin.open.get(i)){
+								plugin.open.put(i, false);
+								if(plugin.Playing.get(i)!= null){
+									for(String players: plugin.Playing.get(i)){
 										Player tributes = plugin.getServer().getPlayerExact(players);
 										clearInv(tributes);
 										tributes.teleport(tributes.getWorld().getSpawnLocation());
 									}
-									for(String sname: plugin.Watching.get(a)){
+								}
+								if(plugin.Watching.get(i)!= null){
+									for(String sname: plugin.Watching.get(i)){
 										Player spectators = plugin.getServer().getPlayerExact(sname);
 										spectators.teleport(spectators.getWorld().getSpawnLocation());
 										spectators.setAllowFlight(false);
@@ -1402,97 +1447,107 @@ public class HaCommands implements CommandExecutor {
 											online.showPlayer(spectators);
 										}
 									}
-									plugin.Dead.clear();
-									plugin.Quit.clear();
-									plugin.Watching.clear();
-									plugin.Frozen.clear();
-									plugin.Ready.clear();
-									plugin.NeedConfirm.clear();
-									plugin.Out.clear();
-									plugin.Playing.clear();
-									plugin.inArena.clear();
-									plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), "ha refill");
-									sender.sendMessage(ChatColor.GOLD + "Arena " + a + " Closed!");
-								}else{
-									sender.sendMessage(ChatColor.RED + "Arena " + a + " already closed, type /ha open to re-open them!");
 								}
+								plugin.Dead.clear();
+								plugin.Quit.clear();
+								plugin.Watching.clear();
+								plugin.Frozen.clear();
+								plugin.Ready.clear();
+								plugin.NeedConfirm.clear();
+								plugin.Out.clear();
+								plugin.Playing.clear();
+								plugin.inArena.clear();
+								Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha refill");
+								sender.sendMessage(ChatColor.GOLD + "Arena " + i + " Closed!");
+							}else{
+								sender.sendMessage(ChatColor.RED + "Arena " + i + " already closed, type /ha open to re-open them!");
 							}
 						}
-
+					}
 				}else if(args[0].equalsIgnoreCase("open")){
-						if(args.length>= 2){
-							a = Integer.parseInt(args[1]);
-							if(!plugin.open.get(a)){
-								plugin.open.put(a, true);
+					if(args.length>= 2){
+						a = Integer.parseInt(args[1]);
+						if(!plugin.open.get(a)){
+							plugin.open.put(a, true);
+							sender.sendMessage(ChatColor.GOLD + "Arena " + a + " Open!");
+						}else{
+							sender.sendMessage(ChatColor.RED + "Arena " + a + " already open, type /ha close to close them!");
+						}
+					}else{
+						for(i = 1; i <= plugin.open.size(); i++){
+							if(!plugin.open.get(i)){
+								plugin.open.put(i, true);
 								sender.sendMessage(ChatColor.GOLD + "Arena " + a + " Open!");
 							}else{
 								sender.sendMessage(ChatColor.RED + "Arena " + a + " already open, type /ha close to close them!");
 							}
-						}else{
-							for(i = 1; i <= plugin.open.size(); i++){
-								if(!plugin.open.get(i)){
-									plugin.open.put(i, true);
-									sender.sendMessage(ChatColor.GOLD + "Arena " + a + " Open!");
-								}else{
-									sender.sendMessage(ChatColor.RED + "Arena " + a + " already open, type /ha close to close them!");
-								}
-							}
 						}
+					}
 					////////////////////////////////////////////////////////////////////////////////////////////
 				}else if(args[0].equalsIgnoreCase("Reload")){
-						plugin.location.clear();
-						plugin.Reward.clear();
-						plugin.Cost.clear();
-						plugin.Fee.clear();
-						plugin.onEnable();
-						sender.sendMessage(ChatColor.AQUA + "HungerArena Reloaded!");
+					plugin.location.clear();
+					plugin.Reward.clear();
+					plugin.Cost.clear();
+					plugin.Fee.clear();
+					plugin.onEnable();
+					sender.sendMessage(ChatColor.AQUA + "HungerArena Reloaded!");
 				}else if(args[0].equalsIgnoreCase("WarpAll")){
-						if(plugin.spawns.getString("Spawns_set").equalsIgnoreCase("false")){
-							sender.sendMessage(ChatColor.RED + "/ha setspawn hasn't been run!");
-						}else{
-							if(args.length>= 2){
-								a = Integer.parseInt(args[1]);
-								if(plugin.Playing.get(a).size()== 1){
-									sender.sendMessage(ChatColor.RED + "There are not enough players!");
-								}else{
-									if(plugin.config.getString("Auto_Start").equalsIgnoreCase("true")){
-										plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-											public void run(){
-												Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha start " + a);
-											}
-										}, 20L);
-									}
-									i = 1;
-									for(String playing: plugin.Playing.get(a)){
-										Player tribute = plugin.getServer().getPlayerExact(playing);
-										tribute.teleport(plugin.location.get(a).get(i)); //TODO BUG?
-										tribute.setHealth(20);
-										tribute.setFoodLevel(20);
-										tribute.setSaturation(20);
-										tribute.setLevel(0);
-										clearInv(tribute);
-										for(PotionEffect pe: tribute.getActivePotionEffects()){
-											PotionEffectType potion = pe.getType();
-											tribute.removePotionEffect(potion);
-										}
-										if(tribute.getAllowFlight()){
-											tribute.setAllowFlight(false);
-										}
-										plugin.Frozen.get(a).add(tribute.getName());
-										i = i+1;
-									}
+					if(plugin.spawns.getString("Spawns_set").equalsIgnoreCase("false")){
+						sender.sendMessage(ChatColor.RED + "/ha setspawn hasn't been run!");
+					}else{
+						if(args.length>= 2){
+							a = Integer.parseInt(args[1]);
+							if(plugin.Playing.get(a).size()== 1){
+								sender.sendMessage(ChatColor.RED + "There are not enough players!");
+							}else{
+								if(plugin.config.getString("Auto_Start").equalsIgnoreCase("true")){
 									plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 										public void run(){
-											sender.sendMessage(ChatColor.AQUA + "All Tributes warped!");
+											Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha start " + a);
 										}
 									}, 20L);
 								}
-							}else{
-								sender.sendMessage(ChatColor.RED + "Too few arguments, specify an arena");
+								i = 1;
+								for(String playing: plugin.Playing.get(a)){
+									Player tribute = plugin.getServer().getPlayerExact(playing);
+									tribute.teleport(plugin.location.get(a).get(i));
+									tribute.setHealth(20);
+									tribute.setFoodLevel(20);
+									tribute.setSaturation(20);
+									tribute.setLevel(0);
+									clearInv(tribute);
+									for(PotionEffect pe: tribute.getActivePotionEffects()){
+										PotionEffectType potion = pe.getType();
+										tribute.removePotionEffect(potion);
+									}
+									if(tribute.getAllowFlight()){
+										tribute.setAllowFlight(false);
+									}
+									plugin.Frozen.get(a).add(tribute.getName());
+									i = i+1;
+								}
+								plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
+									public void run(){
+										sender.sendMessage(ChatColor.AQUA + "All Tributes warped!");
+									}
+								}, 20L);
 							}
+						}else{
+							sender.sendMessage(ChatColor.RED + "Too few arguments, specify an arena");
 						}
+					}
 				}else if(args[0].equalsIgnoreCase("Start")){
-						plugin.startGames(a);
+					if(args.length!= 2){
+						sender.sendMessage(ChatColor.RED + "You need an arena!");
+					}else{
+						a = Integer.parseInt(args[1]);
+						if(plugin.canjoin.get(a)== true)
+							sender.sendMessage(ChatColor.RED + "Game already in progress!");
+						else if(plugin.Playing.get(a).isEmpty())
+							sender.sendMessage(ChatColor.RED + "No one is in that game!");
+						else
+							plugin.startGames(a);
+					}
 				}else{
 					sender.sendMessage(ChatColor.RED + "Unknown command, type /ha help to see all commands!");
 				}
