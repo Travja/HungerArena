@@ -37,7 +37,7 @@ public class Chests implements Listener {
 					plugin.getConfig().set("StorageXYZ", list2);
 					plugin.getConfig().options().copyDefaults(true);
 					plugin.saveConfig();
-					p.sendMessage("Chest Removed!");
+					p.sendMessage("[HungerArena] Chest Removed!");
 				} else {
 					event.setCancelled(true);
 					p.sendMessage(ChatColor.RED + "[HungerArena] That's a storage chest! You don't have permission to break it!");
