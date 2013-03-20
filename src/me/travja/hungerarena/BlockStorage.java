@@ -25,80 +25,41 @@ public class BlockStorage implements Listener {
 	public BlockStorage(Main m) {
 		this.plugin = m;
 	}
-	@EventHandler(priority = EventPriority.MONITOR)
-	public void BlockBreak(BlockBreakEvent event){
+	@EventHandler(priority=EventPriority.MONITOR)
+	public void BlockBreak(BlockBreakEvent event) {
 		Block b = event.getBlock();
 		Player p = event.getPlayer();
 		String pname = p.getName();
-		if(plugin.getArena(p)!= null){
-			int a = plugin.getArena(p);
-			if(!event.isCancelled()){
-				if(plugin.Playing.get(a).contains(pname)){
-					if(plugin.config.getString("Protected_Arena").equalsIgnoreCase("True")){
-						p.sendMessage(ChatColor.RED + "You can't break blocks while playing!");
-					}
-					if(plugin.canjoin.get(a)){
-						if(plugin.config.getStringList("worlds").isEmpty() || (!plugin.config.getStringList("worlds").isEmpty() && plugin.config.getStringList("worlds").contains(p.getWorld().getName()))){
-							if(!plugin.management.getBoolean("blocks.useWhitelistAsBlacklist")){
-								if(!plugin.management.getIntegerList("blocks.whitelist").isEmpty()){
-									if(!plugin.management.getIntegerList("blocks.whitelist").contains(b.getTypeId())){
-										event.setCancelled(true);
-										p.sendMessage(ChatColor.RED + "That is an illegal block!");
-									}else if(plugin.management.getIntegerList("blocks.whitelist").contains(b.getTypeId())){
-										String w = b.getWorld().getName();
-										int x = b.getX();
-										int y = b.getY();
-										int z = b.getZ();
-										int d = b.getTypeId();
-										byte m = b.getData();
-										String coords = w + "," + x + "," + y + "," + z + "," + d + "," + m + "," + a;
-										List<String> blocks = plugin.data.getStringList("Blocks_Destroyed");
-										if(!plugin.data.getStringList("Blocks_Placed").contains(w + "," + x + "," + y + "," + z + "," + a)){
-											blocks.add(coords);
-											plugin.data.set("Blocks_Destroyed", blocks);
-											plugin.saveData();
-										}
-									}
-								}else{
-									event.setCancelled(true);
-									p.sendMessage(ChatColor.RED + "That is an illegal block!");
-								}
-							}else{
-								if(!plugin.management.getIntegerList("blocks.whitelist").isEmpty()){
-									if(!plugin.management.getIntegerList("blocks.whitelist").contains(b.getTypeId())){
-										String w = b.getWorld().getName();
-										int x = b.getX();
-										int y = b.getY();
-										int z = b.getZ();
-										int d = b.getTypeId();
-										byte m = b.getData();
-										String coords = w + "," + x + "," + y + "," + z + "," + d + "," + m + "," + a;
-										List<String> blocks = plugin.data.getStringList("Blocks_Destroyed");
-										if(!plugin.data.getStringList("Blocks_Placed").contains(w + "," + x + "," + y + "," + z + "," + a)){
-											blocks.add(coords);
-											plugin.data.set("Blocks_Destroyed", blocks);
-											plugin.saveData();
-										}
-									}else if(plugin.management.getIntegerList("blocks.whitelist").contains(b.getTypeId())){
-										event.setCancelled(true);
-										p.sendMessage(ChatColor.RED + "That is an illegal block");
-									}
-								}else{
-									String w = b.getWorld().getName();
-									int x = b.getX();
-									int y = b.getY();
-									int z = b.getZ();
-									int d = b.getTypeId();
-									byte m = b.getData();
-									String coords = w + "," + x + "," + y + "," + z + "," + d + "," + m + "," + a;
-									List<String> blocks = plugin.data.getStringList("Blocks_Destroyed");
-									if(!plugin.data.getStringList("Blocks_Placed").contains(w + "," + x + "," + y + "," + z + "," + a)){
-										blocks.add(coords);
-										plugin.data.set("Blocks_Destroyed", blocks);
-										plugin.saveData();
-									}
-								}
-							}
+		boolean protall = false;
+		if (plugin.config.getString("Protected_Arena_Allways").equalsIgnoreCase("True")) { 		/* Jeppa Fix/Add */
+			protall = true;
+		}
+		if ((plugin.getArena(p) != null) || (protall)) {							/* Bug1a */
+			//int a = this.plugin.getArena(p).intValue();
+			int a = 1;											//Jeppa: define a default (may be needed if protall is true)
+			if (plugin.getArena(p) != null) a = plugin.getArena(p);
+			if ((!event.isCancelled()) && (((plugin.Playing.get(a)).contains(pname)) || (protall)))		/* Bug1a */
+			{
+				if (plugin.config.getString("Protected_Arena").equalsIgnoreCase("True")) {
+					event.setCancelled(true);							/* Jeppa fix Bug1 */
+					p.sendMessage(ChatColor.RED + "You can't break blocks while playing!");
+				} else if ((((plugin.canjoin.get(a))) || (protall)) && ((plugin.config.getStringList("worlds").isEmpty()) || ((!plugin.config.getStringList("worlds").isEmpty()) && (plugin.config.getStringList("worlds").contains(p.getWorld().getName()))))) { /* Klammer fehlte! */
+					if (((plugin.management.getIntegerList("blocks.whitelist").isEmpty()) || ((!plugin.management.getIntegerList("blocks.whitelist").isEmpty()) && (!plugin.management.getIntegerList("blocks.whitelist").contains(Integer.valueOf(b.getTypeId()))))) ^ (plugin.management.getBoolean("blocks.useWhitelistAsBlacklist"))) {
+						event.setCancelled(true);
+						p.sendMessage(ChatColor.RED + "That is an illegal block!");
+					} else {
+						String w = b.getWorld().getName();
+						int x = b.getX();
+						int y = b.getY();
+						int z = b.getZ();
+						int d = b.getTypeId();
+						byte m = b.getData();
+						String coords = w + "," + x + "," + y + "," + z + "," + d + "," + m + "," + a;
+						List<String> blocks = plugin.data.getStringList("Blocks_Destroyed");
+						if (!plugin.data.getStringList("Blocks_Placed").contains(w + "," + x + "," + y + "," + z + "," + a)) {
+							blocks.add(coords);
+							plugin.data.set("Blocks_Destroyed", blocks);
+							plugin.saveData();
 						}
 					}
 				}
