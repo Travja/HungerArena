@@ -114,7 +114,7 @@ public class Main extends JavaPlugin{
 		getCommand("Sponsor").setExecutor(SponsorCommands);
 		getCommand("Startpoint").setExecutor(SpawnsCommand);
 		i = 1;
-		//TODO THIS CRAP
+		//TODO THIS CRAP		/* Jeppa: Wasn't this already done ??? */
 		if(spawns.getConfigurationSection("Spawns")!= null){
 			Map<String, Object> temp = spawns.getConfigurationSection("Spawns").getValues(false);
 			for(Entry<String, Object> entry: temp.entrySet()){
@@ -308,13 +308,14 @@ public class Main extends JavaPlugin{
 			this.getLogger().log(Level.SEVERE, "Could not save config to " + managementFile, ex);
 		}
 	}
-	public void winner(Integer a){
+	public void winner(final Integer a){
 		String[] Spawncoords = spawns.getString("Spawn_coords").split(",");
 		World spawnw = getServer().getWorld(Spawncoords[3]);
 		double spawnx = Double.parseDouble(Spawncoords[0]);
 		double spawny = Double.parseDouble(Spawncoords[1]);
 		double spawnz = Double.parseDouble(Spawncoords[2]);
 		Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
+		//final String a2 = String.valueOf(a); // Jeppa Test
 		if(Playing.get(a).size()== 1 && canjoin.get(a)== true){
 			//Announce winner
 			for(i = 0; i < Playing.get(a).size(); i++){
@@ -368,8 +369,7 @@ public class Main extends JavaPlugin{
 			if(config.getString("Auto_Restart").equalsIgnoreCase("True")){
 				Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable(){
 					public void run(){
-						Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha restart");
-
+						Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha restart " + a);
 					}
 				}, 220L);
 			}
@@ -379,7 +379,12 @@ public class Main extends JavaPlugin{
 		String begin = config.getString("Start_Message");
 		begin = begin.replaceAll("(&([a-f0-9]))", "\u00A7$2");
 		final String msg = begin;
-		i = 10;
+		/* Jeppa add : */
+		if(config.getInt("Countdown_Timer") != 0) {
+			i = config.getInt("Countdown_Timer") ;
+		} else {
+			i = 10;
+		}
 		if(config.getString("Countdown").equalsIgnoreCase("true")){
 			start = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable(){
 				public void run(){

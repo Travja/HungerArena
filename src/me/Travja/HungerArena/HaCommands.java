@@ -14,6 +14,7 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
 import org.bukkit.entity.Player;
+import org.bukkit.event.HandlerList;		//Jeppa : add for eventremoval...
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
@@ -507,11 +508,11 @@ public class HaCommands implements CommandExecutor {
 							}
 						}
 					}else if(args[0].equalsIgnoreCase("Ready")){
-						p.sendMessage(String.valueOf(plugin.getArena(p)));
+		//				p.sendMessage("debug: Arena: " + String.valueOf(plugin.getArena(p)));	// Jeppa: das ist debug!
 						if(plugin.getArena(p)!= null){
 							a = plugin.getArena(p);
-							for(String s:plugin.Playing.get(a))
-								p.sendMessage(s);
+		//					for(String s:plugin.Playing.get(a))	// Jeppa: das ist debug!
+		//						p.sendMessage("Debug: Player:"+a+" : " + s);		// Jeppa: das ist debug!
 							if(plugin.Playing.get(a).contains(pname)){
 								if(plugin.Ready.get(a).contains(pname)){
 									p.sendMessage(ChatColor.RED + "You're already ready!");
@@ -733,18 +734,38 @@ public class HaCommands implements CommandExecutor {
 						}else{
 							p.sendMessage(ChatColor.RED + "You don't have permission!");
 						}
-					}else if(args[0].equalsIgnoreCase("Restart")){
+					}else if(args[0].equalsIgnoreCase("Restart")){ //Jeppa: fixed reopen , merged routines, added respawn
 						int b = 0;
 						if(p.hasPermission("HungerArena.Restart")){
+							// Jeppa: merged the two routines and fixed reopen bug...
+							i = 1; 					// default first arena
+							int e = plugin.open.size();		// default amount number of arenas
 							if(args.length>= 2){
-								a = Integer.parseInt(args[1]);
-								for(b = 0; b < plugin.Watching.get(a).size(); b++){
-									String s = plugin.Watching.get(a).get(b);
-									Player spectator = plugin.getServer().getPlayerExact(s);
-									spectator.setAllowFlight(false);
-									spectator.teleport(Spawn);
-									for(Player online:plugin.getServer().getOnlinePlayers()){
-										online.showPlayer(spectator);
+								i = Integer.parseInt(args[1]); 	// replace i with commandvalue
+								if(i > e) i=e;			// dirty fix for wrong args in command...
+								if(i < 1) i=1;			// dirty fix for wrong args in command...
+								e = i;				// loop i to i ;)
+							}
+							for(a = i; a <= e; a++){
+								//Jeppa: Routine dazu: erweitert um Teleport der Player!!!!!
+								if(plugin.Playing.get(a).size() > 0){		// Jeppa: fix
+									for(b = 0; b < plugin.Playing.get(a).size(); b++){
+										String s = plugin.Playing.get(a).get(b);
+										Player tributes = plugin.getServer().getPlayerExact(s);
+										clearInv(tributes);
+										tributes.teleport(tributes.getWorld().getSpawnLocation());
+									}
+								}
+								// ^^
+								if(plugin.Watching.get(a).size() > 0){		// Jeppa: fix
+									for(b = 0; b < plugin.Watching.get(a).size(); b++){
+										String s = plugin.Watching.get(a).get(b);
+										Player spectator = plugin.getServer().getPlayerExact(s);
+										spectator.setAllowFlight(false);
+										spectator.teleport(Spawn);
+										for(Player online:plugin.getServer().getOnlinePlayers()){
+											online.showPlayer(spectator);
+										}
 									}
 								}
 								plugin.Dead.get(a).clear();
@@ -810,71 +831,6 @@ public class HaCommands implements CommandExecutor {
 								plugin.saveData();
 								p.performCommand("ha refill " + a);
 								p.sendMessage(ChatColor.AQUA + "Arena " + a + " has been reset!");
-							}else{
-								for(i = 1; i <= plugin.Watching.size(); i++){
-									for(b = 0; b <= plugin.Watching.get(i).size(); b++){
-										if(plugin.Watching.get(i).get(b)!= null){
-											String s = plugin.Watching.get(i).get(b);
-											Player spectator = plugin.getServer().getPlayerExact(s);
-											spectator.setAllowFlight(false);
-											spectator.teleport(Spawn);
-											for(Player online:plugin.getServer().getOnlinePlayers()){
-												online.showPlayer(spectator);
-											}
-										}
-									}
-								}
-								plugin.Dead.clear();
-								plugin.Quit.clear();
-								plugin.Watching.clear();
-								plugin.Frozen.clear();
-								plugin.Ready.clear();
-								plugin.NeedConfirm.clear();
-								plugin.Out.clear();
-								plugin.Playing.clear();
-								plugin.inArena.clear();
-								for(i = 1; i <= plugin.canjoin.size(); i++){
-									plugin.canjoin.put(i, false);
-								}
-								for(i = 1; i <= plugin.open.size(); i++){
-									plugin.open.put(i, true);
-								}
-								List<String> blocksbroken = plugin.data.getStringList("Blocks_Destroyed");
-								List<String> blocksplaced = plugin.data.getStringList("Blocks_Placed");
-								for(String blocks:blocksplaced){
-									String[] coords = blocks.split(",");
-									World w = plugin.getServer().getWorld(coords[0]);
-									double x = Double.parseDouble(coords[1]);
-									double y = Double.parseDouble(coords[2]);
-									double z = Double.parseDouble(coords[3]);
-									int d = 0;
-									byte m = 0;
-									Location blockl = new Location(w, x, y, z);
-									Block block = w.getBlockAt(blockl);
-									block.setTypeIdAndData(d, m, true);
-									block.getState().update();
-								}
-								for(String blocks:blocksbroken){
-									String[] coords = blocks.split(",");
-									World w = plugin.getServer().getWorld(coords[0]);
-									double x = Double.parseDouble(coords[1]);
-									double y = Double.parseDouble(coords[2]);
-									double z = Double.parseDouble(coords[3]);
-									int d = Integer.parseInt(coords[4]);
-									byte m = Byte.parseByte(coords[5]);
-									Location blockl = new Location(w, x, y, z);
-									Block block = w.getBlockAt(blockl);
-									block.setTypeIdAndData(d, m, true);
-									block.getState().update();
-								}
-								blocksplaced.clear();
-								blocksbroken.clear();
-								plugin.data.set("Blocks_Destroyed", blocksbroken);
-								plugin.data.set("Blocks_Placed", blocksplaced);
-								plugin.data.options().copyDefaults();
-								plugin.saveData();
-								p.performCommand("ha refill");
-								p.sendMessage(ChatColor.AQUA + "All games have been reset!");
 							}
 						}else{
 							p.sendMessage(ChatColor.RED + "You don't have permission!");
@@ -882,8 +838,16 @@ public class HaCommands implements CommandExecutor {
 						/////////////////////////////////// Toggle //////////////////////////////////////////////////
 					}else if(args[0].equalsIgnoreCase("close")){
 						if(p.hasPermission("HungerArena.toggle")){
+							// Jeppa: merged the two routines and fixed reopen bug...
+							i = 1; 					// default first arena
+							int e = plugin.open.size();		// default amount number of arenas
 							if(args.length>= 2){
-								a = Integer.parseInt(args[1]);
+								i = Integer.parseInt(args[1]); 	// replace i with commandvalue
+								if(i > e) i=e;			// dirty fix for wrong args in command...
+								if(i < 1) i=1;			// dirty fix for wrong args in command...
+								e = i;				// loop i to i ;)
+							}
+							for(a = i; a <= e; a++){
 								if(plugin.open.get(a)){
 									plugin.open.put(a, false);
 									if(plugin.Playing.get(a)!= null){
@@ -917,42 +881,6 @@ public class HaCommands implements CommandExecutor {
 								}else{
 									p.sendMessage(ChatColor.RED + "Arena " + a + " already closed, type /ha open to re-open them!");
 								}
-							}else{
-								for(i = 1; i <= plugin.open.size(); i++){
-									if(plugin.open.get(i)){
-										plugin.open.put(i, false);
-										if(plugin.Playing.get(i)!= null){
-											for(String players: plugin.Playing.get(i)){
-												Player tributes = plugin.getServer().getPlayerExact(players);
-												clearInv(tributes);
-												tributes.teleport(tributes.getWorld().getSpawnLocation());
-											}
-										}
-										if(plugin.Watching.get(i)!= null){
-											for(String sname: plugin.Watching.get(i)){
-												Player spectators = plugin.getServer().getPlayerExact(sname);
-												spectators.teleport(spectators.getWorld().getSpawnLocation());
-												spectators.setAllowFlight(false);
-												for(Player online:plugin.getServer().getOnlinePlayers()){
-													online.showPlayer(spectators);
-												}
-											}
-										}
-										plugin.Dead.clear();
-										plugin.Quit.clear();
-										plugin.Watching.clear();
-										plugin.Frozen.clear();
-										plugin.Ready.clear();
-										plugin.NeedConfirm.clear();
-										plugin.Out.clear();
-										plugin.Playing.clear();
-										plugin.inArena.clear();
-										p.performCommand("ha refill");
-										p.sendMessage(ChatColor.GOLD + "Arena " + i + " Closed!");
-									}else{
-										p.sendMessage(ChatColor.RED + "Arena " + i + " already closed, type /ha open to re-open them!");
-									}
-								}
 							}
 						}else{
 							p.sendMessage(ChatColor.RED + "No Perms!");
@@ -972,10 +900,10 @@ public class HaCommands implements CommandExecutor {
 									if(!plugin.open.get(i)){
 										plugin.open.put(i, true);
 										p.sendMessage(ChatColor.GOLD + "Arena " + i + " Open!");
-										i = i+1;
+									//	i = i+1; // Jeppa: ???
 									}else{
 										p.sendMessage(ChatColor.RED + "Arena " + i + " already open, type /ha close to close them!");
-										i = i+1;
+									//	i = i+1;
 									}
 								}
 							}
@@ -989,7 +917,8 @@ public class HaCommands implements CommandExecutor {
 							plugin.Reward.clear();
 							plugin.Cost.clear();
 							plugin.Fee.clear();
-							plugin.onEnable();
+							HandlerList.unregisterAll(plugin); 	//Jeppa: Close all running Listeners before reopening them!
+							plugin.onEnable();			//Jeppa: with this in here all Listeners get re-registered again each "reload"! so f.e the Block-break will result in multiple lines in Data.yml ...
 							p.sendMessage(ChatColor.AQUA + "HungerArena Reloaded!");
 							System.out.println(ChatColor.GREEN + pname + " reloaded HungerArena!");
 						}else{
@@ -1248,10 +1177,28 @@ public class HaCommands implements CommandExecutor {
 							sender.sendMessage(ChatColor.GREEN + "All chests refilled!");
 						}
 					}
-				}else if(args[0].equalsIgnoreCase("Restart")){
+				}else if(args[0].equalsIgnoreCase("Restart")){ //Jeppa: merged , fixed 
 					int b = 0;
+					// Jeppa: merged the two routines and fixed reopen bug...
+					i = 1; 					// default first arena
+					int e = plugin.open.size();		// default amount number of arenas
 					if(args.length>= 2){
-						a = Integer.parseInt(args[1]);
+						i = Integer.parseInt(args[1]); 	// replace i with commandvalue
+						if(i > e) i=e;			// dirty fix for wrong args in command...
+						if(i < 1) i=1;			// dirty fix for wrong args in command...
+						e = i;				// loop i to i ;)
+					}
+					for(a = i; a <= e; a++){
+						//Jeppa: Routine dazu: erweitert um Teleport der Player!!!!!
+						if(!plugin.Playing.get(a).isEmpty()){
+							for(b = 0; b < plugin.Playing.get(a).size(); b++){
+								String s = plugin.Playing.get(a).get(b);
+								Player tributes = plugin.getServer().getPlayerExact(s);
+								clearInv(tributes);
+								tributes.teleport(tributes.getWorld().getSpawnLocation());
+							}
+						}
+						// ^^
 						if(!plugin.Watching.get(a).isEmpty()){
 							for(b = 0; b < plugin.Watching.get(a).size(); b++){
 								String s = plugin.Watching.get(a).get(b);
@@ -1326,74 +1273,19 @@ public class HaCommands implements CommandExecutor {
 						plugin.saveData();
 						plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), "ha refill " + a);
 						sender.sendMessage(ChatColor.AQUA + "Arena " + a + " has been reset!");
-					}else{
-						for(i = 1; i <= plugin.Watching.size(); i++){
-							for(b = 0; b < plugin.Watching.get(b).size(); b++){
-								String s = plugin.Watching.get(i).get(b);
-								Player spectator = plugin.getServer().getPlayerExact(s);
-								spectator.setAllowFlight(false);
-								spectator.teleport(Spawn);
-								for(Player online:plugin.getServer().getOnlinePlayers()){
-									online.showPlayer(spectator);
-								}
-							}
-						}
-						plugin.Dead.clear();
-						plugin.Quit.clear();
-						plugin.Watching.clear();
-						plugin.Frozen.clear();
-						plugin.Ready.clear();
-						plugin.NeedConfirm.clear();
-						plugin.Out.clear();
-						plugin.Playing.clear();
-						plugin.inArena.clear();
-						for(i = 1; i <= plugin.canjoin.size(); i++){
-							plugin.canjoin.put(i, false);
-						}
-						for(i = 1; i <= plugin.open.size(); i++){
-							plugin.open.put(i, true);
-						}
-						List<String> blocksbroken = plugin.data.getStringList("Blocks_Destroyed");
-						List<String> blocksplaced = plugin.data.getStringList("Blocks_Placed");
-						for(String blocks:blocksplaced){
-							String[] coords = blocks.split(",");
-							World w = plugin.getServer().getWorld(coords[0]);
-							double x = Double.parseDouble(coords[1]);
-							double y = Double.parseDouble(coords[2]);
-							double z = Double.parseDouble(coords[3]);
-							int d = 0;
-							byte m = 0;
-							Location blockl = new Location(w, x, y, z);
-							Block block = w.getBlockAt(blockl);
-							block.setTypeIdAndData(d, m, true);
-							block.getState().update();
-						}
-						for(String blocks:blocksbroken){
-							String[] coords = blocks.split(",");
-							World w = plugin.getServer().getWorld(coords[0]);
-							double x = Double.parseDouble(coords[1]);
-							double y = Double.parseDouble(coords[2]);
-							double z = Double.parseDouble(coords[3]);
-							int d = Integer.parseInt(coords[4]);
-							byte m = Byte.parseByte(coords[5]);
-							Location blockl = new Location(w, x, y, z);
-							Block block = w.getBlockAt(blockl);
-							block.setTypeIdAndData(d, m, true);
-							block.getState().update();
-						}
-						blocksplaced.clear();
-						blocksbroken.clear();
-						plugin.data.set("Blocks_Destroyed", blocksbroken);
-						plugin.data.set("Blocks_Placed", blocksplaced);
-						plugin.data.options().copyDefaults();
-						plugin.saveData();
-						plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), "ha refill");
-						sender.sendMessage(ChatColor.AQUA + "All games have been reset!");
 					}
 					/////////////////////////////////// Toggle //////////////////////////////////////////////////
 				}else if(args[0].equalsIgnoreCase("close")){
+					// Jeppa: merged the two routines and fixed reopen bug...
+					i = 1; 					// default first arena
+					int e = plugin.open.size();		// default amount number of arenas
 					if(args.length>= 2){
-						a = Integer.parseInt(args[1]);
+						i = Integer.parseInt(args[1]); 	// replace i with commandvalue
+						if(i > e) i=e;			// dirty fix for wrong args in command...
+						if(i < 1) i=1;			// dirty fix for wrong args in command...
+						e = i;				// loop i to i ;)
+					}
+					for(a = i; a <= e; a++){
 						if(plugin.open.get(a)){
 							plugin.open.put(a, false);
 							if(plugin.Playing.get(a)!= null){
@@ -1427,44 +1319,8 @@ public class HaCommands implements CommandExecutor {
 						}else{
 							sender.sendMessage(ChatColor.RED + "Arena " + a + " already closed, type /ha open to re-open them!");
 						}
-					}else{
-						for(i = 1; i <= plugin.open.size(); i++){
-							if(plugin.open.get(i)){
-								plugin.open.put(i, false);
-								if(plugin.Playing.get(i)!= null){
-									for(String players: plugin.Playing.get(i)){
-										Player tributes = plugin.getServer().getPlayerExact(players);
-										clearInv(tributes);
-										tributes.teleport(tributes.getWorld().getSpawnLocation());
-									}
-								}
-								if(plugin.Watching.get(i)!= null){
-									for(String sname: plugin.Watching.get(i)){
-										Player spectators = plugin.getServer().getPlayerExact(sname);
-										spectators.teleport(spectators.getWorld().getSpawnLocation());
-										spectators.setAllowFlight(false);
-										for(Player online:plugin.getServer().getOnlinePlayers()){
-											online.showPlayer(spectators);
-										}
-									}
-								}
-								plugin.Dead.clear();
-								plugin.Quit.clear();
-								plugin.Watching.clear();
-								plugin.Frozen.clear();
-								plugin.Ready.clear();
-								plugin.NeedConfirm.clear();
-								plugin.Out.clear();
-								plugin.Playing.clear();
-								plugin.inArena.clear();
-								Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha refill");
-								sender.sendMessage(ChatColor.GOLD + "Arena " + i + " Closed!");
-							}else{
-								sender.sendMessage(ChatColor.RED + "Arena " + i + " already closed, type /ha open to re-open them!");
-							}
-						}
 					}
-				}else if(args[0].equalsIgnoreCase("open")){
+				}else if(args[0].equalsIgnoreCase("open")){ // Jeppa: i / a fixed ;)
 					if(args.length>= 2){
 						a = Integer.parseInt(args[1]);
 						if(!plugin.open.get(a)){
@@ -1477,9 +1333,9 @@ public class HaCommands implements CommandExecutor {
 						for(i = 1; i <= plugin.open.size(); i++){
 							if(!plugin.open.get(i)){
 								plugin.open.put(i, true);
-								sender.sendMessage(ChatColor.GOLD + "Arena " + a + " Open!");
+								sender.sendMessage(ChatColor.GOLD + "Arena " + i + " Open!");
 							}else{
-								sender.sendMessage(ChatColor.RED + "Arena " + a + " already open, type /ha close to close them!");
+								sender.sendMessage(ChatColor.RED + "Arena " + i + " already open, type /ha close to close them!");
 							}
 						}
 					}
@@ -1489,6 +1345,7 @@ public class HaCommands implements CommandExecutor {
 					plugin.Reward.clear();
 					plugin.Cost.clear();
 					plugin.Fee.clear();
+					HandlerList.unregisterAll(plugin); 	//Jeppa: Close all running Listeners before reopening them!
 					plugin.onEnable();
 					sender.sendMessage(ChatColor.AQUA + "HungerArena Reloaded!");
 				}else if(args[0].equalsIgnoreCase("WarpAll")){
