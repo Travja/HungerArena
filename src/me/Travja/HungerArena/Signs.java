@@ -19,28 +19,34 @@ public class Signs implements Listener {
 	public void Sign(PlayerInteractEvent event){
 		Player p = event.getPlayer();
 		Block b = event.getClickedBlock();
+		if (b == null) {
+			return;
+		}
 		if(event.getAction()== Action.RIGHT_CLICK_BLOCK){
 			if(b.getType()== Material.SIGN || b.getType()==Material.SIGN_POST || b.getType()==Material.WALL_SIGN){
 				org.bukkit.block.Sign sign = (org.bukkit.block.Sign) b.getState();
-				String[] lines = sign.getLines();
-				if(lines[0].equalsIgnoreCase(ChatColor.BLUE + "[HungerArena]")){
-					if(lines[1].isEmpty()){
+				String line1 = sign.getLine(0);
+				String line2 = sign.getLine(1);
+				String line3 = sign.getLine(2);
+				String line4 = sign.getLine(3);
+				if(line1.equalsIgnoreCase(ChatColor.BLUE + "[HungerArena]") || line1.equalsIgnoreCase(ChatColor.BLUE + "[HA]")){
+					if(!line2.equals(""))
+						p.performCommand("ha " + line2);
+					else if(!line3.equals(""))
+						p.performCommand("ha " + line2 + " " + line3);
+					else
 						p.performCommand("ha");
-					}else{
-						p.performCommand("ha " + lines[1]);
-					}
 				}
-				if(lines[0].equalsIgnoreCase(ChatColor.BLUE + "[Sponsor]")){
-					p.performCommand("sponsor " + lines[1] + " " + lines[2] + " " + lines[3]);
+				if(line1.equalsIgnoreCase(ChatColor.BLUE + "[Sponsor]")){
+					p.performCommand("sponsor " + line2 + " " + line3 + " " + line4);
 				}
 			}
 		}
 	}
 	@EventHandler
 	public void Create(SignChangeEvent event){
-		String[] lines = event.getLines();
-		String top = lines[0];
-		if(top.equalsIgnoreCase("[HungerArena]") || top.equalsIgnoreCase("[Sponsor]")){
+		String top = event.getLine(0);
+		if(top.equalsIgnoreCase("[HungerArena]") || top.equalsIgnoreCase("[HA]") || top.equalsIgnoreCase("[Sponsor]")){
 			event.setLine(0, ChatColor.BLUE + top);
 		}
 	}
