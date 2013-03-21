@@ -33,15 +33,16 @@ public class BlockStorage implements Listener {
 		boolean protall = false;
 		if (plugin.config.getString("Protected_Arena_Always").equalsIgnoreCase("True")) { 		/* Jeppa Fix/Add */
 			protall = true;
+			event.setCancelled(true);
+			p.sendMessage("You can't break blocks, at all, if you feel this should change, talk to the server owner.");
 		}
-		if ((plugin.getArena(p) != null) || (protall)) {							/* Bug1a */
+		if (plugin.getArena(p) != null || !protall) {
 			//int a = this.plugin.getArena(p).intValue();
 			int a = 1;											//Jeppa: define a default (may be needed if protall is true)
 			if (plugin.getArena(p) != null) a = plugin.getArena(p);
-			if ((!event.isCancelled()) && (((plugin.Playing.get(a)).contains(pname)) || (protall)))		/* Bug1a */
-			{
+			if (!event.isCancelled() && plugin.Playing.get(a).contains(pname)){
 				if (plugin.config.getString("Protected_Arena").equalsIgnoreCase("True")) {
-					event.setCancelled(true);							/* Jeppa fix Bug1 */
+					event.setCancelled(true);
 					p.sendMessage(ChatColor.RED + "You can't break blocks while playing!");
 				} else if ((((plugin.canjoin.get(a))) || (protall)) && ((plugin.config.getStringList("worlds").isEmpty()) || ((!plugin.config.getStringList("worlds").isEmpty()) && (plugin.config.getStringList("worlds").contains(p.getWorld().getName()))))) { 
 					if (((plugin.management.getIntegerList("blocks.whitelist").isEmpty()) || ((!plugin.management.getIntegerList("blocks.whitelist").isEmpty()) && (!plugin.management.getIntegerList("blocks.whitelist").contains(Integer.valueOf(b.getTypeId()))))) ^ (plugin.management.getBoolean("blocks.useWhitelistAsBlacklist"))) {
