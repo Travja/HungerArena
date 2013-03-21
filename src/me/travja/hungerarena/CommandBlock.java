@@ -20,19 +20,14 @@ public class CommandBlock implements Listener {
 		String pname = p.getName();
 		int i = 0;
 		int x = 0;
-		boolean found = false;
 		for(x = 1; x < plugin.Watching.size(); x++){
 			if(plugin.Watching.get(x).contains(p.getName())){
 				if(!p.hasPermission("HungerArena.UseCommands")){
 					if(!plugin.management.getStringList("commands.whitelist").isEmpty()){
 						for(String whitelist: plugin.management.getStringList("commands.whitelist")){
-							if(cmd.toLowerCase().startsWith(whitelist.toLowerCase())){	// Jeppa: check for ALL whitelist commands
-								found = true;
-								i = plugin.management.getStringList("commands.whitelist").size()-1;
-							}
 							i = i+1;
 							if(i== plugin.management.getStringList("commands.whitelist").size()){
-								if(!found && !cmd.toLowerCase().startsWith("/ha")){	//Jeppa: must be && ;)
+								if(!cmd.toLowerCase().startsWith(whitelist.toLowerCase()) || !cmd.toLowerCase().startsWith("/ha")){
 									event.setCancelled(true);
 									p.sendMessage(ChatColor.RED + "You are only allowed to perform the following commands:");
 									for(String whitelistfull: plugin.management.getStringList("commands.whitelist")){
@@ -75,13 +70,9 @@ public class CommandBlock implements Listener {
 			if(!p.hasPermission("HungerArena.UseCommands")){
 				if(!plugin.management.getStringList("commands.whitelist").isEmpty()){
 					for(String whitelist: plugin.management.getStringList("commands.whitelist")){
-						if(cmd.toLowerCase().startsWith(whitelist.toLowerCase())){
-							found = true;
-							i = plugin.management.getStringList("commands.whitelist").size()-1;
-						}
 						i = i+1;
-						if(i== plugin.management.getStringList("commands.whitelist").size()){	// Abbruch bei max. Anzahl
-							if(!found && !cmd.toLowerCase().startsWith("/ha")){		// with the two invertet forms it must be && ;)
+						if(i== plugin.management.getStringList("commands.whitelist").size()){
+							if(!cmd.toLowerCase().startsWith(whitelist.toLowerCase()) || !cmd.toLowerCase().startsWith("/ha")){
 								event.setCancelled(true);
 								p.sendMessage(ChatColor.RED + "You are only allowed to perform the following commands:");
 								for(String whitelistfull: plugin.management.getStringList("commands.whitelist")){
@@ -118,7 +109,6 @@ public class CommandBlock implements Listener {
 					p.sendMessage("You have perms for all commands except this one!");
 				}
 			}
-//commands while not playing...
 		}else if(cmd.toLowerCase().equals("/back")){
 			for(i = 1; i < plugin.Dead.size(); i++){
 				if(plugin.Dead.get(i).contains(pname) && plugin.canjoin.get(i))

@@ -39,15 +39,8 @@ Need_Confirm: 'true'
 
 # Whether or not the countdown will start upon warping.
 Countdown: 'true'
-
-# Duration of the countdown .
-Countdown_Timer: 15
-
-# Whether or not players can break ANY blocks while playing
+# Whether or not players can break blocks while playing
 Protected_Arena: 'true'
-
-# Whether or not players (not playing) can break blocks while waiting
-Protected_Arena_Allways: 'true'
 
 # Whether or not players will be frozen when they are teleported to their positions
 Frozen_Teleport: 'true'
