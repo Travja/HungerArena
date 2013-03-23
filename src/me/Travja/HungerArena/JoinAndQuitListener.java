@@ -36,6 +36,7 @@ public class JoinAndQuitListener implements Listener {
 	public void onPlayerJoin(PlayerJoinEvent event){
 		final Player p = event.getPlayer();
 		final String pname = p.getName();
+		boolean pfound = false;
 		for(i = 1; i <= plugin.Watching.size(); i++){
 			for(String s: plugin.Watching.get(i)){
 				Player spectator = plugin.getServer().getPlayerExact(s);
@@ -51,6 +52,7 @@ public class JoinAndQuitListener implements Listener {
 					}
 				}, 40L);
 				plugin.Out.get(i).remove(pname);
+				pfound = true;
 			}
 		}
 		for(i = 1; i <= plugin.Quit.size(); i++){
@@ -68,6 +70,8 @@ public class JoinAndQuitListener implements Listener {
 						p.sendMessage(ChatColor.RED + "You have been teleported to spawn because you quit/forfeited!");
 					}
 				}, 40L);
+				plugin.Quit.get(i).remove(pname); //Jeppa: fix
+				pfound = true;
 			}
 		}
 		for(i = 1; i <= plugin.Dead.size(); i++){
@@ -82,9 +86,11 @@ public class JoinAndQuitListener implements Listener {
 				plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 					public void run(){
 						p.teleport(Spawn);
-						p.sendMessage(ChatColor.RED + "You have been teleported to spawn because you quit/forfeited!");
+						p.sendMessage(ChatColor.RED + "You have been teleported to spawn because you quit/forfeited!!");
 					}
 				}, 40L);
+				plugin.Dead.get(i).remove(pname); //Jeppa: fix
+				pfound = true;
 			}
 		}
 		for(i = 1; i <= plugin.inArena.size(); i++){
@@ -109,9 +115,31 @@ public class JoinAndQuitListener implements Listener {
 							p.sendMessage(ChatColor.RED + "You were still in the arena when you left and now the games are over.");
 						}
 					}, 40L);
+					plugin.inArena.get(i).remove(pname); //Jeppa: fix
+					pfound = true;
 				}
 			}
 		}
+//Jeppa: New routine to check if the player reconnected and is unknown to the server!
+		if((plugin.restricted && plugin.worlds.contains(p.getWorld().getName())) || !plugin.restricted){
+			if (!pfound && plugin.config.getString("Force_Players_toSpawn").equalsIgnoreCase("True")) { //Jeppa: Player is in non of the obove lists.. so he is new to the server due to restart of the server and reconnect of the player...(something like that...)
+				String[] Spawncoords = plugin.spawns.getString("Spawn_coords").split(",");
+				String w = Spawncoords[3];
+				World spawnw = plugin.getServer().getWorld(w);
+				double spawnx = Double.parseDouble(Spawncoords[0]);
+				double spawny = Double.parseDouble(Spawncoords[1]);
+				double spawnz = Double.parseDouble(Spawncoords[2]);
+				final Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
+				plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
+					public void run(){
+						p.teleport(Spawn);
+						p.sendMessage(ChatColor.RED + "You have been teleported to spawn !!");
+					}
+				}, 40L);
+			}
+		}
+//^^
+
 	}
 	@EventHandler
 	public void onQuit(PlayerQuitEvent evt) {
@@ -139,13 +167,13 @@ public class JoinAndQuitListener implements Listener {
 			a = plugin.getArena(p);
 			plugin.Out.get(a).add(pname);
 			plugin.Playing.get(a).remove(pname);
-			plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
+			plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){ // Jeppa: how long is this delay?
 				public void run(){
 					if(plugin.Out.get(a).contains(pname)){
 						plugin.Quit.get(a).add(pname);
-						plugin.Out.remove(pname);
+						plugin.Out.get(a).remove(pname); //Jeppa: fix
 						plugin.winner(a);
-						plugin.inArena.get(a).add(pname);
+						plugin.inArena.get(a).add(pname); //Jeppa: add him to Quit and to inArena ?
 					}else if(plugin.getArena(p)== null){
 						plugin.Quit.get(a).add(pname);
 					}
