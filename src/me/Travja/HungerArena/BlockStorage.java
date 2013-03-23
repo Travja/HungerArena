@@ -33,8 +33,10 @@ public class BlockStorage implements Listener {
 		boolean protall = false;
 		if (plugin.config.getString("Protected_Arena_Always").equalsIgnoreCase("True")) { 		/* Jeppa Fix/Add */
 			protall = true;
-			event.setCancelled(true);
-			p.sendMessage("You can't break blocks, at all, if you feel this should change, talk to the server owner.");
+			if(!p.hasPermission("HungerArena.arena") && plugin.getArena(p) != null){
+				event.setCancelled(true);
+				p.sendMessage("You can't break blocks, at all, if you feel this should change, talk to the server owner.");
+			}
 		}
 		if (plugin.getArena(p) != null || !protall) {
 			//int a = this.plugin.getArena(p).intValue();
@@ -155,7 +157,6 @@ public class BlockStorage implements Listener {
 										int y = br.getY();
 										int z = br.getZ();
 										String coords = w + "," + x + "," + y + "," + z + "," + a;
-										p.sendMessage(ChatColor.GREEN + "Sand/Gravel will land at " + coords);
 										List<String> blocks = plugin.data.getStringList("Blocks_Placed");
 										blocks.add(coords);
 										plugin.data.set("Blocks_Placed", blocks);
