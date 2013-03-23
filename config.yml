@@ -47,10 +47,10 @@ Countdown_Timer: 15
 Protected_Arena: 'true'
 
 # Whether or not players (not playing) can break blocks while waiting
-Protected_Arena_Always: 'true'
+Protected_Arena_Always: 'false'
 
 # Whether new or unknown players on HA-maps should be forced to the spawn or not.
-Force_Players_toSpawn: 'true'
+Force_Players_toSpawn: 'false'
 
 # Whether or not players will be frozen when they are teleported to their positions
 Frozen_Teleport: 'true'
