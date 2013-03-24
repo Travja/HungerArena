@@ -137,11 +137,18 @@ public class BlockStorage implements Listener {
 	public void blockPlace(BlockPlaceEvent event){
 		Block b = event.getBlock();
 		Player p = event.getPlayer();
-		if(plugin.getArena(p)!= null){
-			int a = plugin.getArena(p);
+		boolean protall = false;
+		if (plugin.config.getString("Protected_Arena_Always").equalsIgnoreCase("True")) { 		/* Jeppa Fix/Add */
+			if(!p.hasPermission("HungerArena.arena")){						// Admins or with permission : free...
+				protall = true;
+			}
+		}
+		if ((plugin.getArena(p) != null) || (protall)) {							/* Bug1a */
+			int a = 1;											//Jeppa: define a default (may be needed if protall is true)
+			if (plugin.getArena(p) != null) a = plugin.getArena(p);
 			if(!event.isCancelled()){
-				if(plugin.Playing.get(a).contains(p.getName())){
-					if(plugin.canjoin.get(a)){
+				if (((plugin.Playing.get(a)).contains(p.getName())) || (protall)) {	
+					if((plugin.canjoin.get(a)) || (protall)){
 						if(plugin.config.getStringList("worlds").isEmpty() || (!plugin.config.getStringList("worlds").isEmpty() && plugin.config.getStringList("worlds").contains(b.getWorld().getName()))){
 							if((b.getType()== Material.SAND || b.getType()== Material.GRAVEL) && (b.getRelative(BlockFace.DOWN).getType()== Material.AIR || b.getRelative(BlockFace.DOWN).getType()== Material.WATER || b.getRelative(BlockFace.DOWN).getType()== Material.LAVA)){
 								int n = b.getY() -1;
