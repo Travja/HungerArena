@@ -32,7 +32,9 @@ public class BlockStorage implements Listener {
 		String pname = p.getName();
 		boolean protall = false;
 		if (plugin.config.getString("Protected_Arena_Always").equalsIgnoreCase("True")) { 		/* Jeppa Fix/Add */
-			protall = true;
+			if(!p.hasPermission("HungerArena.arena")){	// Admins frei...
+				protall = true;
+			}
 		}
 		if ((plugin.getArena(p) != null) || (protall)) {							/* Bug1a */
 			//int a = this.plugin.getArena(p).intValue();
