@@ -33,7 +33,7 @@ public class BlockStorage implements Listener {
 		boolean protall = false;
 		if (plugin.config.getString("Protected_Arena_Always").equalsIgnoreCase("True")) { 		/* Jeppa Fix/Add */
 			protall = true;
-			if(!p.hasPermission("HungerArena.arena") && plugin.getArena(p) != null){
+			if(!p.hasPermission("HungerArena.arena")){
 				event.setCancelled(true);
 				p.sendMessage("You can't break blocks, at all, if you feel this should change, talk to the server owner.");
 			}
