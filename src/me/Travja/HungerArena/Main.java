@@ -450,6 +450,7 @@ public class Main extends JavaPlugin{
 											}
 										}else
 											getServer().broadcastMessage(ChatColor.GREEN + "Grace period is over, FIGHT!");
+										getServer().getScheduler().cancelTask(grace);
 									}
 								}
 							},20L, 20L);
