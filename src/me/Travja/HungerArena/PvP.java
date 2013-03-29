@@ -8,6 +8,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 
 public class PvP implements Listener {
 	public Main plugin;
@@ -61,6 +62,14 @@ public class PvP implements Listener {
 					}
 				}
 			}
+		}
+	}
+	@EventHandler
+	public void PlayerDamage(EntityDamageEvent event){
+		Entity e = event.getEntity();
+		if(e instanceof Player){
+			if(plugin.gp!= 0)
+				event.setCancelled(true);
 		}
 	}
 }

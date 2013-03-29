@@ -84,6 +84,8 @@ public class Main extends JavaPlugin{
 	int deathtime = 0;
 	int timetodeath = 0;
 	int a = 0;
+	public int gp = 0;
+	int grace = 0;
 	public void onEnable(){
 		log = this.getLogger();
 		config = this.getConfig();
@@ -114,7 +116,6 @@ public class Main extends JavaPlugin{
 		getCommand("Sponsor").setExecutor(SponsorCommands);
 		getCommand("Startpoint").setExecutor(SpawnsCommand);
 		i = 1;
-		//TODO THIS CRAP		/* Jeppa: Wasn't this already done ??? */
 		if(spawns.getConfigurationSection("Spawns")!= null){
 			Map<String, Object> temp = spawns.getConfigurationSection("Spawns").getValues(false);
 			for(Entry<String, Object> entry: temp.entrySet()){
@@ -429,6 +430,31 @@ public class Main extends JavaPlugin{
 						}
 						getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha Refill " + a);
 						getServer().getScheduler().cancelTask(start);
+						if(config.getInt("Grace_Period")!= 0){
+							gp = config.getInt("Grace_Period");
+							grace = getServer().getScheduler().scheduleSyncRepeatingTask(Bukkit.getPluginManager().getPlugin("HungerArena"), new Runnable(){
+								public void run(){
+									gp = gp-1;
+									if(gp == 30 || gp == 15 || (gp < 11 && gp != 0)){
+										if(config.getBoolean("broadcastAll")){
+											for(Player wp: location.get(a).get(1).getWorld().getPlayers()){
+												wp.sendMessage(ChatColor.GREEN + "Grace period ends in " + gp + " seconds!");
+											}
+										}else
+											getServer().broadcastMessage(ChatColor.GREEN + "Grace period ends in " + gp + " seconds!");
+									}
+									if(gp == 0){
+										if(config.getBoolean("broadcastAll")){
+											for(Player wp: location.get(a).get(1).getWorld().getPlayers()){
+												wp.sendMessage(ChatColor.GREEN + "Grace period is over, FIGHT!");
+											}
+										}else
+											getServer().broadcastMessage(ChatColor.GREEN + "Grace period is over, FIGHT!");
+										getServer().getScheduler().cancelTask(grace);
+									}
+								}
+							},20L, 20L);
+						}
 						if(config.getInt("DeathMatch")!= 0){
 							int death = config.getInt("DeathMatch");
 							timetodeath = death;
@@ -436,7 +462,7 @@ public class Main extends JavaPlugin{
 								public void run(){
 									timetodeath = timetodeath-1;
 									if(config.getBoolean("broadcastAll")){
-										for(Player wp: location.get(a).get(0).getWorld().getPlayers()){
+										for(Player wp: location.get(a).get(1).getWorld().getPlayers()){
 											if(timetodeath!= 0){
 												wp.sendMessage(ChatColor.RED + String.valueOf(timetodeath) + " mins till the death match!");
 											}
@@ -494,9 +520,9 @@ public class Main extends JavaPlugin{
 	}
 	public Integer getArena(Player p){
 		for (int x: Playing.keySet()) {
-		    if (Playing.get(x).contains(p.getName())){
-		        return x;
-		    }
+			if (Playing.get(x).contains(p.getName())){
+				return x;
+			}
 		}
 		return null;
 	}

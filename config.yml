@@ -43,6 +43,9 @@ Countdown: 'true'
 # Duration of the countdown .
 Countdown_Timer: 15
 
+# How long the grace period should last (seconds)
+Grace_Period: 60
+
 # Whether or not players can break ANY blocks while playing
 Protected_Arena: 'true'
 
