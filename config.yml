@@ -43,11 +43,17 @@ Countdown: 'true'
 # Duration of the countdown .
 Countdown_Timer: 15
 
+# How long the grace period should last (seconds)
+Grace_Period: 60
+
 # Whether or not players can break ANY blocks while playing
 Protected_Arena: 'true'
 
 # Whether or not players (not playing) can break blocks while waiting
-Protected_Arena_Allways: 'true'
+Protected_Arena_Always: 'false'
+
+# Whether new or unknown players on HA-maps should be forced to the spawn or not.
+Force_Players_toSpawn: 'false'
 
 # Whether or not players will be frozen when they are teleported to their positions
 Frozen_Teleport: 'true'
