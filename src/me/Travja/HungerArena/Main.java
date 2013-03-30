@@ -70,8 +70,12 @@ public class Main extends JavaPlugin{
 	public File spawnsFile = null;
 	public FileConfiguration data = null;
 	public File dataFile = null;
-	public File managementFile = null;
 	public FileConfiguration management = null;
+	public File managementFile = null;
+
+	public FileConfiguration MyChests = null;
+	public File ChestsFile = null;
+
 	public ArrayList<ItemStack> Reward = new ArrayList<ItemStack>();
 	public ArrayList<ItemStack> Cost = new ArrayList<ItemStack>();
 	public ArrayList<ItemStack> Fee = new ArrayList<ItemStack>();
@@ -100,6 +104,9 @@ public class Main extends JavaPlugin{
 		management = this.getManagement();
 		management.options().copyDefaults(true);
 		this.saveManagement();
+		MyChests = this.getChests();
+		MyChests.options().copyDefaults(true);
+		this.saveChests();
 		getServer().getPluginManager().registerEvents(DeathListener, this);
 		getServer().getPluginManager().registerEvents(SpectatorListener, this);
 		getServer().getPluginManager().registerEvents(FreezeListener, this);
@@ -309,6 +316,37 @@ public class Main extends JavaPlugin{
 			this.getLogger().log(Level.SEVERE, "Could not save config to " + managementFile, ex);
 		}
 	}
+//Jeppa: Add routine like the others for loading Chests with their very own file..
+	public void reloadChests() {
+		if (ChestsFile == null) {
+			ChestsFile = new File(getDataFolder(), "Chests.yml");
+		}
+		MyChests = YamlConfiguration.loadConfiguration(ChestsFile);
+
+		// Look for defaults in the jar
+		InputStream defConfigStream = this.getResource("Chests.yml");
+		if (defConfigStream != null) {
+			YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
+			MyChests.setDefaults(defConfig);
+		}
+	}
+	public FileConfiguration getChests() {
+		if (MyChests == null) {
+			this.reloadChests();
+		}
+		return MyChests;
+	}
+	public void saveChests() {
+		if (MyChests == null || ChestsFile == null) {
+			return;
+		}
+		try {
+			getChests().save(ChestsFile);
+		} catch (IOException ex) {
+			this.getLogger().log(Level.SEVERE, "Could not save config to " + ChestsFile, ex);
+		}
+	}
+//^^
 	public void winner(final Integer a){
 		String[] Spawncoords = spawns.getString("Spawn_coords").split(",");
 		World spawnw = getServer().getWorld(Spawncoords[3]);
