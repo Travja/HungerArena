@@ -46,7 +46,8 @@ public class Main extends JavaPlugin{
 	public HashMap<Integer, Boolean> canjoin = new HashMap<Integer, Boolean>();
 	public HashMap<Integer, Integer> maxPlayers = new HashMap<Integer, Integer>();
 	public HashMap<Integer, Boolean> open = new HashMap<Integer, Boolean>();
-	public List<String> worlds;
+	public List<String> worlds = new ArrayList<String>();
+	
 	public Listener DeathListener = new DeathListener(this);
 	public Listener SpectatorListener = new SpectatorListener(this);
 	public Listener FreezeListener = new FreezeListener(this);
@@ -63,8 +64,10 @@ public class Main extends JavaPlugin{
 	public CommandExecutor HaCommands = new HaCommands(this);
 	public CommandExecutor SponsorCommands = new SponsorCommands(this);
 	public CommandExecutor SpawnsCommand = new SpawnsCommand(this);
+	
 	public boolean exists;
 	public boolean restricted;
+	
 	public FileConfiguration config;
 	public FileConfiguration spawns = null;
 	public File spawnsFile = null;
@@ -79,9 +82,11 @@ public class Main extends JavaPlugin{
 	public ArrayList<ItemStack> Reward = new ArrayList<ItemStack>();
 	public ArrayList<ItemStack> Cost = new ArrayList<ItemStack>();
 	public ArrayList<ItemStack> Fee = new ArrayList<ItemStack>();
+	
 	public boolean vault = false;
 	public boolean eco = false;
 	public Economy econ = null;
+	
 	int i = 0;
 	int v = 0;
 	int start = 0;
@@ -92,6 +97,7 @@ public class Main extends JavaPlugin{
 	int grace = 0;
 	public void onEnable(){
 		log = this.getLogger();
+		
 		config = this.getConfig();
 		config.options().copyDefaults(true);
 		this.saveDefaultConfig();
@@ -107,6 +113,7 @@ public class Main extends JavaPlugin{
 		MyChests = this.getChests();
 		MyChests.options().copyDefaults(true);
 		this.saveChests();
+		
 		getServer().getPluginManager().registerEvents(DeathListener, this);
 		getServer().getPluginManager().registerEvents(SpectatorListener, this);
 		getServer().getPluginManager().registerEvents(FreezeListener, this);
@@ -119,9 +126,11 @@ public class Main extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(BlockStorage, this);
 		getServer().getPluginManager().registerEvents(WinGames, this);
 		getServer().getPluginManager().registerEvents(Damage, this);
+		
 		getCommand("Ha").setExecutor(HaCommands);
 		getCommand("Sponsor").setExecutor(SponsorCommands);
 		getCommand("Startpoint").setExecutor(SpawnsCommand);
+		
 		i = 1;
 		if(spawns.getConfigurationSection("Spawns")!= null){
 			Map<String, Object> temp = spawns.getConfigurationSection("Spawns").getValues(false);
@@ -142,6 +151,7 @@ public class Main extends JavaPlugin{
 				}
 			}
 		}
+		
 		for(i = 1; i <= location.size(); i++){
 			log.info("Loaded " + location.get(i).size() + " tribute spawns for arena " + i + "!");
 			Playing.put(i, new ArrayList<String>());

@@ -8,6 +8,7 @@ import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -20,7 +21,7 @@ public class DeathListener implements Listener{
 	public FileConfiguration config;
 	int i = 0;
 	int a = 0;
-	@EventHandler
+	@EventHandler (priority = EventPriority.HIGHEST)
 	public void onPlayerRespawn(PlayerRespawnEvent event){
 		final Player p = event.getPlayer();
 		String pname = p.getName();
@@ -40,7 +41,7 @@ public class DeathListener implements Listener{
 			}
 		}
 	}
-	@EventHandler
+	@EventHandler (priority = EventPriority.HIGHEST)
 	public void onPlayerDeath(PlayerDeathEvent event){
 		Player p = event.getEntity();
 		Server s = p.getServer();

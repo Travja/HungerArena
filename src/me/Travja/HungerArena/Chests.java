@@ -22,7 +22,6 @@ public class Chests implements Listener {
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void ChestBreak(BlockBreakEvent event){
 		Player p = event.getPlayer();
-
 		Block block = event.getBlock();
 		if(p.hasPermission("HungerArena.Chest.Break")){
 			Location blocklocation = block.getLocation();

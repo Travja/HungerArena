@@ -434,6 +434,7 @@ public class HaCommands implements CommandExecutor {
 									}
 								}else if(plugin.config.getBoolean("EntryFee.enabled") && !plugin.config.getBoolean("EntryFee.eco")){
 									i = 0;
+									p.sendMessage("2");
 									for(ItemStack fee: plugin.Fee){
 										int total = plugin.Fee.size();
 										if(p.getInventory().contains(fee)){
@@ -464,6 +465,7 @@ public class HaCommands implements CommandExecutor {
 										p.sendMessage(ChatColor.RED + "You are missing some items and can't join the games...");
 									}
 								}else if(!plugin.config.getBoolean("EntryFee.enabled") && plugin.config.getBoolean("EntryFee.eco")){
+									p.sendMessage("2");
 									if(!(plugin.econ.getBalance(pname) < plugin.config.getDouble("EntryFee.cost"))){
 										plugin.econ.withdrawPlayer(pname, plugin.config.getDouble("EntryFee.cost"));
 										p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + "$" + plugin.config.getDouble("EntryFee.cost") + " has been taken from your account!");
@@ -486,6 +488,7 @@ public class HaCommands implements CommandExecutor {
 										p.sendMessage(ChatColor.RED + "You don't have enough money to join!");
 									}
 								}else{
+									p.sendMessage("2");
 									plugin.Playing.get(a).add(pname);
 									plugin.NeedConfirm.get(a).remove(pname);
 									p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");

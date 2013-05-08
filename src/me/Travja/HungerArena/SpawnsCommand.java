@@ -29,6 +29,7 @@ public class SpawnsCommand implements CommandExecutor {
 							a = Integer.valueOf(args[0]);
 						}catch(Exception e){
 							p.sendMessage(ChatColor.RED + "Argument not an integer!");
+							return true;
 						}
 						if(i >= 1 && i <= plugin.config.getInt("maxPlayers")){
 							if(plugin.restricted && !plugin.worlds.contains(p.getWorld().getName())){
