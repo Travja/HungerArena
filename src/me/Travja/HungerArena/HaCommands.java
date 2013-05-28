@@ -13,11 +13,13 @@ import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.ConsoleCommandSender;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.event.HandlerList;		//Jeppa : add for eventremoval...
+import org.bukkit.event.HandlerList;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+//Jeppa : add for eventremoval...
 
 public class HaCommands implements CommandExecutor {
 	public Main plugin;
@@ -289,6 +291,11 @@ public class HaCommands implements CommandExecutor {
 															plugin.Playing.get(a).add(pname);
 															plugin.NeedConfirm.get(a).remove(pname);
 															p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
+															FileConfiguration pinfo = plugin.getPConfig(pname);
+															pinfo.set("inv", p.getInventory().getContents());
+															pinfo.set("armor", p.getInventory().getArmorContents());
+															pinfo.set("world", p.getLocation().getWorld().getName());
+															plugin.savePFile(pname);
 															clearInv(p);
 															if(plugin.config.getBoolean("broadcastAll")){
 																plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "!");
@@ -323,6 +330,11 @@ public class HaCommands implements CommandExecutor {
 														plugin.Playing.get(a).add(pname);
 														plugin.NeedConfirm.get(a).remove(pname);
 														p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
+														FileConfiguration pinfo = plugin.getPConfig(pname);
+														pinfo.set("inv", p.getInventory().getContents());
+														pinfo.set("armor", p.getInventory().getArmorContents());
+														pinfo.set("world", p.getLocation().getWorld().getName());
+														plugin.savePFile(pname);
 														clearInv(p);
 														if(plugin.config.getBoolean("broadcastAll")){
 															plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "!");
@@ -348,6 +360,11 @@ public class HaCommands implements CommandExecutor {
 												plugin.Playing.get(a).add(pname);
 												plugin.NeedConfirm.get(a).remove(pname);
 												p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
+												FileConfiguration pinfo = plugin.getPConfig(pname);
+												pinfo.set("inv", p.getInventory().getContents());
+												pinfo.set("armor", p.getInventory().getArmorContents());
+												pinfo.set("world", p.getLocation().getWorld().getName());
+												plugin.savePFile(pname);
 												clearInv(p);
 												if(plugin.config.getBoolean("broadcastAll")){
 													plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "!");
@@ -367,6 +384,11 @@ public class HaCommands implements CommandExecutor {
 											plugin.Playing.get(a).add(pname);
 											plugin.NeedConfirm.get(a).remove(pname);
 											p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
+											FileConfiguration pinfo = plugin.getPConfig(pname);
+											pinfo.set("inv", p.getInventory().getContents());
+											pinfo.set("armor", p.getInventory().getArmorContents());
+											pinfo.set("world", p.getLocation().getWorld().getName());
+											plugin.savePFile(pname);
 											clearInv(p);
 											if(plugin.config.getBoolean("broadcastAll")){
 												plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "!");
@@ -411,6 +433,11 @@ public class HaCommands implements CommandExecutor {
 													plugin.Playing.get(a).add(pname);
 													plugin.NeedConfirm.get(a).remove(pname);
 													p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
+													FileConfiguration pinfo = plugin.getPConfig(pname);
+													pinfo.set("inv", p.getInventory().getContents());
+													pinfo.set("armor", p.getInventory().getArmorContents());
+													pinfo.set("world", p.getLocation().getWorld().getName());
+													plugin.savePFile(pname);
 													clearInv(p);
 													if(plugin.config.getBoolean("broadcastAll")){
 														plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "!");
@@ -446,6 +473,11 @@ public class HaCommands implements CommandExecutor {
 												plugin.Playing.get(a).add(pname);
 												plugin.NeedConfirm.get(a).remove(pname);
 												p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
+												FileConfiguration pinfo = plugin.getPConfig(pname);
+												pinfo.set("inv", p.getInventory().getContents());
+												pinfo.set("armor", p.getInventory().getArmorContents());
+												pinfo.set("world", p.getLocation().getWorld().getName());
+												plugin.savePFile(pname);
 												clearInv(p);
 												if(plugin.config.getBoolean("broadcastAll")){
 													plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "!");
@@ -472,6 +504,11 @@ public class HaCommands implements CommandExecutor {
 										plugin.Playing.get(a).add(pname);
 										plugin.NeedConfirm.get(a).remove(pname);
 										p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
+										FileConfiguration pinfo = plugin.getPConfig(pname);
+										pinfo.set("inv", p.getInventory().getContents());
+										pinfo.set("armor", p.getInventory().getArmorContents());
+										pinfo.set("world", p.getLocation().getWorld().getName());
+										plugin.savePFile(pname);
 										clearInv(p);
 										if(plugin.config.getBoolean("broadcastAll")){
 											plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "!");
@@ -492,6 +529,11 @@ public class HaCommands implements CommandExecutor {
 									plugin.Playing.get(a).add(pname);
 									plugin.NeedConfirm.get(a).remove(pname);
 									p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
+									FileConfiguration pinfo = plugin.getPConfig(pname);
+									pinfo.set("inv", p.getInventory().getContents());
+									pinfo.set("armor", p.getInventory().getArmorContents());
+									pinfo.set("world", p.getLocation().getWorld().getName());
+									plugin.savePFile(pname);
 									clearInv(p);
 									if(plugin.config.getBoolean("broadcastAll")){
 										plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "!");
@@ -511,11 +553,8 @@ public class HaCommands implements CommandExecutor {
 							}
 						}
 					}else if(args[0].equalsIgnoreCase("Ready")){
-		//				p.sendMessage("debug: Arena: " + String.valueOf(plugin.getArena(p)));	// Jeppa: das ist debug!
 						if(plugin.getArena(p)!= null){
 							a = plugin.getArena(p);
-		//					for(String s:plugin.Playing.get(a))	// Jeppa: das ist debug!
-		//						p.sendMessage("Debug: Player:"+a+" : " + s);		// Jeppa: das ist debug!
 							if(plugin.Playing.get(a).contains(pname)){
 								if(plugin.Ready.get(a).contains(pname)){
 									p.sendMessage(ChatColor.RED + "You're already ready!");
@@ -533,8 +572,10 @@ public class HaCommands implements CommandExecutor {
 							p.sendMessage(ChatColor.RED + "You aren't playing in any games!");
 						}
 					}else if(args[0].equalsIgnoreCase("Leave")){
+						//TODO **Give inv back if they enter the correct world.**
 						if(plugin.getArena(p)!= null){
 							a = plugin.getArena(p);
+							plugin.needInv.add(pname);
 							if(plugin.canjoin.get(a)== true){
 								plugin.Playing.get(a).remove(pname);
 								p.sendMessage(ChatColor.AQUA + "You have left the game!");

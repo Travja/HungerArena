@@ -39,13 +39,14 @@ public class Main extends JavaPlugin{
 	public HashMap<Integer, List<String>> Watching = new HashMap<Integer, List<String>>();
 	public HashMap<Integer, List<String>> NeedConfirm = new HashMap<Integer, List<String>>();
 	public HashMap<Integer, HashMap<Integer, Location>> location = new HashMap<Integer, HashMap<Integer, Location>>();
-	public ArrayList<Player> Tele = new ArrayList<Player>();
 	public HashMap<Integer, List<String>> inArena = new HashMap<Integer, List<String>>();
 	public HashMap<Integer, List<String>> Frozen = new HashMap<Integer, List<String>>();
 	public HashMap<Integer, List<String>> arena = new HashMap<Integer, List<String>>();
 	public HashMap<Integer, Boolean> canjoin = new HashMap<Integer, Boolean>();
 	public HashMap<Integer, Integer> maxPlayers = new HashMap<Integer, Integer>();
 	public HashMap<Integer, Boolean> open = new HashMap<Integer, Boolean>();
+	public ArrayList<Player> Tele = new ArrayList<Player>();
+	public ArrayList<String> needInv = new ArrayList<String>();
 	public List<String> worlds = new ArrayList<String>();
 	
 	public Listener DeathListener = new DeathListener(this);
@@ -61,6 +62,7 @@ public class Main extends JavaPlugin{
 	public Listener Signs = new Signs(this);
 	public Listener BlockStorage = new BlockStorage(this);
 	public Listener WinGames = new WinGamesListener(this);
+	public Listener WorldChange = new WorldChange(this);
 	public CommandExecutor HaCommands = new HaCommands(this);
 	public CommandExecutor SponsorCommands = new SponsorCommands(this);
 	public CommandExecutor SpawnsCommand = new SpawnsCommand(this);
@@ -126,10 +128,17 @@ public class Main extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(BlockStorage, this);
 		getServer().getPluginManager().registerEvents(WinGames, this);
 		getServer().getPluginManager().registerEvents(Damage, this);
+		getServer().getPluginManager().registerEvents(WorldChange, this);
 		
 		getCommand("Ha").setExecutor(HaCommands);
 		getCommand("Sponsor").setExecutor(SponsorCommands);
 		getCommand("Startpoint").setExecutor(SpawnsCommand);
+		
+		for(File file: getDataFolder().listFiles()){
+			String filename = file.getName();
+			if(filename != "commandAndBlockManagement" && filename != "config" && filename != "Data" && filename != "spawns")
+				needInv.add(filename);
+		}
 		
 		i = 1;
 		if(spawns.getConfigurationSection("Spawns")!= null){
@@ -245,7 +254,6 @@ public class Main extends JavaPlugin{
 		}
 		spawns = YamlConfiguration.loadConfiguration(spawnsFile);
 
-		// Look for defaults in the jar
 		InputStream defConfigStream = this.getResource("spawns.yml");
 		if (defConfigStream != null) {
 			YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
@@ -274,7 +282,6 @@ public class Main extends JavaPlugin{
 		}
 		data = YamlConfiguration.loadConfiguration(dataFile);
 
-		// Look for defaults in the jar
 		InputStream defConfigStream = this.getResource("Data.yml");
 		if (defConfigStream != null) {
 			YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
@@ -303,7 +310,6 @@ public class Main extends JavaPlugin{
 		}
 		management = YamlConfiguration.loadConfiguration(managementFile);
 
-		// Look for defaults in the jar
 		InputStream defConfigStream = this.getResource("commandAndBlockManagement.yml");
 		if (defConfigStream != null) {
 			YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
@@ -326,14 +332,12 @@ public class Main extends JavaPlugin{
 			this.getLogger().log(Level.SEVERE, "Could not save config to " + managementFile, ex);
 		}
 	}
-//Jeppa: Add routine like the others for loading Chests with their very own file..
 	public void reloadChests() {
 		if (ChestsFile == null) {
 			ChestsFile = new File(getDataFolder(), "Chests.yml");
 		}
 		MyChests = YamlConfiguration.loadConfiguration(ChestsFile);
 
-		// Look for defaults in the jar
 		InputStream defConfigStream = this.getResource("Chests.yml");
 		if (defConfigStream != null) {
 			YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
@@ -354,6 +358,32 @@ public class Main extends JavaPlugin{
 			getChests().save(ChestsFile);
 		} catch (IOException ex) {
 			this.getLogger().log(Level.SEVERE, "Could not save config to " + ChestsFile, ex);
+		}
+	}
+	File PFile = null;
+	FileConfiguration PConfig= null;
+	public void reloadPFile(String pname) {
+		if (PFile == null) {
+			PFile = new File(getDataFolder(), pname + ".yml");
+		}
+		PConfig = YamlConfiguration.loadConfiguration(PFile);
+
+		InputStream defConfigStream = this.getResource(pname + ".yml");
+		if (defConfigStream != null) {
+			YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
+			PConfig.setDefaults(defConfig);
+		}
+	}
+	public FileConfiguration getPConfig(String pname) {
+		this.reloadPFile(pname);
+		return PConfig;
+	}
+	public void savePFile(String pname) {
+		reloadPFile(pname);
+		try {
+			getPConfig(pname).save(PFile);
+		} catch (IOException ex) {
+			this.getLogger().log(Level.SEVERE, "Could not save config to " + PFile, ex);
 		}
 	}
 //^^
@@ -385,6 +415,7 @@ public class Main extends JavaPlugin{
 				Tele.add(winner);
 				final World w = winner.getWorld();
 				winner.teleport(Spawn);
+				//TODO give winner inv back
 				if(config.getBoolean("reloadWorld")){
 					getServer().unloadWorld(w, false);
 					getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable(){
@@ -428,7 +459,6 @@ public class Main extends JavaPlugin{
 		String begin = config.getString("Start_Message");
 		begin = begin.replaceAll("(&([a-f0-9]))", "\u00A7$2");
 		final String msg = begin;
-		/* Jeppa add : */
 		if(config.getInt("Countdown_Timer") != 0) {
 			i = config.getInt("Countdown_Timer") ;
 		} else {
