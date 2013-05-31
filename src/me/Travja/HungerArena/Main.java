@@ -17,17 +17,19 @@ import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.WorldCreator;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+
+import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
 public class Main extends JavaPlugin{
 	static Logger log;
@@ -63,6 +65,7 @@ public class Main extends JavaPlugin{
 	public Listener BlockStorage = new BlockStorage(this);
 	public Listener WinGames = new WinGamesListener(this);
 	public Listener WorldChange = new WorldChange(this);
+	public Listener Boundaries = new Boundaries(this);
 	public CommandExecutor HaCommands = new HaCommands(this);
 	public CommandExecutor SponsorCommands = new SponsorCommands(this);
 	public CommandExecutor SpawnsCommand = new SpawnsCommand(this);
@@ -103,6 +106,7 @@ public class Main extends JavaPlugin{
 		config = this.getConfig();
 		config.options().copyDefaults(true);
 		this.saveDefaultConfig();
+		ConfigManager.setup();
 		spawns = this.getSpawns();
 		spawns.options().copyDefaults(true);
 		this.saveSpawns();
@@ -129,6 +133,7 @@ public class Main extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(WinGames, this);
 		getServer().getPluginManager().registerEvents(Damage, this);
 		getServer().getPluginManager().registerEvents(WorldChange, this);
+		getServer().getPluginManager().registerEvents(Boundaries, this);
 		
 		getCommand("Ha").setExecutor(HaCommands);
 		getCommand("Sponsor").setExecutor(SponsorCommands);
@@ -236,6 +241,15 @@ public class Main extends JavaPlugin{
 		log.info("Disabled v" + getDescription().getVersion());
 	}
 
+	public WorldEditPlugin hookWE() {
+		Plugin wPlugin = getServer().getPluginManager().getPlugin("WorldEdit");
+
+		if ((wPlugin == null) || (!(wPlugin instanceof WorldEditPlugin)))
+			return null;
+
+		return (WorldEditPlugin) wPlugin;
+	}
+	
 	public boolean setupEconomy() {
 		if (getServer().getPluginManager().getPlugin("Vault") == null) {
 			return false;
@@ -386,7 +400,6 @@ public class Main extends JavaPlugin{
 			this.getLogger().log(Level.SEVERE, "Could not save config to " + PFile, ex);
 		}
 	}
-//^^
 	public void winner(final Integer a){
 		String[] Spawncoords = spawns.getString("Spawn_coords").split(",");
 		World spawnw = getServer().getWorld(Spawncoords[3]);
@@ -394,7 +407,6 @@ public class Main extends JavaPlugin{
 		double spawny = Double.parseDouble(Spawncoords[1]);
 		double spawnz = Double.parseDouble(Spawncoords[2]);
 		Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
-		//final String a2 = String.valueOf(a); // Jeppa Test
 		if(Playing.get(a).size()== 1 && canjoin.get(a)== true){
 			//Announce winner
 			for(i = 0; i < Playing.get(a).size(); i++){
@@ -413,17 +425,17 @@ public class Main extends JavaPlugin{
 					winner.removePotionEffect(potion);
 				}
 				Tele.add(winner);
-				final World w = winner.getWorld();
+				needInv.add(winnername2);
+				//final World w = winner.getWorld();
 				winner.teleport(Spawn);
-				//TODO give winner inv back
-				if(config.getBoolean("reloadWorld")){
+				/*if(config.getBoolean("reloadWorld")){
 					getServer().unloadWorld(w, false);
 					getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable(){
 						public void run(){
 							getServer().createWorld(new WorldCreator(w.getName()));
 						}
 					},200L);
-				}
+				}*/
 				if(!config.getBoolean("rewardEco.enabled")){
 					for(ItemStack Rewards: Reward){
 						winner.getInventory().addItem(Rewards);

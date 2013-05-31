@@ -21,6 +21,9 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 //Jeppa : add for eventremoval...
 
+import com.sk89q.worldedit.bukkit.WorldEditPlugin;
+import com.sk89q.worldedit.bukkit.selections.Selection;
+
 public class HaCommands implements CommandExecutor {
 	public Main plugin;
 	public HaCommands(Main m) {
@@ -73,6 +76,8 @@ public class HaCommands implements CommandExecutor {
 					sender.sendMessage(c + "/ha - Displays author message!");
 					sender.sendMessage(c + "/sponsor [Player] [ItemID] [Amount] - Lets you sponsor someone!");
 					sender.sendMessage(c + "/startpoint [1,2,3,4,etc] [1,2,3,4,etc] - Sets the starting points of tributes in a specific arena!");
+					if(plugin.hookWE() != null)
+						sender.sendMessage(c + "/ha addArena [1,2,3,4,etc] - Creates an arena using your current WorldEdit selection.");
 					sender.sendMessage(c + "/ha close (1,2,3,4,etc) - Prevents anyone from joining that arena! Numbers are optional");
 					sender.sendMessage(c + "/ha help - Displays this screen!");
 					sender.sendMessage(c + "/ha join [1,2,3,4,etc] - Makes you join the game!");
@@ -664,23 +669,55 @@ public class HaCommands implements CommandExecutor {
 									Player target = Bukkit.getServer().getPlayer(args[1]);
 									p.teleport(target);
 									p.sendMessage(ChatColor.AQUA + "You've been teleported to " + target.getName());
+									return true;
 								}else{
 									p.sendMessage(ChatColor.RED + "That person isn't in game!");
+									return true;
 								}
 							}else{
 								b = b+1;
 								if(b== plugin.Watching.size()){
 									p.sendMessage(ChatColor.RED + "You have to be spectating first!");
+									return true;
 								}
 							}
 						}
 						/////////////////////////////////////////////////////////////////////////////////
+					}else if(args[0].equalsIgnoreCase("addArena")){
+						if(plugin.hookWE() != null){
+							if(args.length != 2)
+								return false;
+							if(p.hasPermission("HungerArena.AddArena")){
+								WorldEditPlugin worldedit = plugin.hookWE(); 
+								Selection sel = worldedit.getSelection(p);
+								if(sel== null)
+									p.sendMessage(ChatColor.DARK_RED + "You must make a WorldEdit selection first!");
+								else{
+										Location min = sel.getMinimumPoint();
+										Location max = sel.getMaximumPoint();
+										plugin.spawns.set("Arenas." + args[1] + ".Max", max.getWorld().getName() + "," + max.getX() + "," 
+												+ max.getY() + "," + max.getZ());
+										plugin.spawns.set("Arenas." + args[1] + ".Min", min.getWorld().getName() + "," + min.getX() + "," 
+												+ min.getY() + "," + min.getZ());
+										plugin.saveConfig();
+										p.sendMessage(ChatColor.GREEN + "Arena " + ChatColor.DARK_AQUA + args[1] 
+												+ ChatColor.GREEN + " created with WorldEdit!");
+										return true;
+								}
+							}else{
+								p.sendMessage(ChatColor.RED + "You don't have permission!");
+								return true;
+							}
+						}else{
+							p.sendMessage(ChatColor.RED + "You don't have WorldEdit enabled for HungerArena!");
+							return true;
+						}
 					}else if(args[0].equalsIgnoreCase("Kick")){
 						if (args.length != 2) {
 							return false;
 						}
 						Player target = Bukkit.getServer().getPlayer(args[1]);
-						if(sender.hasPermission("HungerArena.Kick")){
+						if(p.hasPermission("HungerArena.Kick")){
 							if(plugin.getArena(target) != null){
 								a = plugin.getArena(target);
 								plugin.Playing.get(a).remove(target.getName());
@@ -696,11 +733,14 @@ public class HaCommands implements CommandExecutor {
 								target.teleport(Spawn);
 								plugin.Quit.get(a).add(target.getName());
 								plugin.winner(a);
+								return true;
 							}else{
 								sender.sendMessage(ChatColor.RED + "That player isn't in the game!");
+								return true;
 							}
 						}else{
 							sender.sendMessage(ChatColor.RED + "You don't have permission!");
+							return true;
 						}
 					}else if(args[0].equalsIgnoreCase("Refill")){
 						if(p.hasPermission("HungerArena.Refill")){
@@ -774,25 +814,25 @@ public class HaCommands implements CommandExecutor {
 								if(limit== list056){
 									sender.sendMessage(ChatColor.GREEN + "All chests refilled!");
 								}
+								return true;
 							}
 						}else{
 							p.sendMessage(ChatColor.RED + "You don't have permission!");
+							return true;
 						}
-					}else if(args[0].equalsIgnoreCase("Restart")){ //Jeppa: fixed reopen , merged routines, added respawn
+					}else if(args[0].equalsIgnoreCase("Restart")){
 						int b = 0;
 						if(p.hasPermission("HungerArena.Restart")){
-							// Jeppa: merged the two routines and fixed reopen bug...
-							i = 1; 					// default first arena
-							int e = plugin.open.size();		// default amount number of arenas
+							i = 1;
+							int e = plugin.open.size();
 							if(args.length>= 2){
-								i = Integer.parseInt(args[1]); 	// replace i with commandvalue
-								if(i > e) i=e;			// dirty fix for wrong args in command...
-								if(i < 1) i=1;			// dirty fix for wrong args in command...
-								e = i;				// loop i to i ;)
+								i = Integer.parseInt(args[1]);
+								if(i > e) i=e;
+								if(i < 1) i=1;
+								e = i;
 							}
 							for(a = i; a <= e; a++){
-								//Jeppa: Routine dazu: erweitert um Teleport der Player!!!!!
-								if(plugin.Playing.get(a).size() > 0){		// Jeppa: fix
+								if(plugin.Playing.get(a).size() > 0){
 									for(b = 0; b < plugin.Playing.get(a).size(); b++){
 										String s = plugin.Playing.get(a).get(b);
 										Player tributes = plugin.getServer().getPlayerExact(s);
@@ -800,8 +840,7 @@ public class HaCommands implements CommandExecutor {
 										tributes.teleport(tributes.getWorld().getSpawnLocation());
 									}
 								}
-								// ^^
-								if(plugin.Watching.get(a).size() > 0){		// Jeppa: fix
+								if(plugin.Watching.get(a).size() > 0){
 									for(b = 0; b < plugin.Watching.get(a).size(); b++){
 										String s = plugin.Watching.get(a).get(b);
 										Player spectator = plugin.getServer().getPlayerExact(s);
@@ -944,10 +983,10 @@ public class HaCommands implements CommandExecutor {
 									if(!plugin.open.get(i)){
 										plugin.open.put(i, true);
 										p.sendMessage(ChatColor.GOLD + "Arena " + i + " Open!");
-									//	i = i+1; // Jeppa: ???
+										//	i = i+1; // Jeppa: ???
 									}else{
 										p.sendMessage(ChatColor.RED + "Arena " + i + " already open, type /ha close to close them!");
-									//	i = i+1;
+										//	i = i+1;
 									}
 								}
 							}

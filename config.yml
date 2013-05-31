@@ -14,7 +14,7 @@ config:
 # worlds:
 # - world
 # - world_nether
-worlds:
+worlds: {}
 
 # If left at 0 there will be no death match, fill in a time in minutes
 DeathMatch: 0
@@ -63,6 +63,10 @@ Explode_on_Move: 'false'
 
 # Whether or not thunder will sound upon a players death
 Cannon_Death: 'true'
+
+# Whether or not to have the arena be the world or the WorldEdit selection
+WorldEdit: false
+
 ######################################
 ######################################
 ######################################
