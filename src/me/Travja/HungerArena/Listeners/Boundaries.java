@@ -27,8 +27,7 @@ public class Boundaries implements Listener{
 		Boolean inGame = plugin.getArena(p) != null;
 		Boolean spectating = plugin.isSpectating(p);
 		if(plugin.config.getBoolean("WorldEdit"))
-			if(insideBounds(p.getLocation()))
-				if(inGame || spectating)
+			if(insideBounds(p.getLocation()) && (inGame || spectating) || (!insideBounds(p.getLocation()) && inGame))
 					event.setCancelled(true);
 	}
 	@EventHandler
