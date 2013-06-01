@@ -18,6 +18,7 @@ import me.Travja.HungerArena.Listeners.DeathListener;
 import me.Travja.HungerArena.Listeners.DmgListener;
 import me.Travja.HungerArena.Listeners.FreezeListener;
 import me.Travja.HungerArena.Listeners.JoinAndQuitListener;
+import me.Travja.HungerArena.Listeners.Signs;
 import me.Travja.HungerArena.Listeners.SpectatorListener;
 import me.Travja.HungerArena.Listeners.TeleportListener;
 import net.milkbowl.vault.economy.Economy;
