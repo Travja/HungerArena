@@ -116,7 +116,6 @@ public class Main extends JavaPlugin{
 		config = this.getConfig();
 		config.options().copyDefaults(true);
 		this.saveDefaultConfig();
-		ConfigManager.setup();
 		spawns = this.getSpawns();
 		spawns.options().copyDefaults(true);
 		this.saveSpawns();
@@ -129,7 +128,6 @@ public class Main extends JavaPlugin{
 		MyChests = this.getChests();
 		MyChests.options().copyDefaults(true);
 		this.saveChests();
-		
 		getServer().getPluginManager().registerEvents(DeathListener, this);
 		getServer().getPluginManager().registerEvents(SpectatorListener, this);
 		getServer().getPluginManager().registerEvents(FreezeListener, this);
@@ -244,6 +242,7 @@ public class Main extends JavaPlugin{
 		}else if(!worlds.isEmpty()){
 			restricted = true;
 		}
+		ConfigManager.setup();
 		log.info("Enabled v" + getDescription().getVersion());
 	}
 
