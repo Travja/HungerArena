@@ -60,7 +60,7 @@ public class Main extends JavaPlugin{
 	public ArrayList<Player> Tele = new ArrayList<Player>();
 	public ArrayList<String> needInv = new ArrayList<String>();
 	public List<String> worlds = new ArrayList<String>();
-	
+
 	public Listener DeathListener = new DeathListener(this);
 	public Listener SpectatorListener = new SpectatorListener(this);
 	public Listener FreezeListener = new FreezeListener(this);
@@ -80,9 +80,11 @@ public class Main extends JavaPlugin{
 	public CommandExecutor SponsorCommands = new SponsorCommands(this);
 	public CommandExecutor SpawnsCommand = new SpawnsCommand(this);
 	
+	public me.Travja.HungerArena.ConfigManager ConfigManager = new ConfigManager(this);
+
 	public boolean exists;
 	public boolean restricted;
-	
+
 	public FileConfiguration config;
 	public FileConfiguration spawns = null;
 	public File spawnsFile = null;
@@ -97,11 +99,11 @@ public class Main extends JavaPlugin{
 	public ArrayList<ItemStack> Reward = new ArrayList<ItemStack>();
 	public ArrayList<ItemStack> Cost = new ArrayList<ItemStack>();
 	public ArrayList<ItemStack> Fee = new ArrayList<ItemStack>();
-	
+
 	public boolean vault = false;
 	public boolean eco = false;
 	public Economy econ = null;
-	
+
 	int i = 0;
 	int v = 0;
 	int start = 0;
@@ -110,6 +112,7 @@ public class Main extends JavaPlugin{
 	int a = 0;
 	public int gp = 0;
 	int grace = 0;
+
 	public void onEnable(){
 		log = this.getLogger();
 		
@@ -142,17 +145,17 @@ public class Main extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(Damage, this);
 		getServer().getPluginManager().registerEvents(WorldChange, this);
 		getServer().getPluginManager().registerEvents(Boundaries, this);
-		
+
 		getCommand("Ha").setExecutor(HaCommands);
 		getCommand("Sponsor").setExecutor(SponsorCommands);
 		getCommand("Startpoint").setExecutor(SpawnsCommand);
-		
+
 		for(File file: getDataFolder().listFiles()){
 			String filename = file.getName();
 			if(filename != "commandAndBlockManagement" && filename != "config" && filename != "Data" && filename != "spawns")
 				needInv.add(filename);
 		}
-		
+
 		i = 1;
 		if(spawns.getConfigurationSection("Spawns")!= null){
 			Map<String, Object> temp = spawns.getConfigurationSection("Spawns").getValues(false);
@@ -173,29 +176,31 @@ public class Main extends JavaPlugin{
 				}
 			}
 		}
-		
+
 		for(i = 1; i <= location.size(); i++){
-			log.info("Loaded " + location.get(i).size() + " tribute spawns for arena " + i + "!");
-			Playing.put(i, new ArrayList<String>());
-			Ready.put(i, new ArrayList<String>());
-			Dead.put(i, new ArrayList<String>());
-			Quit.put(i, new ArrayList<String>());
-			Out.put(i, new ArrayList<String>());
-			Watching.put(i, new ArrayList<String>());
-			NeedConfirm.put(i, new ArrayList<String>());
-			inArena.put(i, new ArrayList<String>());
-			Frozen.put(i, new ArrayList<String>());
-			arena.put(i, new ArrayList<String>());
-			canjoin.put(i, false);
-			if(location.get(i).size()== config.getInt("maxPlayers")){
-				maxPlayers.put(i, location.get(i).size());
-			}else if(location.size()< config.getInt("maxPlayers")){
-				maxPlayers.put(i, location.get(i).size());
-			}else if(location.size()> config.getInt("maxPlayers")){
-				maxPlayers.put(i, config.getInt("maxPlayers"));
+			if(location.get(i)!= null){
+				log.info("Loaded " + location.get(i).size() + " tribute spawns for arena " + i + "!");
+				Playing.put(i, new ArrayList<String>());
+				Ready.put(i, new ArrayList<String>());
+				Dead.put(i, new ArrayList<String>());
+				Quit.put(i, new ArrayList<String>());
+				Out.put(i, new ArrayList<String>());
+				Watching.put(i, new ArrayList<String>());
+				NeedConfirm.put(i, new ArrayList<String>());
+				inArena.put(i, new ArrayList<String>());
+				Frozen.put(i, new ArrayList<String>());
+				arena.put(i, new ArrayList<String>());
+				canjoin.put(i, false);
+				if(location.get(i).size()== config.getInt("maxPlayers")){
+					maxPlayers.put(i, location.get(i).size());
+				}else if(location.size()< config.getInt("maxPlayers")){
+					maxPlayers.put(i, location.get(i).size());
+				}else if(location.size()> config.getInt("maxPlayers")){
+					maxPlayers.put(i, config.getInt("maxPlayers"));
+				}
+				log.info("Max players is for arena " + i + " is " + maxPlayers.get(i));
+				open.put(i, true);
 			}
-			log.info("Max players is for arena " + i + " is " + maxPlayers.get(i));
-			open.put(i, true);
 		}
 		if (setupEconomy()) {
 			log.info("Found Vault! Hooking in for economy!");
@@ -258,7 +263,7 @@ public class Main extends JavaPlugin{
 
 		return (WorldEditPlugin) wPlugin;
 	}
-	
+
 	public boolean setupEconomy() {
 		if (getServer().getPluginManager().getPlugin("Vault") == null) {
 			return false;
