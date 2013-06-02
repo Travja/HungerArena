@@ -11,16 +11,7 @@ import java.util.Map.Entry;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import me.Travja.HungerArena.Listeners.BlockStorage;
-import me.Travja.HungerArena.Listeners.Boundaries;
-import me.Travja.HungerArena.Listeners.ChatListener;
-import me.Travja.HungerArena.Listeners.DeathListener;
-import me.Travja.HungerArena.Listeners.DmgListener;
-import me.Travja.HungerArena.Listeners.FreezeListener;
-import me.Travja.HungerArena.Listeners.JoinAndQuitListener;
-import me.Travja.HungerArena.Listeners.Signs;
-import me.Travja.HungerArena.Listeners.SpectatorListener;
-import me.Travja.HungerArena.Listeners.TeleportListener;
+import me.Travja.HungerArena.Listeners.*;
 import net.milkbowl.vault.economy.Economy;
 
 import org.bukkit.Bukkit;
@@ -57,6 +48,7 @@ public class Main extends JavaPlugin{
 	public HashMap<Integer, Boolean> canjoin = new HashMap<Integer, Boolean>();
 	public HashMap<Integer, Integer> maxPlayers = new HashMap<Integer, Integer>();
 	public HashMap<Integer, Boolean> open = new HashMap<Integer, Boolean>();
+	public HashMap<String, String> setting = new HashMap<String, String>();
 	public ArrayList<Player> Tele = new ArrayList<Player>();
 	public ArrayList<String> needInv = new ArrayList<String>();
 	public List<String> worlds = new ArrayList<String>();
@@ -76,6 +68,7 @@ public class Main extends JavaPlugin{
 	public Listener WinGames = new WinGamesListener(this);
 	public Listener WorldChange = new WorldChange(this);
 	public Listener Boundaries = new Boundaries(this);
+	public Listener spawnsListener = new spawnsListener(this);
 	public CommandExecutor HaCommands = new HaCommands(this);
 	public CommandExecutor SponsorCommands = new SponsorCommands(this);
 	public CommandExecutor SpawnsCommand = new SpawnsCommand(this);
@@ -150,6 +143,7 @@ public class Main extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(Damage, this);
 		getServer().getPluginManager().registerEvents(WorldChange, this);
 		getServer().getPluginManager().registerEvents(Boundaries, this);
+		getServer().getPluginManager().registerEvents(spawnsListener, this);
 
 		getCommand("Ha").setExecutor(HaCommands);
 		getCommand("Sponsor").setExecutor(SponsorCommands);

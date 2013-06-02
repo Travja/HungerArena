@@ -85,6 +85,8 @@ public class ConfigManager {
 			plugin.config.addDefault("ChatClose_Radius", "10");
 		if(!plugin.config.contains("WorldEdit"))
 			plugin.config.addDefault("WorldEdit", false);
+		if(!plugin.config.contains("spawnsTool"))
+			plugin.config.addDefault("spawnsTool", "286");
 		plugin.saveConfig();
 	}
 }
