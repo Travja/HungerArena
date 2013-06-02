@@ -1001,6 +1001,7 @@ public class HaCommands implements CommandExecutor {
 							plugin.Cost.clear();
 							plugin.Fee.clear();
 							HandlerList.unregisterAll(plugin); 	//Jeppa: Close all running Listeners before reopening them!
+							plugin.reloadConfig();
 							plugin.onEnable();			//Jeppa: with this in here all Listeners get re-registered again each "reload"! so f.e the Block-break will result in multiple lines in Data.yml ...
 							p.sendMessage(ChatColor.AQUA + "HungerArena Reloaded!");
 							System.out.println(ChatColor.GREEN + pname + " reloaded HungerArena!");
@@ -1429,6 +1430,7 @@ public class HaCommands implements CommandExecutor {
 					plugin.Cost.clear();
 					plugin.Fee.clear();
 					HandlerList.unregisterAll(plugin); 	//Jeppa: Close all running Listeners before reopening them!
+					plugin.reloadConfig();
 					plugin.onEnable();
 					sender.sendMessage(ChatColor.AQUA + "HungerArena Reloaded!");
 				}else if(args[0].equalsIgnoreCase("WarpAll")){

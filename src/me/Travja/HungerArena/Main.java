@@ -118,18 +118,23 @@ public class Main extends JavaPlugin{
 		
 		config = this.getConfig();
 		config.options().copyDefaults(true);
+		if(!new File(this.getDataFolder(), "config.yml").exists())
 		this.saveDefaultConfig();
 		spawns = this.getSpawns();
 		spawns.options().copyDefaults(true);
+		if(!new File(this.getDataFolder(), "spawns.yml").exists())
 		this.saveSpawns();
 		data = this.getData();
 		data.options().copyDefaults(true);
+		if(!new File(this.getDataFolder(), "Data.yml").exists())
 		this.saveData();
 		management = this.getManagement();
 		management.options().copyDefaults(true);
+		if(!new File(this.getDataFolder(), "commandAndBlockManagement.yml").exists())
 		this.saveManagement();
 		MyChests = this.getChests();
 		MyChests.options().copyDefaults(true);
+		if(!new File(this.getDataFolder(), "Chests.yml").exists())
 		this.saveChests();
 		getServer().getPluginManager().registerEvents(DeathListener, this);
 		getServer().getPluginManager().registerEvents(SpectatorListener, this);
