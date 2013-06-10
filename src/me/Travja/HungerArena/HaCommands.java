@@ -217,29 +217,27 @@ public class HaCommands implements CommandExecutor {
 									}
 								}
 								if(plugin.Playing.get(a)!= null){
-									if(plugin.Playing.get(a).contains(pname)){
+									if(plugin.Playing.get(a).contains(pname))
 										p.sendMessage(ChatColor.RED + "You are already playing!");
-									}else if(plugin.Dead.get(a).contains(pname) || plugin.Quit.get(a).contains(pname)){
+									else if(plugin.Dead.get(a).contains(pname) || plugin.Quit.get(a).contains(pname))
 										p.sendMessage(ChatColor.RED + "You DIED/QUIT! You can't join again!");
-									}else if(plugin.Playing.get(a).size()== plugin.maxPlayers.get(a)){
+									else if(plugin.Playing.get(a).size()== plugin.maxPlayers.get(a))
 										p.sendMessage(ChatColor.RED + "There are already " + plugin.maxPlayers.get(a) + " Tributes in that Arena!");
-									}else if(plugin.canjoin.get(a)== true){
+									else if(plugin.canjoin.get(a)== true)
 										p.sendMessage(ChatColor.RED + "That game is in progress!");
-									}else if(!plugin.open.get(a)){
+									else if(!plugin.open.get(a))
 										p.sendMessage(ChatColor.RED + "That game is closed!");
-									}else if(plugin.spawns.getString("Spawns_set").equalsIgnoreCase("false")){
+									else if(plugin.spawns.getString("Spawns_set").equalsIgnoreCase("false"))
 										p.sendMessage(ChatColor.RED + "/ha setspawn hasn't been run!");
-									}else if(plugin.NeedConfirm.get(a).contains(pname)){
-										p.sendMessage(ChatColor.RED + "You need to do /ha confirm");
-									}else if(plugin.getArena(p)!= null){
+									else if(plugin.getArena(p)!= null)
 										p.sendMessage(ChatColor.RED + "You are already in an arena!");
-									}else if(plugin.config.getString("Need_Confirm").equalsIgnoreCase("true")){
+									else if(plugin.config.getString("Need_Confirm").equalsIgnoreCase("true")){
 										if(plugin.config.getBoolean("EntryFee.enabled") && plugin.config.getBoolean("EntryFee.eco")){
 											if(!(plugin.econ.getBalance(pname) < plugin.config.getDouble("EntryFee.cost"))){
 												i = 0;
 												for(ItemStack fee: plugin.Fee){
 													int total = plugin.Fee.size();
-													if(p.getInventory().contains(fee)){
+													if(p.getInventory().containsAtLeast(fee, fee.getAmount())){
 														i = i+1;
 														if(total == i){
 															plugin.NeedConfirm.get(a).add(pname);
@@ -257,7 +255,7 @@ public class HaCommands implements CommandExecutor {
 											i = 0;
 											for(ItemStack fee: plugin.Fee){
 												int total = plugin.Fee.size();
-												if(p.getInventory().contains(fee)){
+												if(p.getInventory().containsAtLeast(fee, fee.getAmount())){
 													i = i+1;
 													if(total == i){
 														plugin.NeedConfirm.get(a).add(pname);
@@ -285,13 +283,19 @@ public class HaCommands implements CommandExecutor {
 												i = 0;
 												for(ItemStack fee: plugin.Fee){
 													int total = plugin.Fee.size();
-													if(p.getInventory().contains(fee)){
+													if(p.getInventory().containsAtLeast(fee, fee.getAmount())){
 														i = i+1;
 														if(total == i){
 															plugin.econ.withdrawPlayer(pname, plugin.config.getDouble("EntryFee.cost"));
 															p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + "$" + plugin.config.getDouble("EntryFee.cost") + " has been taken from your account!");
 															for(ItemStack fees: plugin.Fee){
-																p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + fees + " was paid to join the games.");
+																String beginning = fees.getType().toString().substring(0, 1);
+																String item = beginning + fees.getType().toString().substring(1).toLowerCase().replace("_", " ");
+																int amount = fees.getAmount();
+																if(amount> 1)
+																	p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + amount + " " + item + "s was paid to join the games.");
+																else
+																	p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + amount + " " + item + " was paid to join the games.");
 															}
 															plugin.Playing.get(a).add(pname);
 															plugin.NeedConfirm.get(a).remove(pname);
@@ -326,11 +330,17 @@ public class HaCommands implements CommandExecutor {
 											i = 0;
 											for(ItemStack fee: plugin.Fee){
 												int total = plugin.Fee.size();
-												if(p.getInventory().contains(fee)){
+												if(p.getInventory().containsAtLeast(fee, fee.getAmount())){
 													i = i+1;
 													if(total == i){
 														for(ItemStack fees: plugin.Fee){
-															p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + fees + " was paid to join the games.");
+															String beginning = fees.getType().toString().substring(0, 1);
+															String item = beginning + fees.getType().toString().substring(1).toLowerCase().replace("_", " ");
+															int amount = fees.getAmount();
+															if(amount> 1)
+																p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + amount + " " + item + "s was paid to join the games.");
+															else
+																p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + amount + " " + item + " was paid to join the games.");
 														}
 														plugin.Playing.get(a).add(pname);
 														plugin.NeedConfirm.get(a).remove(pname);
@@ -421,19 +431,26 @@ public class HaCommands implements CommandExecutor {
 						int v = 0;
 						for(v = 1; v < plugin.NeedConfirm.size(); v++){
 							if(plugin.NeedConfirm.get(v).contains(pname)){
+								a = v;
 								v = plugin.NeedConfirm.size()+1;
 								if(plugin.config.getBoolean("EntryFee.enabled") && plugin.config.getBoolean("EntryFee.eco")){
 									if(!(plugin.econ.getBalance(pname) < plugin.config.getDouble("EntryFee.cost"))){
 										i = 0;
 										for(ItemStack fee: plugin.Fee){
 											int total = plugin.Fee.size();
-											if(p.getInventory().contains(fee)){
+											if(p.getInventory().containsAtLeast(fee, fee.getAmount())){
 												i = i+1;
 												if(total == i){
 													plugin.econ.withdrawPlayer(pname, plugin.config.getDouble("EntryFee.cost"));
 													p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + "$" + plugin.config.getDouble("EntryFee.cost") + " has been taken from your account!");
 													for(ItemStack fees: plugin.Fee){
-														p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + fees + " was paid to join the games.");
+														String beginning = fees.getType().toString().substring(0, 1);
+														String item = beginning + fees.getType().toString().substring(1).toLowerCase().replace("_", " ");
+														int amount = fees.getAmount();
+														if(amount> 1)
+															p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + amount + " " + item + "s was paid to join the games.");
+														else
+															p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + amount + " " + item + " was paid to join the games.");
 													}
 													plugin.Playing.get(a).add(pname);
 													plugin.NeedConfirm.get(a).remove(pname);
@@ -466,14 +483,19 @@ public class HaCommands implements CommandExecutor {
 									}
 								}else if(plugin.config.getBoolean("EntryFee.enabled") && !plugin.config.getBoolean("EntryFee.eco")){
 									i = 0;
-									p.sendMessage("2");
 									for(ItemStack fee: plugin.Fee){
 										int total = plugin.Fee.size();
-										if(p.getInventory().contains(fee)){
+										if(p.getInventory().containsAtLeast(fee, fee.getAmount())){
 											i = i+1;
 											if(total == i){
 												for(ItemStack fees: plugin.Fee){
-													p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + fees + " was paid to join the games.");
+													String beginning = fees.getType().toString().substring(0, 1);
+													String item = beginning + fees.getType().toString().substring(1).toLowerCase().replace("_", " ");
+													int amount = fees.getAmount();
+													if(amount> 1)
+														p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + amount + " " + item + "s was paid to join the games.");
+													else
+														p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + amount + " " + item + " was paid to join the games.");
 												}
 												plugin.Playing.get(a).add(pname);
 												plugin.NeedConfirm.get(a).remove(pname);
@@ -502,7 +524,6 @@ public class HaCommands implements CommandExecutor {
 										p.sendMessage(ChatColor.RED + "You are missing some items and can't join the games...");
 									}
 								}else if(!plugin.config.getBoolean("EntryFee.enabled") && plugin.config.getBoolean("EntryFee.eco")){
-									p.sendMessage("2");
 									if(!(plugin.econ.getBalance(pname) < plugin.config.getDouble("EntryFee.cost"))){
 										plugin.econ.withdrawPlayer(pname, plugin.config.getDouble("EntryFee.cost"));
 										p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + "$" + plugin.config.getDouble("EntryFee.cost") + " has been taken from your account!");
@@ -530,7 +551,6 @@ public class HaCommands implements CommandExecutor {
 										p.sendMessage(ChatColor.RED + "You don't have enough money to join!");
 									}
 								}else{
-									p.sendMessage("2");
 									plugin.Playing.get(a).add(pname);
 									plugin.NeedConfirm.get(a).remove(pname);
 									p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
@@ -615,11 +635,11 @@ public class HaCommands implements CommandExecutor {
 									plugin.econ.depositPlayer(pname, plugin.config.getDouble("EntryFee.cost"));
 									p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + "$" + plugin.config.getDouble("EntryFee.cost") + " has been added to your account!");
 									for(ItemStack fees: plugin.Fee){
-										p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + fees + " was refunded because you left the games.");
+										p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + fees.getType().toString().toLowerCase().replace("_", " ") + " was refunded because you left the games.");
 									}
 								}else if(plugin.config.getBoolean("EntryFee.enabled") && !plugin.config.getBoolean("EntryFee.eco")){
 									for(ItemStack fees: plugin.Fee){
-										p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + fees + " was refunded because you left the games.");
+										p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + fees.getType().toString().toLowerCase().replace("_", " ") + " was refunded because you left the games.");
 									}
 								}else if(!plugin.config.getBoolean("EntryFee.enabled") && plugin.config.getBoolean("EntryFee.eco")){
 									plugin.econ.depositPlayer(pname, plugin.config.getDouble("EntryFee.cost"));
@@ -693,16 +713,16 @@ public class HaCommands implements CommandExecutor {
 								if(sel== null)
 									p.sendMessage(ChatColor.DARK_RED + "You must make a WorldEdit selection first!");
 								else{
-										Location min = sel.getMinimumPoint();
-										Location max = sel.getMaximumPoint();
-										plugin.spawns.set("Arenas." + args[1] + ".Max", max.getWorld().getName() + "," + max.getX() + "," 
-												+ max.getY() + "," + max.getZ());
-										plugin.spawns.set("Arenas." + args[1] + ".Min", min.getWorld().getName() + "," + min.getX() + "," 
-												+ min.getY() + "," + min.getZ());
-										plugin.saveConfig();
-										p.sendMessage(ChatColor.GREEN + "Arena " + ChatColor.DARK_AQUA + args[1] 
-												+ ChatColor.GREEN + " created with WorldEdit!");
-										return true;
+									Location min = sel.getMinimumPoint();
+									Location max = sel.getMaximumPoint();
+									plugin.spawns.set("Arenas." + args[1] + ".Max", max.getWorld().getName() + "," + max.getX() + "," 
+											+ max.getY() + "," + max.getZ());
+									plugin.spawns.set("Arenas." + args[1] + ".Min", min.getWorld().getName() + "," + min.getX() + "," 
+											+ min.getY() + "," + min.getZ());
+									plugin.saveConfig();
+									p.sendMessage(ChatColor.GREEN + "Arena " + ChatColor.DARK_AQUA + args[1] 
+											+ ChatColor.GREEN + " created with WorldEdit!");
+									return true;
 								}
 							}else{
 								p.sendMessage(ChatColor.RED + "You don't have permission!");
@@ -921,14 +941,13 @@ public class HaCommands implements CommandExecutor {
 						/////////////////////////////////// Toggle //////////////////////////////////////////////////
 					}else if(args[0].equalsIgnoreCase("close")){
 						if(p.hasPermission("HungerArena.toggle")){
-							// Jeppa: merged the two routines and fixed reopen bug...
-							i = 1; 					// default first arena
-							int e = plugin.open.size();		// default amount number of arenas
+							i = 1;
+							int e = plugin.open.size();
 							if(args.length>= 2){
-								i = Integer.parseInt(args[1]); 	// replace i with commandvalue
-								if(i > e) i=e;			// dirty fix for wrong args in command...
-								if(i < 1) i=1;			// dirty fix for wrong args in command...
-								e = i;				// loop i to i ;)
+								i = Integer.parseInt(args[1]);
+								if(i > e) i=e;
+								if(i < 1) i=1;
+								e = i;
 							}
 							for(a = i; a <= e; a++){
 								if(plugin.open.get(a)){
@@ -1261,19 +1280,17 @@ public class HaCommands implements CommandExecutor {
 							sender.sendMessage(ChatColor.GREEN + "All chests refilled!");
 						}
 					}
-				}else if(args[0].equalsIgnoreCase("Restart")){ //Jeppa: merged , fixed 
+				}else if(args[0].equalsIgnoreCase("Restart")){
 					int b = 0;
-					// Jeppa: merged the two routines and fixed reopen bug...
-					i = 1; 					// default first arena
-					int e = plugin.open.size();		// default amount number of arenas
+					i = 1;
+					int e = plugin.open.size();
 					if(args.length>= 2){
-						i = Integer.parseInt(args[1]); 	// replace i with commandvalue
-						if(i > e) i=e;			// dirty fix for wrong args in command...
-						if(i < 1) i=1;			// dirty fix for wrong args in command...
-						e = i;				// loop i to i ;)
+						i = Integer.parseInt(args[1]);
+						if(i > e) i=e;
+						if(i < 1) i=1;
+						e = i;
 					}
 					for(a = i; a <= e; a++){
-						//Jeppa: Routine dazu: erweitert um Teleport der Player!!!!!
 						if(!plugin.Playing.get(a).isEmpty()){
 							for(b = 0; b < plugin.Playing.get(a).size(); b++){
 								String s = plugin.Playing.get(a).get(b);
@@ -1360,14 +1377,13 @@ public class HaCommands implements CommandExecutor {
 					}
 					/////////////////////////////////// Toggle //////////////////////////////////////////////////
 				}else if(args[0].equalsIgnoreCase("close")){
-					// Jeppa: merged the two routines and fixed reopen bug...
-					i = 1; 					// default first arena
-					int e = plugin.open.size();		// default amount number of arenas
+					i = 1;
+					int e = plugin.open.size();
 					if(args.length>= 2){
-						i = Integer.parseInt(args[1]); 	// replace i with commandvalue
-						if(i > e) i=e;			// dirty fix for wrong args in command...
-						if(i < 1) i=1;			// dirty fix for wrong args in command...
-						e = i;				// loop i to i ;)
+						i = Integer.parseInt(args[1]);
+						if(i > e) i=e;
+						if(i < 1) i=1;
+						e = i;
 					}
 					for(a = i; a <= e; a++){
 						if(plugin.open.get(a)){
