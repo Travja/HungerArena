@@ -1,4 +1,5 @@
-bin
-.classpath
-.settings
+.project.settings
 .project
+.classpath
+
+bin
