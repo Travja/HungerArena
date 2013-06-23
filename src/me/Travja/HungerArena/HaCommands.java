@@ -194,7 +194,7 @@ public class HaCommands implements CommandExecutor {
 					}else if(args[0].equalsIgnoreCase("Join")){
 						if(p.hasPermission("HungerArena.Join")){
 							boolean needconfirm = false;
-							for(i= 1; i< plugin.NeedConfirm.size(); i++){
+							for(i= 1; i< plugin.NeedConfirm.size()+1; i++){
 								if(plugin.NeedConfirm.get(i).contains(pname)){
 									needconfirm = true;
 									p.sendMessage(ChatColor.GOLD + "You need to run /ha confirm");
@@ -429,7 +429,7 @@ public class HaCommands implements CommandExecutor {
 						////////////////////////////////// CONFIRMATION ///////////////////////////////////////////////
 					}else if(args[0].equalsIgnoreCase("Confirm")){
 						int v = 0;
-						for(v = 1; v < plugin.NeedConfirm.size(); v++){
+						for(v = 1; v < plugin.NeedConfirm.size()+1; v++){
 							if(plugin.NeedConfirm.get(v).contains(pname)){
 								a = v;
 								v = plugin.NeedConfirm.size()+1;
