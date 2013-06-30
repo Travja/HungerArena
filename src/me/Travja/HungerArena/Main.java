@@ -49,6 +49,7 @@ public class Main extends JavaPlugin{
 	public HashMap<Integer, Integer> maxPlayers = new HashMap<Integer, Integer>();
 	public HashMap<Integer, Boolean> open = new HashMap<Integer, Boolean>();
 	public HashMap<String, String> setting = new HashMap<String, String>();
+	public HashMap<Integer, Integer> gp = new HashMap<Integer, Integer>();
 	public ArrayList<Player> Tele = new ArrayList<Player>();
 	public ArrayList<String> needInv = new ArrayList<String>();
 	public List<String> worlds = new ArrayList<String>();
@@ -72,7 +73,7 @@ public class Main extends JavaPlugin{
 	public CommandExecutor HaCommands = new HaCommands(this);
 	public CommandExecutor SponsorCommands = new SponsorCommands(this);
 	public CommandExecutor SpawnsCommand = new SpawnsCommand(this);
-	
+
 	public me.Travja.HungerArena.ConfigManager ConfigManager = new ConfigManager(this);
 
 	public boolean exists;
@@ -100,35 +101,32 @@ public class Main extends JavaPlugin{
 	int i = 0;
 	int v = 0;
 	int start = 0;
-	int deathtime = 0;
-	int timetodeath = 0;
 	int a = 0;
-	public int gp = 0;
 	int grace = 0;
 
 	public void onEnable(){
 		log = this.getLogger();
-		
+
 		config = this.getConfig();
 		config.options().copyDefaults(true);
 		if(!new File(this.getDataFolder(), "config.yml").exists())
-		this.saveDefaultConfig();
+			this.saveDefaultConfig();
 		spawns = this.getSpawns();
 		spawns.options().copyDefaults(true);
 		if(!new File(this.getDataFolder(), "spawns.yml").exists())
-		this.saveSpawns();
+			this.saveSpawns();
 		data = this.getData();
 		data.options().copyDefaults(true);
 		if(!new File(this.getDataFolder(), "Data.yml").exists())
-		this.saveData();
+			this.saveData();
 		management = this.getManagement();
 		management.options().copyDefaults(true);
 		if(!new File(this.getDataFolder(), "commandAndBlockManagement.yml").exists())
-		this.saveManagement();
+			this.saveManagement();
 		MyChests = this.getChests();
 		MyChests.options().copyDefaults(true);
 		if(!new File(this.getDataFolder(), "Chests.yml").exists())
-		this.saveChests();
+			this.saveChests();
 		getServer().getPluginManager().registerEvents(DeathListener, this);
 		getServer().getPluginManager().registerEvents(SpectatorListener, this);
 		getServer().getPluginManager().registerEvents(FreezeListener, this);
@@ -420,28 +418,29 @@ public class Main extends JavaPlugin{
 		double spawny = Double.parseDouble(Spawncoords[1]);
 		double spawnz = Double.parseDouble(Spawncoords[2]);
 		Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
-		if(Playing.get(a).size()== 1 && canjoin.get(a)== true){
-			//Announce winner
-			for(i = 0; i < Playing.get(a).size(); i++){
-				String winnername = Playing.get(a).get(i);
-				Player winner = getServer().getPlayerExact(winnername);
-				String winnername2 = winner.getName();
-				getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
-				winner.getInventory().clear();
-				winner.getInventory().setBoots(null);
-				winner.getInventory().setChestplate(null);
-				winner.getInventory().setHelmet(null);
-				winner.getInventory().setLeggings(null);
-				winner.setLevel(0);
-				for(PotionEffect pe: winner.getActivePotionEffects()){
-					PotionEffectType potion = pe.getType();
-					winner.removePotionEffect(potion);
-				}
-				Tele.add(winner);
-				needInv.add(winnername2);
-				//final World w = winner.getWorld();
-				winner.teleport(Spawn);
-				/*if(config.getBoolean("reloadWorld")){
+		if(Playing.get(a).size()== 1){
+			if(canjoin.get(a)== true){
+				//Announce winner
+				for(i = 0; i < Playing.get(a).size(); i++){
+					String winnername = Playing.get(a).get(i);
+					Player winner = getServer().getPlayerExact(winnername);
+					String winnername2 = winner.getName();
+					getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
+					winner.getInventory().clear();
+					winner.getInventory().setBoots(null);
+					winner.getInventory().setChestplate(null);
+					winner.getInventory().setHelmet(null);
+					winner.getInventory().setLeggings(null);
+					winner.setLevel(0);
+					for(PotionEffect pe: winner.getActivePotionEffects()){
+						PotionEffectType potion = pe.getType();
+						winner.removePotionEffect(potion);
+					}
+					Tele.add(winner);
+					needInv.add(winnername2);
+					//final World w = winner.getWorld();
+					winner.teleport(Spawn);
+					/*if(config.getBoolean("reloadWorld")){
 					getServer().unloadWorld(w, false);
 					getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable(){
 						public void run(){
@@ -449,37 +448,89 @@ public class Main extends JavaPlugin{
 						}
 					},200L);
 				}*/
-				if(!config.getBoolean("rewardEco.enabled")){
-					for(ItemStack Rewards: Reward){
-						winner.getInventory().addItem(Rewards);
+					if(!config.getBoolean("rewardEco.enabled")){
+						for(ItemStack Rewards: Reward){
+							winner.getInventory().addItem(Rewards);
+						}
+					}else{
+						for(ItemStack Rewards: Reward){
+							winner.getInventory().addItem(Rewards);
+						}
+						econ.depositPlayer(winner.getName(), config.getDouble("rewardEco.reward"));
 					}
-				}else{
-					for(ItemStack Rewards: Reward){
-						winner.getInventory().addItem(Rewards);
-					}
-					econ.depositPlayer(winner.getName(), config.getDouble("rewardEco.reward"));
+					Playing.get(a).clear();
+					getServer().getScheduler().cancelTask(deathtime.get(a));
+					getServer().getScheduler().cancelTask(grace);
+					getServer().getScheduler().cancelTask(start);
 				}
-				Playing.get(a).clear();
-				getServer().getScheduler().cancelTask(deathtime);
-			}
-			//Show spectators
-			for(String s1: Watching.get(a)){
-				Player spectator = getServer().getPlayerExact(s1);
-				spectator.setAllowFlight(false);
-				spectator.teleport(Spawn);
-				for(Player online:getServer().getOnlinePlayers()){
-					online.showPlayer(spectator);
-				}
-			}
-			if(config.getString("Auto_Restart").equalsIgnoreCase("True")){
-				Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable(){
-					public void run(){
-						Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha restart " + a);
+				//Show spectators
+				for(String s1: Watching.get(a)){
+					Player spectator = getServer().getPlayerExact(s1);
+					spectator.setAllowFlight(false);
+					spectator.teleport(Spawn);
+					for(Player online:getServer().getOnlinePlayers()){
+						online.showPlayer(spectator);
 					}
-				}, 220L);
+				}
+				if(config.getString("Auto_Restart").equalsIgnoreCase("True")){
+					Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable(){
+						public void run(){
+							Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha restart " + a);
+						}
+					}, 220L);
+				}
+			}else{
+				//Announce winner
+				for(i = 0; i < Playing.get(a).size(); i++){
+					String winnername = Playing.get(a).get(i);
+					Player winner = getServer().getPlayerExact(winnername);
+					String winnername2 = winner.getName();
+					winner.getInventory().clear();
+					winner.getInventory().setBoots(null);
+					winner.getInventory().setChestplate(null);
+					winner.getInventory().setHelmet(null);
+					winner.getInventory().setLeggings(null);
+					winner.setLevel(0);
+					for(PotionEffect pe: winner.getActivePotionEffects()){
+						PotionEffectType potion = pe.getType();
+						winner.removePotionEffect(potion);
+					}
+					Tele.add(winner);
+					needInv.add(winnername2);
+					//final World w = winner.getWorld();
+					winner.teleport(Spawn);
+					/*if(config.getBoolean("reloadWorld")){
+					getServer().unloadWorld(w, false);
+					getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable(){
+						public void run(){
+							getServer().createWorld(new WorldCreator(w.getName()));
+						}
+					},200L);
+				}*/
+					Playing.get(a).clear();
+					getServer().getScheduler().cancelTask(deathtime.get(a));
+				}
+				//Show spectators
+				for(String s1: Watching.get(a)){
+					Player spectator = getServer().getPlayerExact(s1);
+					spectator.setAllowFlight(false);
+					spectator.teleport(Spawn);
+					for(Player online:getServer().getOnlinePlayers()){
+						online.showPlayer(spectator);
+					}
+				}
+				if(config.getString("Auto_Restart").equalsIgnoreCase("True")){
+					Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable(){
+						public void run(){
+							Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha restart " + a);
+						}
+					}, 220L);
+				}
 			}
 		}
 	}
+	public HashMap<Integer, Integer> deathtime = new HashMap<Integer, Integer>();
+	public HashMap<Integer, Integer> timetodeath = new HashMap<Integer, Integer>();
 	public void startGames(final Integer a){
 		String begin = config.getString("Start_Message");
 		begin = begin.replaceAll("(&([a-f0-9]))", "\u00A7$2");
@@ -534,19 +585,19 @@ public class Main extends JavaPlugin{
 						getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha Refill " + a);
 						getServer().getScheduler().cancelTask(start);
 						if(config.getInt("Grace_Period")!= 0){
-							gp = config.getInt("Grace_Period");
+							gp.put(a, config.getInt("Grace_Period"));
 							grace = getServer().getScheduler().scheduleSyncRepeatingTask(Bukkit.getPluginManager().getPlugin("HungerArena"), new Runnable(){
 								public void run(){
-									gp = gp-1;
-									if(gp == 30 || gp == 15 || (gp < 11 && gp != 0)){
+									gp.put(a, gp.get(a)-1);
+									if(gp.get(a) == 30 || gp.get(a) == 15 || (gp.get(a) < 11 && gp.get(a) != 0)){
 										if(config.getBoolean("broadcastAll")){
 											for(Player wp: location.get(a).get(1).getWorld().getPlayers()){
-												wp.sendMessage(ChatColor.GREEN + "Grace period ends in " + gp + " seconds!");
+												wp.sendMessage(ChatColor.GREEN + "Grace period ends in " + gp.get(a) + " seconds!");
 											}
 										}else
-											getServer().broadcastMessage(ChatColor.GREEN + "Grace period ends in " + gp + " seconds!");
+											getServer().broadcastMessage(ChatColor.GREEN + "Grace period ends in " + gp.get(a) + " seconds!");
 									}
-									if(gp == 0){
+									if(gp.get(a) == 0){
 										if(config.getBoolean("broadcastAll")){
 											for(Player wp: location.get(a).get(1).getWorld().getPlayers()){
 												wp.sendMessage(ChatColor.GREEN + "Grace period is over, FIGHT!");
@@ -560,23 +611,24 @@ public class Main extends JavaPlugin{
 						}
 						if(config.getInt("DeathMatch")!= 0){
 							int death = config.getInt("DeathMatch");
-							timetodeath = death;
-							deathtime = getServer().getScheduler().scheduleSyncRepeatingTask(Bukkit.getPluginManager().getPlugin("HungerArena"), new Runnable(){
+							timetodeath.put(a, death);
+							deathtime.put(a, getServer().getScheduler().scheduleSyncRepeatingTask(Bukkit.getPluginManager().getPlugin("HungerArena"), new Runnable(){
 								public void run(){
-									timetodeath = timetodeath-1;
+									timetodeath.put(a, timetodeath.get(a)-1);
 									if(config.getBoolean("broadcastAll")){
 										for(Player wp: location.get(a).get(1).getWorld().getPlayers()){
-											if(timetodeath!= 0){
-												wp.sendMessage(ChatColor.RED + String.valueOf(timetodeath) + " mins till the death match!");
+											if(timetodeath.get(a)!= 0){
+												wp.sendMessage(ChatColor.YELLOW + String.valueOf(timetodeath.get(a)) + ChatColor.RED + " mins till the death match!");
 											}
 										}
 									}else{
 										for(String gn: Playing.get(a)){
 											Player g = getServer().getPlayer(gn);
-											g.sendMessage(ChatColor.RED + String.valueOf(timetodeath) + " mins till the death match!");
+											g.sendMessage(ChatColor.YELLOW + String.valueOf(timetodeath.get(a)) + ChatColor.RED + " mins till the death match!");
 										}
 									}
-									if(timetodeath== 0){
+									if(timetodeath.get(a)== 0){
+										i = 1;
 										for(String playing: Playing.get(a)){
 											Player tribute = getServer().getPlayerExact(playing);
 											tribute.teleport(location.get(a).get(i));
@@ -590,19 +642,19 @@ public class Main extends JavaPlugin{
 											}
 										}
 										if(config.getBoolean("broadcastAll")){
-											for(Player wp: location.get(a).get(0).getWorld().getPlayers()){
-												wp.sendMessage(ChatColor.RED + "The final battle has begun! " + Playing.size() + " tributes will be facing off!");
+											for(Player wp: location.get(a).get(1).getWorld().getPlayers()){
+												wp.sendMessage(ChatColor.RED + "The final battle has begun! " + Playing.get(a).size() + " tributes will be facing off!");
 											}
 										}else{
 											for(String gn: Playing.get(a)){
 												Player g = getServer().getPlayer(gn);
-												g.sendMessage(ChatColor.RED + "The final battle has begun! " + Playing.size() + " tributes will be facing off!");
+												g.sendMessage(ChatColor.RED + "The final battle has begun! " + Playing.get(a).size() + " tributes will be facing off!");
 											}
 										}
-										getServer().getScheduler().cancelTask(deathtime);
+										getServer().getScheduler().cancelTask(deathtime.get(a));
 									}
 								}
-							}, 1200L, 1200L);
+							}, 1200L, 1200L));
 						}
 					}
 				}

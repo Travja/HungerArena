@@ -241,7 +241,7 @@ public class HaCommands implements CommandExecutor {
 														i = i+1;
 														if(total == i){
 															plugin.NeedConfirm.get(a).add(pname);
-															p.sendMessage(ChatColor.GOLD + "You're inventory will be cleared! Type /ha confirm to procede");
+															p.sendMessage(ChatColor.GOLD + "Your inventory will be cleared! Type /ha confirm to procede");
 														}
 													}
 												}
@@ -259,7 +259,7 @@ public class HaCommands implements CommandExecutor {
 													i = i+1;
 													if(total == i){
 														plugin.NeedConfirm.get(a).add(pname);
-														p.sendMessage(ChatColor.GOLD + "You're inventory will be cleared! Type /ha confirm to procede");
+														p.sendMessage(ChatColor.GOLD + "Your inventory will be cleared! Type /ha confirm to procede");
 													}
 												}
 											}
@@ -269,13 +269,13 @@ public class HaCommands implements CommandExecutor {
 										}else if(!plugin.config.getBoolean("EntryFee.enabled") && plugin.config.getBoolean("EntryFee.eco")){
 											if(!(plugin.econ.getBalance(pname) < plugin.config.getDouble("EntryFee.cost"))){
 												plugin.NeedConfirm.get(a).add(pname);
-												p.sendMessage(ChatColor.GOLD + "You're inventory will be cleared! Type /ha confirm to procede");
+												p.sendMessage(ChatColor.GOLD + "Your inventory will be cleared! Type /ha confirm to procede");
 											}else{
 												p.sendMessage(ChatColor.RED + "You don't have enough money to join!");
 											}
 										}else{
 											plugin.NeedConfirm.get(a).add(pname);
-											p.sendMessage(ChatColor.GOLD + "You're inventory will be cleared! Type /ha confirm to procede");
+											p.sendMessage(ChatColor.GOLD + "Your inventory will be cleared! Type /ha confirm to procede");
 										}
 									}else if(plugin.config.getString("Need_Confirm").equalsIgnoreCase("false")){
 										if(plugin.config.getBoolean("EntryFee.enabled") && plugin.config.getBoolean("EntryFee.eco")){
