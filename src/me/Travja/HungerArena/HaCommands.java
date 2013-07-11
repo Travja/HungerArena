@@ -6,6 +6,7 @@ import java.util.List;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.World;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
@@ -764,11 +765,12 @@ public class HaCommands implements CommandExecutor {
 						}
 					}else if(args[0].equalsIgnoreCase("Refill")){
 						if(p.hasPermission("HungerArena.Refill")){
+							plugin.reloadChests();
 							if(args.length>= 2){
 								a = Integer.parseInt(args[1]);
 								int list056;
 								list056 = 0;
-								int limit = plugin.MyChests.getStringList("StorageXYZ").size(); 
+								int limit = plugin.getChests().getStringList("StorageXYZ").size(); 
 								while(limit > list056){
 									String xyz2 = plugin.getChests().getStringList("StorageXYZ").get(list056);
 									int chestx = plugin.getChests().getInt("Storage." + xyz2 + ".Location.X");
@@ -779,22 +781,20 @@ public class HaCommands implements CommandExecutor {
 									Block blockatlocation = Bukkit.getWorld(chestw).getBlockAt(chestx, chesty, chestz);  
 									plugin.exists = false;
 									if(chesta== a){
-										if(blockatlocation.getState() instanceof Chest){
+										if(blockatlocation.getType()== Material.CHEST){
 											plugin.exists = true;
 											Chest chest = (Chest) blockatlocation.getState();
-											if(chesta== a){
-												chest.getInventory().clear();
-												ItemStack[] itemsinchest = null;
-												Object o = plugin.getChests().get("Storage." + xyz2 + ".ItemsInStorage");
-												if(o instanceof ItemStack[]){
-													itemsinchest = (ItemStack[]) o;
-												}else if(o instanceof List){
-													itemsinchest = (ItemStack[]) ((List<ItemStack>) o).toArray(new ItemStack[0]);
-												}
-												list056 = list056+1;
-												chest.getInventory().setContents(itemsinchest);
-												chest.update();
+											chest.getInventory().clear();
+											ItemStack[] itemsinchest = null;
+											Object o = plugin.getChests().get("Storage." + xyz2 + ".ItemsInStorage");
+											if(o instanceof ItemStack[]){
+												itemsinchest = (ItemStack[]) o;
+											}else if(o instanceof List){
+												itemsinchest = (ItemStack[]) ((List<ItemStack>) o).toArray(new ItemStack[0]);
 											}
+											list056 = list056+1;
+											chest.getInventory().setContents(itemsinchest);
+											chest.update(true);
 										}
 									}else{
 										list056 = list056+1;
@@ -806,7 +806,7 @@ public class HaCommands implements CommandExecutor {
 							}else{
 								int list056;
 								list056 = 0;
-								int limit = plugin.MyChests.getStringList("StorageXYZ").size();
+								int limit = plugin.getChests().getStringList("StorageXYZ").size();
 								while(limit > list056){
 									String xyz2 = plugin.getChests().getStringList("StorageXYZ").get(list056);
 									int chestx = plugin.getChests().getInt("Storage." + xyz2 + ".Location.X");
@@ -815,7 +815,7 @@ public class HaCommands implements CommandExecutor {
 									String chestw = plugin.getChests().getString("Storage." + xyz2 + ".Location.W");
 									Block blockatlocation = Bukkit.getWorld(chestw).getBlockAt(chestx, chesty, chestz);  
 									plugin.exists = false;
-									if(blockatlocation.getState() instanceof Chest){
+									if(blockatlocation.getType()== Material.CHEST){
 										plugin.exists = true;
 										Chest chest = (Chest) blockatlocation.getState();
 										chest.getInventory().clear();
@@ -828,7 +828,7 @@ public class HaCommands implements CommandExecutor {
 										}
 										list056 = list056+1;
 										chest.getInventory().setContents(itemsinchest);
-										chest.update();
+										chest.update(true);
 									}
 								}
 								if(limit== list056){
@@ -1209,11 +1209,12 @@ public class HaCommands implements CommandExecutor {
 						sender.sendMessage(ChatColor.RED + "Too few arguments");
 					}
 				}else if(args[0].equalsIgnoreCase("Refill")){
+					plugin.reloadChests();
 					if(args.length>= 2){
 						a = Integer.parseInt(args[1]);
 						int list056;
 						list056 = 0;
-						int limit = plugin.MyChests.getStringList("StorageXYZ").size();
+						int limit = plugin.getChests().getStringList("StorageXYZ").size();
 						while(limit > list056){
 							String xyz2 = plugin.getChests().getStringList("StorageXYZ").get(list056);
 							int chestx = plugin.getChests().getInt("Storage." + xyz2 + ".Location.X");
@@ -1224,22 +1225,20 @@ public class HaCommands implements CommandExecutor {
 							Block blockatlocation = Bukkit.getWorld(chestw).getBlockAt(chestx, chesty, chestz);  
 							plugin.exists = false;
 							if(chesta== a){
-								if(blockatlocation.getState() instanceof Chest){
+								if(blockatlocation.getType()== Material.CHEST){
 									plugin.exists = true;
 									Chest chest = (Chest) blockatlocation.getState();
-									if(chesta== a){
-										chest.getInventory().clear();
-										ItemStack[] itemsinchest = null;
-										Object o = plugin.getChests().get("Storage." + xyz2 + ".ItemsInStorage");
-										if(o instanceof ItemStack[]){
-											itemsinchest = (ItemStack[]) o;
-										}else if(o instanceof List){
-											itemsinchest = (ItemStack[]) ((List<ItemStack>) o).toArray(new ItemStack[0]);
-										}
-										list056 = list056+1;
-										chest.getInventory().setContents(itemsinchest);
-										chest.update();
+									chest.getInventory().clear();
+									ItemStack[] itemsinchest = null;
+									Object o = plugin.getChests().get("Storage." + xyz2 + ".ItemsInStorage");
+									if(o instanceof ItemStack[]){
+										itemsinchest = (ItemStack[]) o;
+									}else if(o instanceof List){
+										itemsinchest = (ItemStack[]) ((List<ItemStack>) o).toArray(new ItemStack[0]);
 									}
+									list056 = list056+1;
+									chest.getInventory().setContents(itemsinchest);
+									chest.update(true);
 								}
 							}else{
 								list056 = list056+1;
@@ -1251,7 +1250,7 @@ public class HaCommands implements CommandExecutor {
 					}else{
 						int list056;
 						list056 = 0;
-						int limit = plugin.MyChests.getStringList("StorageXYZ").size();
+						int limit = plugin.getChests().getStringList("StorageXYZ").size();
 						while(limit > list056){
 							String xyz2 = plugin.getChests().getStringList("StorageXYZ").get(list056);
 							int chestx = plugin.getChests().getInt("Storage." + xyz2 + ".Location.X");
@@ -1260,7 +1259,7 @@ public class HaCommands implements CommandExecutor {
 							String chestw = plugin.getChests().getString("Storage." + xyz2 + ".Location.W");
 							Block blockatlocation = Bukkit.getWorld(chestw).getBlockAt(chestx, chesty, chestz);  
 							plugin.exists = false;
-							if(blockatlocation.getState() instanceof Chest){
+							if(blockatlocation.getType()== Material.CHEST){
 								plugin.exists = true;
 								Chest chest = (Chest) blockatlocation.getState();
 								chest.getInventory().clear();
@@ -1273,7 +1272,7 @@ public class HaCommands implements CommandExecutor {
 								}
 								list056 = list056+1;
 								chest.getInventory().setContents(itemsinchest);
-								chest.update();
+								chest.update(true);
 							}
 						}
 						if(limit== list056){

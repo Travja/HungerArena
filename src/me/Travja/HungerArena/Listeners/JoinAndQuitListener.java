@@ -136,7 +136,7 @@ public class JoinAndQuitListener implements Listener {
 				plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 					public void run(){
 						p.teleport(Spawn);
-						p.sendMessage(ChatColor.RED + "You have been teleported to spawn !!");
+						p.sendMessage(ChatColor.RED + "You have been teleported to spawn!!");
 					}
 				}, 40L);
 			}

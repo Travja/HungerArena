@@ -362,12 +362,6 @@ public class Main extends JavaPlugin{
 			ChestsFile = new File(getDataFolder(), "Chests.yml");
 		}
 		MyChests = YamlConfiguration.loadConfiguration(ChestsFile);
-
-		InputStream defConfigStream = this.getResource("Chests.yml");
-		if (defConfigStream != null) {
-			YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
-			MyChests.setDefaults(defConfig);
-		}
 	}
 	public FileConfiguration getChests() {
 		if (MyChests == null) {
@@ -459,7 +453,8 @@ public class Main extends JavaPlugin{
 						econ.depositPlayer(winner.getName(), config.getDouble("rewardEco.reward"));
 					}
 					Playing.get(a).clear();
-					getServer().getScheduler().cancelTask(deathtime.get(a));
+					if(deathtime.get(a)!= null)
+						getServer().getScheduler().cancelTask(deathtime.get(a));
 					getServer().getScheduler().cancelTask(grace);
 					getServer().getScheduler().cancelTask(start);
 				}
