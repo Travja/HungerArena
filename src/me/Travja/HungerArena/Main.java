@@ -161,13 +161,15 @@ public class Main extends JavaPlugin{
 					Map<String, Object> temp2 = spawns.getConfigurationSection("Spawns." + entry.getKey()).getValues(false);
 					for(Map.Entry<String, Object> e: temp2.entrySet()){
 						if(spawns.get("Spawns." + entry.getKey() + "." + e.getKey())!= null){
-							String[] coords = ((String) spawns.get("Spawns." + entry.getKey() + "." + e.getKey())).split(",");
-							Integer a = Integer.parseInt(entry.getKey());
-							Integer s = Integer.parseInt(e.getKey());
-							if(location.get(a)== null)
-								location.put(a, new HashMap<Integer, Location>());
-							log.info("Added spawn number " + s + " in arena " + a + "!");
-							location.get(a).put(s, new Location(getServer().getWorld(coords[0]), Double.parseDouble(coords[1]), Double.parseDouble(coords[2]), Double.parseDouble(coords[3])));
+							if(!e.getKey().equals("Max") || !e.getKey().equals("Min")){
+								String[] coords = ((String) spawns.get("Spawns." + entry.getKey() + "." + e.getKey())).split(",");
+								Integer a = Integer.parseInt(entry.getKey());
+								Integer s = Integer.parseInt(e.getKey());
+								if(location.get(a)== null)
+									location.put(a, new HashMap<Integer, Location>());
+								log.info("Added spawn number " + s + " in arena " + a + "!");
+								location.get(a).put(s, new Location(getServer().getWorld(coords[0]), Double.parseDouble(coords[1]), Double.parseDouble(coords[2]), Double.parseDouble(coords[3])));
+							}
 						}
 					}
 				}
