@@ -34,6 +34,35 @@ public class SpawnsCommand implements CommandExecutor {
 						y = Double.parseDouble(args[4]);
 						z = Double.parseDouble(args[5]);
 						loc = new Location(Bukkit.getWorld(world), x, y, z);
+						if(plugin.location.get(a)!= null){
+							if(plugin.location.get(a).size()>= i){
+								plugin.location.get(a).put(i, new Location(loc.getWorld(), x, y, z));
+							}else{
+								plugin.location.get(a).put(i, new Location(loc.getWorld(), x, y, z));
+							}
+						}else{
+							plugin.location.put(a, new HashMap<Integer, Location>());	
+							plugin.location.get(a).put(i, new Location(loc.getWorld(), x, y, z));
+							plugin.Playing.put(a, new ArrayList<String>());
+							plugin.Ready.put(a, new ArrayList<String>());
+							plugin.Dead.put(a, new ArrayList<String>());
+							plugin.Quit.put(a, new ArrayList<String>());
+							plugin.Out.put(a, new ArrayList<String>());
+							plugin.Watching.put(a, new ArrayList<String>());
+							plugin.NeedConfirm.put(a, new ArrayList<String>());
+							plugin.inArena.put(a, new ArrayList<String>());
+							plugin.Frozen.put(a, new ArrayList<String>());
+							plugin.arena.put(a, new ArrayList<String>());
+							plugin.canjoin.put(a, false);
+							plugin.open.put(a, true);
+						}
+						String coords = plugin.location.get(a).get(i).getWorld().getName() + "," + (plugin.location.get(a).get(i).getX()+.5) + "," + plugin.location.get(a).get(i).getY() + "," + (plugin.location.get(a).get(i).getZ()+.5);
+						p.sendMessage(coords);
+						plugin.spawns.set("Spawns." + a + "." + i, coords);
+						plugin.saveSpawns();
+						plugin.maxPlayers.put(a, plugin.location.get(a).size());
+						p.sendMessage(ChatColor.AQUA + "You have set the spawn location of Tribute " + i + " in arena " + a + "!");
+						return true;
 					}
 					if(args.length>= 2){
 						try{
