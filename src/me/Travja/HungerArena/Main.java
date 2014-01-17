@@ -8,27 +8,49 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import me.Travja.HungerArena.Listeners.*;
+import me.Travja.HungerArena.Listeners.BlockStorage;
+import me.Travja.HungerArena.Listeners.Boundaries;
+import me.Travja.HungerArena.Listeners.ChatListener;
+import me.Travja.HungerArena.Listeners.DeathListener;
+import me.Travja.HungerArena.Listeners.DmgListener;
+import me.Travja.HungerArena.Listeners.FreezeListener;
+import me.Travja.HungerArena.Listeners.JoinAndQuitListener;
+import me.Travja.HungerArena.Listeners.PvP;
+import me.Travja.HungerArena.Listeners.Signs;
+import me.Travja.HungerArena.Listeners.SpectatorListener;
+import me.Travja.HungerArena.Listeners.TeleportListener;
+import me.Travja.HungerArena.Listeners.spawnsListener;
 import net.milkbowl.vault.economy.Economy;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
+import org.bukkit.FireworkEffect;
+import org.bukkit.FireworkEffect.Type;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.FireworkMeta;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
+import org.bukkit.scoreboard.Scoreboard;
 
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
@@ -40,6 +62,7 @@ public class Main extends JavaPlugin{
 	public HashMap<Integer, List<String>> Quit = new HashMap<Integer, List<String>>();
 	public HashMap<Integer, List<String>> Out = new HashMap<Integer, List<String>>();
 	public HashMap<Integer, List<String>> Watching = new HashMap<Integer, List<String>>();
+	public HashMap<String, Integer> Kills = new HashMap<String, Integer>();
 	public HashMap<Integer, List<String>> NeedConfirm = new HashMap<Integer, List<String>>();
 	public HashMap<Integer, HashMap<Integer, Location>> location = new HashMap<Integer, HashMap<Integer, Location>>();
 	public HashMap<Integer, List<String>> inArena = new HashMap<Integer, List<String>>();
@@ -53,6 +76,8 @@ public class Main extends JavaPlugin{
 	public ArrayList<Player> Tele = new ArrayList<Player>();
 	public ArrayList<String> needInv = new ArrayList<String>();
 	public List<String> worlds = new ArrayList<String>();
+
+	public HashMap<String, Scoreboard> scoreboards = new HashMap<String, Scoreboard>();
 
 	public Listener DeathListener = new DeathListener(this);
 	public Listener SpectatorListener = new SpectatorListener(this);
@@ -419,7 +444,7 @@ public class Main extends JavaPlugin{
 				//Announce winner
 				for(i = 0; i < Playing.get(a).size(); i++){
 					String winnername = Playing.get(a).get(i);
-					Player winner = getServer().getPlayerExact(winnername);
+					final Player winner = getServer().getPlayerExact(winnername);
 					String winnername2 = winner.getName();
 					getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
 					winner.getInventory().clear();
@@ -434,8 +459,67 @@ public class Main extends JavaPlugin{
 					}
 					Tele.add(winner);
 					needInv.add(winnername2);
+					winner.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
+					if(scoreboards.containsKey(winner.getName()))
+						scoreboards.remove(winner.getName());
+					if(Kills.containsKey(winner.getName()))
+						Kills.remove(winner.getName());
 					//final World w = winner.getWorld();
 					winner.teleport(Spawn);
+
+
+					////////////////////////////////////////////////////////
+					////////////////////  FIREWORKS  ///////////////////////
+					////////////////////////////////////////////////////////
+
+
+					for(i = 0; i < 10; i++){
+						Bukkit.getScheduler().runTaskLater(this, new Runnable(){
+							public void run(){
+								//Spawn the Firework, get the FireworkMeta.
+								Firework fw = (Firework) winner.getWorld().spawnEntity(winner.getLocation(), EntityType.FIREWORK);
+								FireworkMeta fwm = fw.getFireworkMeta();
+
+								//Our random generator
+								Random r = new Random();   
+
+								//Get the type
+								int rt = r.nextInt(4) + 1;
+								Type type = Type.BALL;       
+								if (rt == 1) type = Type.BALL;
+								if (rt == 2) type = Type.BALL_LARGE;
+								if (rt == 3) type = Type.BURST;
+								if (rt == 4) type = Type.CREEPER;
+								if (rt == 5) type = Type.STAR;
+
+								//Get our random colours   
+								int r1i = r.nextInt(17) + 1;
+								int r2i = r.nextInt(17) + 1;
+								Color c1 = getColor(r1i);
+								Color c2 = getColor(r2i);
+
+								//Create our effect with this
+								FireworkEffect effect = FireworkEffect.builder().flicker(r.nextBoolean()).withColor(c1).withFade(c2).with(type).trail(r.nextBoolean()).build();
+
+								//Then apply the effect to the meta
+								fwm.addEffect(effect);
+
+								//Generate some random power and set it
+								int rp = r.nextInt(2) + 1;
+								fwm.setPower(rp);
+
+								//Then apply this to our rocket
+								fw.setFireworkMeta(fwm);
+							}
+						},20 + i*20L);
+					}
+
+
+					////////////////////////////////////////////////////////
+					////////////////////////////////////////////////////////
+					////////////////////////////////////////////////////////
+
+
 					/*if(config.getBoolean("reloadWorld")){
 					getServer().unloadWorld(w, false);
 					getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable(){
@@ -526,6 +610,77 @@ public class Main extends JavaPlugin{
 			}
 		}
 	}
+
+
+
+	private Color getColor(int i) {
+		if(i==1)
+			return Color.AQUA;
+		else if(i==2)
+			return Color.BLACK;
+		else if(i==3)
+			return Color.BLUE;
+		else if(i==4)
+			return Color.FUCHSIA;
+		else if(i==5)
+			return Color.GRAY;
+		else if(i==6)
+			return Color.GREEN;
+		else if(i==7)
+			return Color.LIME;
+		else if(i==8)
+			return Color.MAROON;
+		else if(i==9)
+			return Color.NAVY;
+		else if(i==10)
+			return Color.OLIVE;
+		else if(i==11)
+			return Color.ORANGE;
+		else if(i==12)
+			return Color.PURPLE;
+		else if(i==13)
+			return Color.RED;
+		else if(i==14)
+			return Color.SILVER;
+		else if(i==15)
+			return Color.TEAL;
+		else if(i==16)
+			return Color.WHITE;
+		else
+			return Color.YELLOW;
+	}
+
+
+
+
+	public void updateScoreboard(Player p){
+		if(getArena(p)!= null){
+			a = getArena(p);
+			Scoreboard sb = scoreboards.get(p.getName());
+			Objective obj = sb.getObjective("HA");
+			if(obj!= null){
+				Score kills = obj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Kills"));
+				Score players = obj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Players"));
+				Score spectators = obj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Spectators"));
+				players.setScore(Playing.get(a).size());
+				if(Kills.containsKey(p.getName()))
+					kills.setScore(Kills.get(p.getName()));
+				if(Watching.get(a)!= null)
+					kills.setScore(Watching.get(a).size());
+				if(config.getInt("DeathMatch")!= 0){
+					if(timetodeath.get(a)!= null){
+						String secs = String.valueOf((Integer.valueOf(timetodeath.get(a)-timetodeath.get(a)/60*60)< 10) ? "0" + Integer.valueOf(timetodeath.get(a)-timetodeath.get(a)/60*60) : Integer.valueOf(timetodeath.get(a)-timetodeath.get(a)/60*60));
+						obj.setDisplayName(ChatColor.GREEN + "HA - DMTime: " + ChatColor.AQUA + Integer.valueOf(timetodeath.get(a)/60) + ":" + secs);
+					}
+				}else{
+					obj.setDisplayName(ChatColor.GREEN + "HungerArena");
+
+				}
+			}
+		}
+	}
+
+
 	public HashMap<Integer, Integer> deathtime = new HashMap<Integer, Integer>();
 	public HashMap<Integer, Integer> timetodeath = new HashMap<Integer, Integer>();
 	public void startGames(final Integer a){
@@ -537,6 +692,22 @@ public class Main extends JavaPlugin{
 		} else {
 			i = 10;
 		}
+		for(String gn: Playing.get(a)){
+			Scoreboard scoreboard = getServer().getScoreboardManager().getNewScoreboard();
+			Objective sobj = scoreboard.registerNewObjective("HA", "HAData");
+			sobj.setDisplayName(ChatColor.GREEN + "HA - Starting");
+			Score skills = sobj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Kills"));
+			skills.setScore(0);
+			Score sdeaths = sobj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Spectators"));
+			sdeaths.setScore(0);
+			Score splayers = sobj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Players"));
+			splayers.setScore(0);
+			sobj.setDisplaySlot(DisplaySlot.SIDEBAR);
+			Bukkit.getPlayer(gn).setScoreboard(scoreboard);
+			scoreboards.put(Bukkit.getPlayer(gn).getName(), Bukkit.getPlayer(gn).getScoreboard());
+		}
+		getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha Refill " + a);
+		getServer().getScheduler().cancelTask(start);
 		if(config.getString("Countdown").equalsIgnoreCase("true")){
 			start = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable(){
 				public void run(){
@@ -569,6 +740,20 @@ public class Main extends JavaPlugin{
 					i = i-1;
 					canjoin.put(a, true);
 					if(i== -1){
+						for(String gn: Playing.get(a)){
+							Scoreboard scoreboard = getServer().getScoreboardManager().getNewScoreboard();
+							Objective sobj = scoreboard.registerNewObjective("HA", "HAData");
+							sobj.setDisplayName(ChatColor.GREEN + "HA - Starting");
+							Score skills = sobj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Kills"));
+							skills.setScore(0);
+							Score sdeaths = sobj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Spectators"));
+							sdeaths.setScore(0);
+							Score splayers = sobj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Players"));
+							splayers.setScore(0);
+							sobj.setDisplaySlot(DisplaySlot.SIDEBAR);
+							Bukkit.getPlayer(gn).setScoreboard(scoreboard);
+							scoreboards.put(Bukkit.getPlayer(gn).getName(), Bukkit.getPlayer(gn).getScoreboard());
+						}
 						if(Frozen.get(a)!= null)
 							Frozen.get(a).clear();
 						if(config.getBoolean("broadcastAll")){
@@ -579,8 +764,6 @@ public class Main extends JavaPlugin{
 								g.sendMessage(msg);
 							}
 						}
-						getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha Refill " + a);
-						getServer().getScheduler().cancelTask(start);
 						if(config.getInt("Grace_Period")!= 0){
 							gp.put(a, config.getInt("Grace_Period"));
 							grace = getServer().getScheduler().scheduleSyncRepeatingTask(Bukkit.getPluginManager().getPlugin("HungerArena"), new Runnable(){
@@ -608,20 +791,25 @@ public class Main extends JavaPlugin{
 						}
 						if(config.getInt("DeathMatch")!= 0){
 							int death = config.getInt("DeathMatch");
-							timetodeath.put(a, death);
+							timetodeath.put(a, death*60);
 							deathtime.put(a, getServer().getScheduler().scheduleSyncRepeatingTask(Bukkit.getPluginManager().getPlugin("HungerArena"), new Runnable(){
 								public void run(){
+									for(String pl: Playing.get(a)){
+										updateScoreboard(Bukkit.getPlayer(pl));
+									}
 									timetodeath.put(a, timetodeath.get(a)-1);
-									if(config.getBoolean("broadcastAll")){
-										for(Player wp: location.get(a).get(1).getWorld().getPlayers()){
-											if(timetodeath.get(a)!= 0){
-												wp.sendMessage(ChatColor.YELLOW + String.valueOf(timetodeath.get(a)) + ChatColor.RED + " mins till the death match!");
+									if(Integer.valueOf(timetodeath.get(a))%300== 0){
+										if(config.getBoolean("broadcastAll")){
+											for(Player wp: location.get(a).get(1).getWorld().getPlayers()){
+												if(timetodeath.get(a)!= 0){
+													wp.sendMessage(ChatColor.YELLOW + String.valueOf(timetodeath.get(a)/60) + ChatColor.RED + " mins till the death match!");
+												}
 											}
-										}
-									}else{
-										for(String gn: Playing.get(a)){
-											Player g = getServer().getPlayer(gn);
-											g.sendMessage(ChatColor.YELLOW + String.valueOf(timetodeath.get(a)) + ChatColor.RED + " mins till the death match!");
+										}else{
+											for(String gn: Playing.get(a)){
+												Player g = getServer().getPlayer(gn);
+												g.sendMessage(ChatColor.YELLOW + String.valueOf(timetodeath.get(a)) + ChatColor.RED + " mins till the death match!");
+											}
 										}
 									}
 									if(timetodeath.get(a)== 0){
@@ -651,7 +839,7 @@ public class Main extends JavaPlugin{
 										getServer().getScheduler().cancelTask(deathtime.get(a));
 									}
 								}
-							}, 1200L, 1200L));
+							}, 20L, 20L));
 						}
 					}
 				}

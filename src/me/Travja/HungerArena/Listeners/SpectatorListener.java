@@ -15,6 +15,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.scoreboard.DisplaySlot;
 
 public class SpectatorListener implements Listener {
 	public Main plugin;
@@ -147,6 +148,11 @@ public class SpectatorListener implements Listener {
 					double spawnz = Double.parseDouble(Spawncoords[2]);
 					final Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
 					p.teleport(Spawn);
+					p.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
+					if(plugin.scoreboards.containsKey(p.getName()))
+						plugin.scoreboards.remove(p.getName());
+					if(plugin.Kills.containsKey(p.getName()))
+						plugin.Kills.remove(p.getName());
 				}
 			}
 		}

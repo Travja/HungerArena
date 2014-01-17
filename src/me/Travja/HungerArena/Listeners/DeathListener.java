@@ -8,12 +8,16 @@ import org.bukkit.Location;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.scoreboard.DisplaySlot;
 
 public class DeathListener implements Listener{
 	public Main plugin;
@@ -44,6 +48,76 @@ public class DeathListener implements Listener{
 		}
 	}
 	@EventHandler (priority = EventPriority.HIGHEST)
+	public void damage(EntityDamageEvent event){
+		Entity e = event.getEntity();
+		if(e instanceof Player){
+			Player p = (Player) e;
+			if(plugin.getArena(p)!= null){
+				a = plugin.getArena(p);
+				if(plugin.Playing.get(a).size()== 2){
+					if(event.getDamage()>= p.getHealth()){
+						event.setCancelled(true);
+						String[] Spawncoords = plugin.spawns.getString("Spawn_coords").split(",");
+						World spawnw = plugin.getServer().getWorld(Spawncoords[3]);
+						double spawnx = Double.parseDouble(Spawncoords[0]);
+						double spawny = Double.parseDouble(Spawncoords[1]);
+						double spawnz = Double.parseDouble(Spawncoords[2]);
+						final Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
+						p.setHealth(20);
+						p.setFoodLevel(20);
+						p.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
+						plugin.scoreboards.remove(p.getName());
+						plugin.Kills.remove(p.getName());
+						clearInv(p);
+						p.teleport(Spawn);
+						plugin.Frozen.get(a).remove(p.getName());
+						plugin.Playing.get(a).remove(p.getName());
+						plugin.winner(a);
+					}
+				}
+			}
+		}
+	}
+	@EventHandler (priority = EventPriority.HIGHEST)
+	public void damage(EntityDamageByEntityEvent event){
+		Entity e = event.getEntity();
+		Entity d = event.getEntity();
+		if(e instanceof Player){
+			Player p = (Player) e;
+			if(plugin.getArena(p)!= null){
+				a = plugin.getArena(p);
+				if(plugin.Playing.get(a).size()== 2){
+					if(event.getDamage()>= p.getHealth()){
+						event.setCancelled(true);
+						String[] Spawncoords = plugin.spawns.getString("Spawn_coords").split(",");
+						World spawnw = plugin.getServer().getWorld(Spawncoords[3]);
+						double spawnx = Double.parseDouble(Spawncoords[0]);
+						double spawny = Double.parseDouble(Spawncoords[1]);
+						double spawnz = Double.parseDouble(Spawncoords[2]);
+						final Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
+						p.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
+						plugin.scoreboards.remove(p.getName());
+						plugin.Kills.remove(p.getName());
+						clearInv(p);
+						p.setHealth(20);
+						p.setFoodLevel(20);
+						p.teleport(Spawn);
+						if(d instanceof Player){
+							Player k = (Player) d;
+							if(plugin.getArena(k)!= null){
+								if(plugin.Kills.containsKey(k.getName()))
+									plugin.Kills.put(k.getName(), plugin.Kills.get(k.getName())+1);
+							}
+						}
+						plugin.Frozen.get(a).remove(p.getName());
+						plugin.Playing.get(a).remove(p.getName());
+						plugin.winner(a);
+					}
+				}
+			}
+		}
+	}
+	@EventHandler (priority = EventPriority.HIGHEST)
 	public void onPlayerDeath(PlayerDeathEvent event){
 		Player p = event.getEntity();
 		Server s = p.getServer();
@@ -54,36 +128,38 @@ public class DeathListener implements Listener{
 			String leftmsg = null;
 			if(!plugin.Frozen.get(a).isEmpty()){
 				if(plugin.Frozen.get(a).contains(pname)){
-					/*players = plugin.Playing.get(a).size()-1;
-					leftmsg = ChatColor.BLUE + "There are now " + players + " tributes left!";
-					if(plugin.config.getString("Cannon_Death").equalsIgnoreCase("True")){
-						double y = p.getLocation().getY();
-						double newy = y+200;
-						double x = p.getLocation().getX();
-						double z = p.getLocation().getZ();
-						Location strike = new Location(p.getWorld(), x, newy, z);
-						p.getWorld().strikeLightning(strike);
-					}*/
-					event.setDeathMessage("");
-					/*if(plugin.config.getBoolean("broadcastAll")){
-						p.getServer().broadcastMessage(pname + ChatColor.LIGHT_PURPLE + " Stepped off their pedestal too early!");
-					}else{
-						for(String gn: plugin.Playing.get(a)){
-							Player g = plugin.getServer().getPlayer(gn);
-							g.sendMessage(pname + ChatColor.LIGHT_PURPLE + " Stepped off their pedestal too early!");
+					if(!(p.getKiller() instanceof Player)){
+						players = plugin.Playing.get(a).size()-1;
+						leftmsg = ChatColor.BLUE + "There are now " + players + " tributes left!";
+						if(plugin.config.getString("Cannon_Death").equalsIgnoreCase("True")){
+							double y = p.getLocation().getY();
+							double newy = y+200;
+							double x = p.getLocation().getX();
+							double z = p.getLocation().getZ();
+							Location strike = new Location(p.getWorld(), x, newy, z);
+							p.getWorld().strikeLightning(strike);
 						}
-					}
-					plugin.Frozen.get(a).remove(pname);
-					plugin.Playing.get(a).remove(pname);
-					if(plugin.config.getBoolean("broadcastAll")){
-						p.getServer().broadcastMessage(leftmsg);
-					}else{
-						for(String gn: plugin.Playing.get(a)){
-							Player g = plugin.getServer().getPlayer(gn);
-							g.sendMessage(leftmsg);
+						event.setDeathMessage("");
+						if(plugin.config.getBoolean("broadcastAll")){
+							p.getServer().broadcastMessage(pname + ChatColor.LIGHT_PURPLE + " Stepped off their pedestal too early!");
+						}else{
+							for(String gn: plugin.Playing.get(a)){
+								Player g = plugin.getServer().getPlayer(gn);
+								g.sendMessage(pname + ChatColor.LIGHT_PURPLE + " Stepped off their pedestal too early!");
+							}
 						}
+						plugin.Frozen.get(a).remove(pname);
+						plugin.Playing.get(a).remove(pname);
+						if(plugin.config.getBoolean("broadcastAll")){
+							p.getServer().broadcastMessage(leftmsg);
+						}else{
+							for(String gn: plugin.Playing.get(a)){
+								Player g = plugin.getServer().getPlayer(gn);
+								g.sendMessage(leftmsg);
+							}
+						}
+						plugin.winner(a);
 					}
-					plugin.winner(a);*/
 				}
 			}else{
 				players = plugin.Playing.get(a).size()-1;
@@ -113,6 +189,8 @@ public class DeathListener implements Listener{
 								g.sendMessage(leftmsg);
 							}
 						}
+						if(plugin.Kills.containsKey(killername))
+							plugin.Kills.put(killername, plugin.Kills.get(killername)+1);
 						plugin.winner(a);
 					}else{
 						Player killer = p.getKiller();
@@ -130,6 +208,8 @@ public class DeathListener implements Listener{
 								g.sendMessage(leftmsg);
 							}
 						}
+						if(plugin.Kills.containsKey(killername))
+							plugin.Kills.put(killername, plugin.Kills.get(killername)+1);
 						plugin.winner(a);
 					}
 				}else{
@@ -148,5 +228,13 @@ public class DeathListener implements Listener{
 				}
 			}
 		}
+	}
+	private void clearInv(Player p){
+		p.getInventory().clear();
+		p.getInventory().setBoots(null);
+		p.getInventory().setChestplate(null);
+		p.getInventory().setHelmet(null);
+		p.getInventory().setLeggings(null);
+		p.updateInventory();
 	}
 }

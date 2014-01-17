@@ -12,6 +12,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.scoreboard.DisplaySlot;
 
 public class JoinAndQuitListener implements Listener {
 	public Main plugin;
@@ -123,7 +124,7 @@ public class JoinAndQuitListener implements Listener {
 				}
 			}
 		}
-//Jeppa: New routine to check if the player reconnected and is unknown to the server!
+		//Jeppa: New routine to check if the player reconnected and is unknown to the server!
 		if((plugin.restricted && plugin.worlds.contains(p.getWorld().getName())) || !plugin.restricted){
 			if (!pfound && plugin.config.getString("Force_Players_toSpawn").equalsIgnoreCase("True")) { //Jeppa: Player is in non of the obove lists.. so he is new to the server due to restart of the server and reconnect of the player...(something like that...)
 				String[] Spawncoords = plugin.spawns.getString("Spawn_coords").split(",");
@@ -141,7 +142,7 @@ public class JoinAndQuitListener implements Listener {
 				}, 40L);
 			}
 		}
-//^^
+		//^^
 
 	}
 	@EventHandler
@@ -159,6 +160,11 @@ public class JoinAndQuitListener implements Listener {
 				double spawnz = Double.parseDouble(Spawncoords[2]);
 				Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
 				p.teleport(Spawn);
+				p.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
+				if(plugin.scoreboards.containsKey(p.getName()))
+					plugin.scoreboards.remove(p.getName());
+				if(plugin.Kills.containsKey(p.getName()))
+					plugin.Kills.remove(p.getName());
 			}
 		}
 	}
@@ -175,6 +181,11 @@ public class JoinAndQuitListener implements Listener {
 					if(plugin.Out.get(a).contains(pname)){
 						plugin.Quit.get(a).add(pname);
 						plugin.Out.get(a).remove(pname); //Jeppa: fix
+						p.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
+						if(plugin.scoreboards.containsKey(p.getName()))
+							plugin.scoreboards.remove(p.getName());
+						if(plugin.Kills.containsKey(p.getName()))
+							plugin.Kills.remove(p.getName());
 						plugin.winner(a);
 						plugin.inArena.get(a).add(pname); //Jeppa: add him to Quit and to inArena ?
 					}else if(plugin.getArena(p)== null){
