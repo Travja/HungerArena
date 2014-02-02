@@ -272,6 +272,7 @@ public class Main extends JavaPlugin{
 			restricted = true;
 		}
 		ConfigManager.setup();
+		scoreboardInit();
 		log.info("Enabled v" + getDescription().getVersion());
 	}
 
@@ -652,29 +653,43 @@ public class Main extends JavaPlugin{
 
 
 
+	private void scoreboardInit(){
+		Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable(){
+			public void run(){
+				for(Player pl: getServer().getOnlinePlayers()){
+					updateScoreboard(pl);
+				}
+			}
+		}, 20L, 10L);
+	}
 
 	public void updateScoreboard(Player p){
 		if(getArena(p)!= null){
 			a = getArena(p);
-			Scoreboard sb = scoreboards.get(p.getName());
-			Objective obj = sb.getObjective("HA");
-			if(obj!= null){
-				Score kills = obj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Kills"));
-				Score players = obj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Players"));
-				Score spectators = obj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Spectators"));
-				players.setScore(Playing.get(a).size());
-				if(Kills.containsKey(p.getName()))
-					kills.setScore(Kills.get(p.getName()));
-				if(Watching.get(a)!= null)
-					kills.setScore(Watching.get(a).size());
-				if(config.getInt("DeathMatch")!= 0){
-					if(timetodeath.get(a)!= null){
-						String secs = String.valueOf((Integer.valueOf(timetodeath.get(a)-timetodeath.get(a)/60*60)< 10) ? "0" + Integer.valueOf(timetodeath.get(a)-timetodeath.get(a)/60*60) : Integer.valueOf(timetodeath.get(a)-timetodeath.get(a)/60*60));
-						obj.setDisplayName(ChatColor.GREEN + "HA - DMTime: " + ChatColor.AQUA + Integer.valueOf(timetodeath.get(a)/60) + ":" + secs);
+			if(scoreboards.get(p.getName())!= null && scoreboards.get(p.getName()).getObjective("HA")!= null){
+				Scoreboard sb = scoreboards.get(p.getName());
+				Objective obj = sb.getObjective("HA");
+				if(obj!= null){
+					Score kills = obj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Kills"));
+					Score players = obj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Players"));
+					Score spectators = obj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Spectators"));
+					players.setScore(Playing.get(a).size());
+					if(Kills.containsKey(p.getName()))
+						kills.setScore(Kills.get(p.getName()));
+					if(Watching.get(a)!= null)
+						spectators.setScore(Watching.get(a).size());
+					if(config.getInt("DeathMatch")!= 0){
+						if(timetodeath.get(a)!= null){
+							if(timetodeath.get(a)> 0){
+								String secs = String.valueOf((Integer.valueOf(timetodeath.get(a)-timetodeath.get(a)/60*60)< 10) ? "0" + Integer.valueOf(timetodeath.get(a)-timetodeath.get(a)/60*60) : Integer.valueOf(timetodeath.get(a)-timetodeath.get(a)/60*60));
+								obj.setDisplayName(ChatColor.GREEN + "HA - DMTime: " + ChatColor.AQUA + Integer.valueOf(timetodeath.get(a)/60) + ":" + secs);
+							}else{
+								obj.setDisplayName(ChatColor.GREEN + "HA - " + ChatColor.RED + "DEATHMATCH");
+							}
+						}
+					}else{
+						obj.setDisplayName(ChatColor.GREEN + "HungerArena");
 					}
-				}else{
-					obj.setDisplayName(ChatColor.GREEN + "HungerArena");
-
 				}
 			}
 		}
@@ -794,9 +809,6 @@ public class Main extends JavaPlugin{
 							timetodeath.put(a, death*60);
 							deathtime.put(a, getServer().getScheduler().scheduleSyncRepeatingTask(Bukkit.getPluginManager().getPlugin("HungerArena"), new Runnable(){
 								public void run(){
-									for(String pl: Playing.get(a)){
-										updateScoreboard(Bukkit.getPlayer(pl));
-									}
 									timetodeath.put(a, timetodeath.get(a)-1);
 									if(Integer.valueOf(timetodeath.get(a))%300== 0){
 										if(config.getBoolean("broadcastAll")){
