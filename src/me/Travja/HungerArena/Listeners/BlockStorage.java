@@ -27,6 +27,7 @@ public class BlockStorage implements Listener {
 	public BlockStorage(Main m) {
 		this.plugin = m;
 	}
+	@SuppressWarnings("deprecation")
 	@EventHandler(priority=EventPriority.MONITOR)
 	public void BlockBreak(BlockBreakEvent event) {
 		Block b = event.getBlock();
@@ -73,6 +74,7 @@ public class BlockStorage implements Listener {
 			}
 		}
 	}
+	@SuppressWarnings("deprecation")
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void Explosion(EntityExplodeEvent event){
 		List<Block> blocksd = event.blockList();
@@ -111,6 +113,7 @@ public class BlockStorage implements Listener {
 			}
 		}
 	}
+	@SuppressWarnings("deprecation")
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void burningBlocks(BlockBurnEvent event){
 		Block b = event.getBlock();
@@ -210,6 +213,7 @@ public class BlockStorage implements Listener {
 			}
 		}
 	}
+	@SuppressWarnings("deprecation")
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void bucketFill(PlayerBucketFillEvent event){
 		if(plugin.getArena(event.getPlayer())!= null){
@@ -238,6 +242,7 @@ public class BlockStorage implements Listener {
 			}
 		}
 	}
+	@SuppressWarnings("deprecation")
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void blockMelt(BlockFadeEvent event){
 		int i = 0;

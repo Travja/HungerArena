@@ -45,7 +45,7 @@ public class HaCommands implements CommandExecutor {
 		p.getInventory().setLeggings(null);
 		p.updateInventory();
 	}
-	@SuppressWarnings({ "unchecked" })
+	@SuppressWarnings({ "unchecked", "deprecation" })
 	@Override
 	public boolean onCommand(final CommandSender sender, Command cmd, String commandLabel, String[] args){
 		String[] Spawncoords = plugin.spawns.getString("Spawn_coords").split(",");
@@ -860,7 +860,7 @@ public class HaCommands implements CommandExecutor {
 							return true;
 						}
 					}else if(args[0].equalsIgnoreCase("Restart")){
-						int b = 0;
+						//int b = 0;
 						if(p.hasPermission("HungerArena.Restart")){
 							i = 1;
 							int e = plugin.open.size();
@@ -1315,7 +1315,7 @@ public class HaCommands implements CommandExecutor {
 						}
 					}
 				}else if(args[0].equalsIgnoreCase("Restart")){
-					int b = 0;
+					//int b = 0;
 					i = 1;
 					int e = plugin.open.size();
 					if(args.length>= 2){

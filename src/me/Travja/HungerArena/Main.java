@@ -129,6 +129,7 @@ public class Main extends JavaPlugin{
 	int a = 0;
 	int grace = 0;
 
+	@SuppressWarnings("deprecation")
 	public void onEnable(){
 		log = this.getLogger();
 
@@ -539,12 +540,12 @@ public class Main extends JavaPlugin{
 						}
 						econ.depositPlayer(winner.getName(), config.getDouble("rewardEco.reward"));
 					}
-					Playing.get(a).clear();
 					if(deathtime.get(a)!= null)
 						getServer().getScheduler().cancelTask(deathtime.get(a));
 					getServer().getScheduler().cancelTask(grace);
 					getServer().getScheduler().cancelTask(start);
 				}
+				Playing.get(a).clear();
 				//Show spectators
 				for(String s1: Watching.get(a)){
 					Player spectator = getServer().getPlayerExact(s1);
@@ -699,8 +700,7 @@ public class Main extends JavaPlugin{
 	public HashMap<Integer, Integer> deathtime = new HashMap<Integer, Integer>();
 	public HashMap<Integer, Integer> timetodeath = new HashMap<Integer, Integer>();
 	public void startGames(final Integer a){
-		String begin = config.getString("Start_Message");
-		begin = begin.replaceAll("(&([a-f0-9]))", "\u00A7$2");
+		String begin = ChatColor.translateAlternateColorCodes('&', config.getString("Start_Message"));
 		final String msg = begin;
 		if(config.getInt("Countdown_Timer") != 0) {
 			i = config.getInt("Countdown_Timer") ;

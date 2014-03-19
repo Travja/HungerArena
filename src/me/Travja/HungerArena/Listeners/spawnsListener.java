@@ -16,6 +16,7 @@ public class spawnsListener implements Listener{
 		this.plugin = m;
 	}
 
+	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void interact(PlayerInteractEvent event){
 		Player p = event.getPlayer();

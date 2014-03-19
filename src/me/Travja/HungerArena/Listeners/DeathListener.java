@@ -63,7 +63,7 @@ public class DeathListener implements Listener{
 						double spawny = Double.parseDouble(Spawncoords[1]);
 						double spawnz = Double.parseDouble(Spawncoords[2]);
 						final Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
-						p.setHealth(20);
+						p.setHealth((double) 20);
 						p.setFoodLevel(20);
 						p.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
 						plugin.scoreboards.remove(p.getName());
@@ -99,7 +99,7 @@ public class DeathListener implements Listener{
 						plugin.scoreboards.remove(p.getName());
 						plugin.Kills.remove(p.getName());
 						clearInv(p);
-						p.setHealth(20);
+						p.setHealth((double) 20);
 						p.setFoodLevel(20);
 						p.teleport(Spawn);
 						if(d instanceof Player){
@@ -117,6 +117,7 @@ public class DeathListener implements Listener{
 			}
 		}
 	}
+	@SuppressWarnings("deprecation")
 	@EventHandler (priority = EventPriority.HIGHEST)
 	public void onPlayerDeath(PlayerDeathEvent event){
 		Player p = event.getEntity();
@@ -229,6 +230,7 @@ public class DeathListener implements Listener{
 			}
 		}
 	}
+	@SuppressWarnings("deprecation")
 	private void clearInv(Player p){
 		p.getInventory().clear();
 		p.getInventory().setBoots(null);
