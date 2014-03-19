@@ -729,11 +729,11 @@ public class Main extends JavaPlugin{
 					if(i > 0){
 						if(worlds.isEmpty()){
 							if(config.getBoolean("broadcastAll")){
-								getServer().broadcastMessage(String.valueOf(i));
+								getServer().broadcastMessage(ChatColor.AQUA + "Game " + a + " starting in: " + String.valueOf(i));
 							}else{
 								for(String gn: Playing.get(a)){
 									Player g = getServer().getPlayer(gn);
-									g.sendMessage(String.valueOf(i));
+									g.sendMessage(ChatColor.AQUA + "Game starting in: " + String.valueOf(i));
 								}
 							}
 						}else{

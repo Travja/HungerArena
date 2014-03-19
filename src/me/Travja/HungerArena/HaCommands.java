@@ -312,11 +312,11 @@ public class HaCommands implements CommandExecutor {
 															plugin.savePFile(pname);
 															clearInv(p);
 															if(plugin.config.getBoolean("broadcastAll")){
-																plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "!");
+																plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "! " + ChatColor.GRAY + plugin.Playing.get(a).size() + "/" + plugin.maxPlayers.get(a));
 															}else{
 																for(String gn: plugin.Playing.get(a)){
 																	Player g = plugin.getServer().getPlayer(gn);
-																	g.sendMessage(ChatColor.AQUA + pname + " has Joined the Game!");
+																	g.sendMessage(ChatColor.AQUA + pname + " has Joined the Game! " + ChatColor.GRAY + plugin.Playing.get(a).size() + "/" + plugin.maxPlayers.get(a));
 																}
 															}
 															if(plugin.Playing.get(a).size()== plugin.maxPlayers.get(a)){
@@ -357,11 +357,11 @@ public class HaCommands implements CommandExecutor {
 														plugin.savePFile(pname);
 														clearInv(p);
 														if(plugin.config.getBoolean("broadcastAll")){
-															plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "!");
+															plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "! " + ChatColor.GRAY + plugin.Playing.get(a).size() + "/" + plugin.maxPlayers.get(a));
 														}else{
 															for(String gn: plugin.Playing.get(a)){
 																Player g = plugin.getServer().getPlayer(gn);
-																g.sendMessage(ChatColor.AQUA + pname + " has Joined the Game!");
+																g.sendMessage(ChatColor.AQUA + pname + " has Joined the Game! " + ChatColor.GRAY + plugin.Playing.get(a).size() + "/" + plugin.maxPlayers.get(a));
 															}
 														}												
 														if(plugin.Playing.get(a).size()== plugin.maxPlayers.get(a)){
@@ -387,11 +387,11 @@ public class HaCommands implements CommandExecutor {
 												plugin.savePFile(pname);
 												clearInv(p);
 												if(plugin.config.getBoolean("broadcastAll")){
-													plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "!");
+													plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "! " + ChatColor.GRAY + plugin.Playing.get(a).size() + "/" + plugin.maxPlayers.get(a));
 												}else{
 													for(String gn: plugin.Playing.get(a)){
 														Player g = plugin.getServer().getPlayer(gn);
-														g.sendMessage(ChatColor.AQUA + pname + " has Joined the Game!");
+														g.sendMessage(ChatColor.AQUA + pname + " has Joined the Game! " + ChatColor.GRAY + plugin.Playing.get(a).size() + "/" + plugin.maxPlayers.get(a));
 													}
 												}										
 												if(plugin.Playing.get(a).size()== plugin.maxPlayers.get(a)){
@@ -411,11 +411,11 @@ public class HaCommands implements CommandExecutor {
 											plugin.savePFile(pname);
 											clearInv(p);
 											if(plugin.config.getBoolean("broadcastAll")){
-												plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "!");
+												plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "! " + ChatColor.GRAY + plugin.Playing.get(a).size() + "/" + plugin.maxPlayers.get(a));
 											}else{
 												for(String gn: plugin.Playing.get(a)){
 													Player g = plugin.getServer().getPlayer(gn);
-													g.sendMessage(ChatColor.AQUA + pname + " has Joined the Game!");
+													g.sendMessage(ChatColor.AQUA + pname + " has Joined the Game! " + ChatColor.GRAY + plugin.Playing.get(a).size() + "/" + plugin.maxPlayers.get(a));
 												}
 											}
 											if(plugin.Playing.get(a).size()== plugin.maxPlayers.get(a)){
