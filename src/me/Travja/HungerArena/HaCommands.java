@@ -592,8 +592,16 @@ public class HaCommands implements CommandExecutor {
 									p.sendMessage(ChatColor.RED + "You can't be ready when no one else is playing!");
 								}else{
 									plugin.Ready.get(a).add(pname);
+									if(plugin.config.getBoolean("broadcastAll")){
+										plugin.getServer().broadcastMessage(ChatColor.AQUA + "[HungerArena] Game " + a + ": " +  ChatColor.GRAY + String.valueOf(plugin.Ready.get(a).size()) + "/" + plugin.maxPlayers.get(a) + " Players ready!");
+									}else{
+										for(String gn: plugin.Playing.get(a)){
+											Player g = plugin.getServer().getPlayer(gn);
+											g.sendMessage(ChatColor.GRAY + String.valueOf(plugin.Ready.get(a).size()) + "/" + plugin.maxPlayers.get(a) + " Players ready!");
+										}
+									}
 									p.sendMessage(ChatColor.AQUA + "You have marked yourself as READY!");
-									if(plugin.Playing.get(a).size()-4== plugin.Ready.get(a).size() || plugin.Playing.get(a).size()==plugin.Ready.get(a).size()){
+									if(((double) plugin.Playing.get(a).size())%60<= plugin.Ready.get(a).size() || plugin.Playing.get(a).size()==plugin.Ready.get(a).size()){
 										Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha warpall " + a);
 									}
 								}
