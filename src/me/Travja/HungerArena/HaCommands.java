@@ -665,6 +665,7 @@ public class HaCommands implements CommandExecutor {
 								a = Integer.parseInt(args[1]);
 								if(!plugin.Watching.get(a).contains(pname) && plugin.getArena(p)== null && plugin.canjoin.get(a)== true){
 									plugin.Watching.get(a).add(pname);
+									p.teleport(Bukkit.getPlayer(plugin.Playing.get(a).get(0)));
 									for(Player online:plugin.getServer().getOnlinePlayers()){
 										online.hidePlayer(p);
 									}

@@ -127,6 +127,9 @@ public class DeathListener implements Listener{
 			a = plugin.getArena(p);
 			int players = plugin.Playing.get(a).size()-1;
 			String leftmsg = null;
+			clearInv(p);
+			p.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
+			plugin.scoreboards.remove(p.getName());
 			if(!plugin.Frozen.get(a).isEmpty()){
 				if(plugin.Frozen.get(a).contains(pname)){
 					if(!(p.getKiller() instanceof Player)){
@@ -196,8 +199,11 @@ public class DeathListener implements Listener{
 					}else{
 						Player killer = p.getKiller();
 						String killername = killer.getName();
-						String weapon = killer.getItemInHand().getType().toString().replace('_', ' ');
-						String msg = ChatColor.LIGHT_PURPLE + "**BOOM** Tribute " + pname + " was killed by tribute " + killername + " with a(n) " + weapon;
+						String weapon = "a(n) " + killer.getItemInHand().getType().toString().replace('_', ' ');
+						if(killer.getItemInHand().hasItemMeta())
+							if(killer.getItemInHand().getItemMeta().hasDisplayName())
+								weapon = killer.getItemInHand().getItemMeta().getDisplayName();
+						String msg = ChatColor.LIGHT_PURPLE + "**BOOM** Tribute " + pname + " was killed by tribute " + killername + " with " + weapon;
 						event.setDeathMessage("");
 						if(plugin.config.getBoolean("broadcastAll")){
 							s.broadcastMessage(msg);
@@ -221,7 +227,7 @@ public class DeathListener implements Listener{
 					}else{
 						for(String gn: plugin.Playing.get(a)){
 							Player g = plugin.getServer().getPlayer(gn);
-							g.sendMessage(ChatColor.LIGHT_PURPLE + pname + " died of natural causes!");
+							g.sendMessage(ChatColor.LIGHT_PURPLE + pname + " died of " + ChatColor.ITALIC + " probably " + ChatColor.LIGHT_PURPLE + "natural causes!");
 							g.sendMessage(leftmsg);
 						}
 					}
