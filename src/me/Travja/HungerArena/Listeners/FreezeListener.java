@@ -22,6 +22,7 @@ public class FreezeListener implements Listener {
 	int a = 0;
 	private HashMap<Integer, Boolean> timeUp= new HashMap<Integer, Boolean>();
 	private ArrayList<Integer> timing = new ArrayList<Integer>();
+	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onPlayerMove(PlayerMoveEvent event){
 		Player p = event.getPlayer();

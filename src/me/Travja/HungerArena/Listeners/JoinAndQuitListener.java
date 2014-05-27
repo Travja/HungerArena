@@ -25,6 +25,7 @@ public class JoinAndQuitListener implements Listener {
 	}
 	int i = 0;
 	int a = 0;
+	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onJoin(PlayerJoinEvent evt) {
 		Player p = evt.getPlayer();
@@ -36,6 +37,7 @@ public class JoinAndQuitListener implements Listener {
 		}
 	}
 
+	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void onPlayerJoin(PlayerJoinEvent event){
 		final Player p = event.getPlayer();

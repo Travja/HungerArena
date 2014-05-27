@@ -87,6 +87,14 @@ public class SpectatorListener implements Listener {
 					if(plugin.Watching.get(i).contains(attackerName)){
 						event.setCancelled(true);
 						Attacker.sendMessage(ChatColor.RED + "You are spectating, you can't interfere with the game!");
+						return;
+					}
+				}
+			}
+			for(i = 0; i < plugin.Playing.size(); i++){
+				if(plugin.Playing.get(i)!= null){
+					if(plugin.Playing.get(i).contains(attackerName)){
+						event.setCancelled(true);
 					}
 				}
 			}
@@ -100,6 +108,14 @@ public class SpectatorListener implements Listener {
 						if(plugin.Watching.get(i).contains(bowManName)){
 							event.setCancelled(true);
 							BowMan.sendMessage(ChatColor.RED + "You are spectating, you can't interfere with the game!");
+							return;
+						}
+					}
+				}
+				for(i = 0; i < plugin.Playing.size(); i++){
+					if(plugin.Playing.get(i)!= null){
+						if(plugin.Playing.get(i).contains(bowManName)){
+							event.setCancelled(true);
 						}
 					}
 				}

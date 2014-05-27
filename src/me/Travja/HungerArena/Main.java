@@ -434,6 +434,7 @@ public class Main extends JavaPlugin{
 			this.getLogger().log(Level.SEVERE, "Could not save config to " + PFile, ex);
 		}
 	}
+	@SuppressWarnings("deprecation")
 	public void winner(final Integer a){
 		String[] Spawncoords = spawns.getString("Spawn_coords").split(",");
 		World spawnw = getServer().getWorld(Spawncoords[3]);
@@ -664,6 +665,7 @@ public class Main extends JavaPlugin{
 		}, 20L, 10L);
 	}
 
+	@SuppressWarnings("deprecation")
 	public void updateScoreboard(Player p){
 		if(getArena(p)!= null){
 			a = getArena(p);
@@ -691,6 +693,7 @@ public class Main extends JavaPlugin{
 					}else{
 						obj.setDisplayName(ChatColor.GREEN + "HungerArena");
 					}
+					p.setScoreboard(sb);
 				}
 			}
 		}
@@ -699,6 +702,7 @@ public class Main extends JavaPlugin{
 
 	public HashMap<Integer, Integer> deathtime = new HashMap<Integer, Integer>();
 	public HashMap<Integer, Integer> timetodeath = new HashMap<Integer, Integer>();
+	@SuppressWarnings("deprecation")
 	public void startGames(final Integer a){
 		String begin = ChatColor.translateAlternateColorCodes('&', config.getString("Start_Message"));
 		final String msg = begin;

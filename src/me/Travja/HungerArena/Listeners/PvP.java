@@ -66,7 +66,7 @@ public class PvP implements Listener {
 					}
 				}
 			}else if(projectile.getShooter() instanceof Entity){
-				Entity e = projectile.getShooter();
+				Entity e = (Entity) projectile.getShooter();
 				if(e instanceof Skeleton){
 					if(plugin.getArena(p)!= null){
 						if(plugin.gp.get(plugin.getArena((Player) e))!= null)
