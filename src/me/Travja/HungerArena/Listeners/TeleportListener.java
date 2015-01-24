@@ -1,6 +1,8 @@
-package me.Travja.HungerArena;
+package me.Travja.HungerArena.Listeners;
 
 import java.util.List;
+
+import me.Travja.HungerArena.Main;
 
 import org.bukkit.ChatColor;
 import org.bukkit.entity.Player;

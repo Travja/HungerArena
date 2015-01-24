@@ -4,6 +4,7 @@ import java.util.List;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.block.Chest;
 import org.bukkit.entity.Player;
@@ -22,7 +23,6 @@ public class Chests implements Listener {
 	@EventHandler(priority = EventPriority.HIGHEST)
 	public void ChestBreak(BlockBreakEvent event){
 		Player p = event.getPlayer();
-
 		Block block = event.getBlock();
 		if(p.hasPermission("HungerArena.Chest.Break")){
 			Location blocklocation = block.getLocation();
@@ -35,7 +35,6 @@ public class Chests implements Listener {
 					list2.remove(blockx + "," + blocky + "," + blockz);
 					plugin.getChests().set("Storage." + blockx + "," + blocky+ "," + blockz, null);
 					plugin.getChests().set("StorageXYZ", list2);
-					plugin.getChests().options().copyDefaults(true);
 					plugin.saveChests();
 					p.sendMessage("[HungerArena] Chest Removed!");
 				} else {
@@ -54,28 +53,29 @@ public class Chests implements Listener {
 			if(plugin.Playing.get(a).contains(p.getName()) && plugin.canjoin.get(a)){
 				if(!plugin.restricted || (plugin.restricted && plugin.worlds.contains(p.getWorld().getName()))){
 					if(block!= null){
-						if(block.getState() instanceof Chest){
-							ItemStack[] itemsinchest = ((Chest) block.getState()).getInventory().getContents();
+						if(block.getType()== Material.CHEST){
+							ItemStack[] itemsinchest = ((Chest) block.getState()).getInventory().getContents().clone();
 							int blockx = block.getX();
 							int blocky = block.getY();
 							int blockz = block.getZ();
 							String blockw = block.getWorld().getName().toString();
-							if(!plugin.getChests().contains("Storage." + blockx + "," + blocky + "," + blockz + ".Location.X")){ //getConfig greift auf normale cfg zu.. -> eigene Routine
-								plugin.getChests().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".Location.X", blockx);
-								plugin.getChests().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".Location.Y", blocky);
-								plugin.getChests().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".Location.Z",blockz);
-								plugin.getChests().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".Location.W", blockw);
-								plugin.getChests().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".ItemsInStorage", itemsinchest);
-								plugin.getChests().addDefault("Storage." + blockx + "," + blocky + "," + blockz + ".Arena", a);
+							if(!plugin.getChests().contains("Storage." + blockx + "," + blocky + "," + blockz)){
+								plugin.getChests().set("Storage." + blockx + "," + blocky + "," + blockz + ".Location.X", blockx);
+								plugin.getChests().set("Storage." + blockx + "," + blocky + "," + blockz + ".Location.Y", blocky);
+								plugin.getChests().set("Storage." + blockx + "," + blocky + "," + blockz + ".Location.Z",blockz);
+								plugin.getChests().set("Storage." + blockx + "," + blocky + "," + blockz + ".Location.W", blockw);
+								plugin.getChests().set("Storage." + blockx + "," + blocky + "," + blockz + ".ItemsInStorage", itemsinchest);
+								plugin.getChests().set("Storage." + blockx + "," + blocky + "," + blockz + ".Arena", a);
+								plugin.saveChests();
 							}
 							List<String> list2 = plugin.getChests().getStringList("StorageXYZ");
 							if(!list2.contains(blockx + "," + blocky + "," + blockz)){
 								list2.add(blockx + "," + blocky + "," + blockz);
 								plugin.getChests().set("StorageXYZ", list2);
-								plugin.getChests().options().copyDefaults(true);
 								plugin.saveChests();
 								p.sendMessage(ChatColor.GREEN + "Thank you for finding this undiscovered chest, it has been stored!!");
 							}
+							plugin.reloadChests();
 						}
 					}
 				}

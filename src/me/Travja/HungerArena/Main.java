@@ -8,45 +8,79 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Random;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import me.Travja.HungerArena.Listeners.BlockStorage;
+import me.Travja.HungerArena.Listeners.Boundaries;
+import me.Travja.HungerArena.Listeners.ChatListener;
+import me.Travja.HungerArena.Listeners.DeathListener;
+import me.Travja.HungerArena.Listeners.DmgListener;
+import me.Travja.HungerArena.Listeners.FreezeListener;
+import me.Travja.HungerArena.Listeners.JoinAndQuitListener;
+import me.Travja.HungerArena.Listeners.PvP;
+import me.Travja.HungerArena.Listeners.Signs;
+import me.Travja.HungerArena.Listeners.SpectatorListener;
+import me.Travja.HungerArena.Listeners.TeleportListener;
+import me.Travja.HungerArena.Listeners.spawnsListener;
 import net.milkbowl.vault.economy.Economy;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
+import org.bukkit.Color;
+import org.bukkit.FireworkEffect;
+import org.bukkit.FireworkEffect.Type;
 import org.bukkit.Location;
 import org.bukkit.World;
-import org.bukkit.WorldCreator;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.Firework;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.inventory.meta.FireworkMeta;
+import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scoreboard.DisplaySlot;
+import org.bukkit.scoreboard.Objective;
+import org.bukkit.scoreboard.Score;
+import org.bukkit.scoreboard.Scoreboard;
+
+import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
 public class Main extends JavaPlugin{
 	static Logger log;
 	public HashMap<Integer, List<String>> Playing = new HashMap<Integer, List<String>>();
 	public HashMap<Integer, List<String>> Ready = new HashMap<Integer, List<String>>();
 	public HashMap<Integer, List<String>> Dead = new HashMap<Integer, List<String>>();
+	public HashMap<Integer, String> MatchRunning = new HashMap<Integer, String>(); // Jeppa: Marker for the running arenas
 	public HashMap<Integer, List<String>> Quit = new HashMap<Integer, List<String>>();
 	public HashMap<Integer, List<String>> Out = new HashMap<Integer, List<String>>();
 	public HashMap<Integer, List<String>> Watching = new HashMap<Integer, List<String>>();
+	public HashMap<String, Integer> Kills = new HashMap<String, Integer>();
 	public HashMap<Integer, List<String>> NeedConfirm = new HashMap<Integer, List<String>>();
 	public HashMap<Integer, HashMap<Integer, Location>> location = new HashMap<Integer, HashMap<Integer, Location>>();
-	public ArrayList<Player> Tele = new ArrayList<Player>();
 	public HashMap<Integer, List<String>> inArena = new HashMap<Integer, List<String>>();
 	public HashMap<Integer, List<String>> Frozen = new HashMap<Integer, List<String>>();
 	public HashMap<Integer, List<String>> arena = new HashMap<Integer, List<String>>();
 	public HashMap<Integer, Boolean> canjoin = new HashMap<Integer, Boolean>();
 	public HashMap<Integer, Integer> maxPlayers = new HashMap<Integer, Integer>();
 	public HashMap<Integer, Boolean> open = new HashMap<Integer, Boolean>();
-	public List<String> worlds;
+	public HashMap<String, String> setting = new HashMap<String, String>();
+	public HashMap<Integer, Integer> gp = new HashMap<Integer, Integer>();
+	public ArrayList<Player> Tele = new ArrayList<Player>();
+	public ArrayList<String> needInv = new ArrayList<String>();// Jeppa: this is used as a marker now for players that joined an arena (for respawning and restoring inv)
+	public List<String> worlds = new ArrayList<String>();
+	public HashMap<Integer, String> worldsNames = new HashMap<Integer, String>(); //Jeppa: for storing the worlds names ...
+
+	public HashMap<String, Scoreboard> scoreboards = new HashMap<String, Scoreboard>();
+
 	public Listener DeathListener = new DeathListener(this);
 	public Listener SpectatorListener = new SpectatorListener(this);
 	public Listener FreezeListener = new FreezeListener(this);
@@ -60,11 +94,18 @@ public class Main extends JavaPlugin{
 	public Listener Signs = new Signs(this);
 	public Listener BlockStorage = new BlockStorage(this);
 	public Listener WinGames = new WinGamesListener(this);
+	public Listener WorldChange = new WorldChange(this);
+	public Listener Boundaries = new Boundaries(this);
+	public Listener spawnsListener = new spawnsListener(this);
 	public CommandExecutor HaCommands = new HaCommands(this);
 	public CommandExecutor SponsorCommands = new SponsorCommands(this);
 	public CommandExecutor SpawnsCommand = new SpawnsCommand(this);
+
+	public me.Travja.HungerArena.ConfigManager ConfigManager = new ConfigManager(this);
+
 	public boolean exists;
 	public boolean restricted;
+
 	public FileConfiguration config;
 	public FileConfiguration spawns = null;
 	public File spawnsFile = null;
@@ -79,34 +120,42 @@ public class Main extends JavaPlugin{
 	public ArrayList<ItemStack> Reward = new ArrayList<ItemStack>();
 	public ArrayList<ItemStack> Cost = new ArrayList<ItemStack>();
 	public ArrayList<ItemStack> Fee = new ArrayList<ItemStack>();
+
 	public boolean vault = false;
 	public boolean eco = false;
 	public Economy econ = null;
+
 	int i = 0;
 	int v = 0;
-	int start = 0;
-	int deathtime = 0;
-	int timetodeath = 0;
 	int a = 0;
-	public int gp = 0;
-	int grace = 0;
+	//int grace = 0; //Jeppa: it's no int anymore
+	//int start = 0; //Jeppa: it's not int anymore...	
+	File PFilePath = new File(getDataFolder(), "/inventories");
+
+	@SuppressWarnings("deprecation")
 	public void onEnable(){
 		log = this.getLogger();
+
 		config = this.getConfig();
 		config.options().copyDefaults(true);
-		this.saveDefaultConfig();
+		if(!new File(this.getDataFolder(), "config.yml").exists())
+			this.saveDefaultConfig();
 		spawns = this.getSpawns();
 		spawns.options().copyDefaults(true);
-		this.saveSpawns();
+		if(!new File(this.getDataFolder(), "spawns.yml").exists())
+			this.saveSpawns();
 		data = this.getData();
 		data.options().copyDefaults(true);
-		this.saveData();
+		if(!new File(this.getDataFolder(), "Data.yml").exists())
+			this.saveData();
 		management = this.getManagement();
 		management.options().copyDefaults(true);
-		this.saveManagement();
+		if(!new File(this.getDataFolder(), "commandAndBlockManagement.yml").exists())
+			this.saveManagement();
 		MyChests = this.getChests();
 		MyChests.options().copyDefaults(true);
-		this.saveChests();
+		if(!new File(this.getDataFolder(), "Chests.yml").exists())
+			this.saveChests();
 		getServer().getPluginManager().registerEvents(DeathListener, this);
 		getServer().getPluginManager().registerEvents(SpectatorListener, this);
 		getServer().getPluginManager().registerEvents(FreezeListener, this);
@@ -119,52 +168,29 @@ public class Main extends JavaPlugin{
 		getServer().getPluginManager().registerEvents(BlockStorage, this);
 		getServer().getPluginManager().registerEvents(WinGames, this);
 		getServer().getPluginManager().registerEvents(Damage, this);
+		getServer().getPluginManager().registerEvents(WorldChange, this);
+		getServer().getPluginManager().registerEvents(Boundaries, this);
+		getServer().getPluginManager().registerEvents(spawnsListener, this);
+
 		getCommand("Ha").setExecutor(HaCommands);
 		getCommand("Sponsor").setExecutor(SponsorCommands);
 		getCommand("Startpoint").setExecutor(SpawnsCommand);
+					
+		// Jeppa: create path if not exists
+		if (!PFilePath.exists()) {
+			PFilePath.mkdirs();
+		}
+		for(File file: PFilePath.listFiles()){ 		// Jeppa: use changed path
+			String filename = file.getName();
+			int lastIndex = filename.lastIndexOf('.');
+			filename = filename.substring(0, lastIndex >= 0 ? lastIndex : 0); //Jeppa: remove .yml from filename
+			needInv.add(filename); 				// Mark player as "lost child" :)
+		}
+
 		i = 1;
-		if(spawns.getConfigurationSection("Spawns")!= null){
-			Map<String, Object> temp = spawns.getConfigurationSection("Spawns").getValues(false);
-			for(Entry<String, Object> entry: temp.entrySet()){
-				if(spawns.getConfigurationSection("Spawns." + entry.getKey())!= null){
-					Map<String, Object> temp2 = spawns.getConfigurationSection("Spawns." + entry.getKey()).getValues(false);
-					for(Map.Entry<String, Object> e: temp2.entrySet()){
-						if(spawns.get("Spawns." + entry.getKey() + "." + e.getKey())!= null){
-							String[] coords = ((String) spawns.get("Spawns." + entry.getKey() + "." + e.getKey())).split(",");
-							Integer a = Integer.parseInt(entry.getKey());
-							Integer s = Integer.parseInt(e.getKey());
-							if(location.get(a)== null)
-								location.put(a, new HashMap<Integer, Location>());
-							log.info("Added spawn number " + s + " in arena " + a + "!");
-							location.get(a).put(s, new Location(getServer().getWorld(coords[0]), Double.parseDouble(coords[1]), Double.parseDouble(coords[2]), Double.parseDouble(coords[3])));
-						}
-					}
-				}
-			}
-		}
-		for(i = 1; i <= location.size(); i++){
-			log.info("Loaded " + location.get(i).size() + " tribute spawns for arena " + i + "!");
-			Playing.put(i, new ArrayList<String>());
-			Ready.put(i, new ArrayList<String>());
-			Dead.put(i, new ArrayList<String>());
-			Quit.put(i, new ArrayList<String>());
-			Out.put(i, new ArrayList<String>());
-			Watching.put(i, new ArrayList<String>());
-			NeedConfirm.put(i, new ArrayList<String>());
-			inArena.put(i, new ArrayList<String>());
-			Frozen.put(i, new ArrayList<String>());
-			arena.put(i, new ArrayList<String>());
-			canjoin.put(i, false);
-			if(location.get(i).size()== config.getInt("maxPlayers")){
-				maxPlayers.put(i, location.get(i).size());
-			}else if(location.size()< config.getInt("maxPlayers")){
-				maxPlayers.put(i, location.get(i).size());
-			}else if(location.size()> config.getInt("maxPlayers")){
-				maxPlayers.put(i, config.getInt("maxPlayers"));
-			}
-			log.info("Max players is for arena " + i + " is " + maxPlayers.get(i));
-			open.put(i, true);
-		}
+		
+		this.reloadSpawnpoints(); //Jeppa: loading of spawnpoints and fill of areas now moved to subroutine...
+				
 		if (setupEconomy()) {
 			log.info("Found Vault! Hooking in for economy!");
 		}
@@ -210,11 +236,92 @@ public class Main extends JavaPlugin{
 		}else if(!worlds.isEmpty()){
 			restricted = true;
 		}
+		ConfigManager.setup();
+		scoreboardInit();
 		log.info("Enabled v" + getDescription().getVersion());
 	}
 
 	public void onDisable(){
 		log.info("Disabled v" + getDescription().getVersion());
+	}
+
+	//Jeppa: routine to reload the spawns and fill arrays as subroutine... will be needed elsewhere...
+	public void reloadSpawnpoints(){
+		if(spawns.getConfigurationSection("Spawns")!= null){
+			Map<String, Object> temp = spawns.getConfigurationSection("Spawns").getValues(false);
+			for(Entry<String, Object> entry: temp.entrySet()){
+				if(spawns.getConfigurationSection("Spawns." + entry.getKey())!= null){
+					Integer a = Integer.parseInt(entry.getKey());
+					worldsNames.put(a, "none_meening_this_is_not_a_map"); 									// Jeppa: placeholder
+					if(location.get(a)== null) location.put(a, new HashMap<Integer, Location>());			// Jeppa: this was only set when real spawnpoints were found.. now we need it to get things work...
+					Map<String, Object> temp2 = spawns.getConfigurationSection("Spawns." + entry.getKey()).getValues(false);
+					for(Map.Entry<String, Object> e: temp2.entrySet()){
+						if(spawns.get("Spawns." + entry.getKey() + "." + e.getKey())!= null){
+							if(!e.getKey().equals("Max") || !e.getKey().equals("Min")){
+								String[] coords = ((String) spawns.get("Spawns." + entry.getKey() + "." + e.getKey())).split(",");
+								Integer s = Integer.parseInt(e.getKey());
+								log.info("Added spawn number " + s + " in arena " + a + "!");
+								location.get(a).put(s, new Location(getServer().getWorld(coords[0]), Double.parseDouble(coords[1]), Double.parseDouble(coords[2]), Double.parseDouble(coords[3])));
+								worldsNames.put(a, coords[0]); 												// Jeppa: remember arena# and name...!
+							}
+						}
+					}
+				}
+			}
+		}
+
+		for(i = 1; i <= location.size(); i++){				//Jeppa: location is arenanumber now!! Count can be changed in defaultconfig !!
+			if(location.get(i).size()!= 0){					
+				log.info("Loaded " + location.get(i).size() + " tribute spawns for arena " + i + "!");
+				Playing.put(i, new ArrayList<String>());
+				Ready.put(i, new ArrayList<String>());
+				Dead.put(i, new ArrayList<String>());
+				MatchRunning.put(i, null);
+				Quit.put(i, new ArrayList<String>());
+				Out.put(i, new ArrayList<String>());
+				Watching.put(i, new ArrayList<String>());
+				NeedConfirm.put(i, new ArrayList<String>());
+				inArena.put(i, new ArrayList<String>());
+				Frozen.put(i, new ArrayList<String>());
+				arena.put(i, new ArrayList<String>());
+				canjoin.put(i, false);
+				if(location.get(i).size()== config.getInt("maxPlayers")){
+					maxPlayers.put(i, location.get(i).size());
+				}else if(location.size()< config.getInt("maxPlayers")){
+					maxPlayers.put(i, location.get(i).size());
+				}else if(location.size()> config.getInt("maxPlayers")){
+					maxPlayers.put(i, config.getInt("maxPlayers"));
+				}
+				log.info("Max players is for arena " + i + " is " + maxPlayers.get(i));
+				open.put(i, true);
+			}else{ // Jeppa: this maps/arenas are unused... but still they need some values :( (it's a bugfix for some 'for'-loops..) -> usable arenas 1 - 20 with the new default configuration-file! if more are needed they must count up.. 21 22...
+				//log.info("If you miss some arenas, f.e. arena #" + i + " make sure arenas are numbered 1 to n !");
+				log.info("Arena #" + i + " is unused and has no spawns !");
+				Playing.put(i, new ArrayList<String>());
+				Ready.put(i, new ArrayList<String>());
+				Dead.put(i, new ArrayList<String>());
+				MatchRunning.put(i, null);
+				Quit.put(i, new ArrayList<String>());
+				Out.put(i, new ArrayList<String>());
+				Watching.put(i, new ArrayList<String>());
+				NeedConfirm.put(i, new ArrayList<String>());
+				inArena.put(i, new ArrayList<String>());
+				Frozen.put(i, new ArrayList<String>());
+				arena.put(i, new ArrayList<String>());
+				canjoin.put(i, false); // false = free, true = game in action..
+				maxPlayers.put(i, 0);
+				open.put(i, false);
+			}
+		}
+	}
+	
+	public WorldEditPlugin hookWE() {
+		Plugin wPlugin = getServer().getPluginManager().getPlugin("WorldEdit");
+
+		if ((wPlugin == null) || (!(wPlugin instanceof WorldEditPlugin)))
+			return null;
+
+		return (WorldEditPlugin) wPlugin;
 	}
 
 	public boolean setupEconomy() {
@@ -235,7 +342,6 @@ public class Main extends JavaPlugin{
 		}
 		spawns = YamlConfiguration.loadConfiguration(spawnsFile);
 
-		// Look for defaults in the jar
 		InputStream defConfigStream = this.getResource("spawns.yml");
 		if (defConfigStream != null) {
 			YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
@@ -264,7 +370,6 @@ public class Main extends JavaPlugin{
 		}
 		data = YamlConfiguration.loadConfiguration(dataFile);
 
-		// Look for defaults in the jar
 		InputStream defConfigStream = this.getResource("Data.yml");
 		if (defConfigStream != null) {
 			YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
@@ -293,7 +398,6 @@ public class Main extends JavaPlugin{
 		}
 		management = YamlConfiguration.loadConfiguration(managementFile);
 
-		// Look for defaults in the jar
 		InputStream defConfigStream = this.getResource("commandAndBlockManagement.yml");
 		if (defConfigStream != null) {
 			YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
@@ -316,19 +420,11 @@ public class Main extends JavaPlugin{
 			this.getLogger().log(Level.SEVERE, "Could not save config to " + managementFile, ex);
 		}
 	}
-//Jeppa: Add routine like the others for loading Chests with their very own file..
 	public void reloadChests() {
 		if (ChestsFile == null) {
 			ChestsFile = new File(getDataFolder(), "Chests.yml");
 		}
 		MyChests = YamlConfiguration.loadConfiguration(ChestsFile);
-
-		// Look for defaults in the jar
-		InputStream defConfigStream = this.getResource("Chests.yml");
-		if (defConfigStream != null) {
-			YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
-			MyChests.setDefaults(defConfig);
-		}
 	}
 	public FileConfiguration getChests() {
 		if (MyChests == null) {
@@ -346,95 +442,438 @@ public class Main extends JavaPlugin{
 			this.getLogger().log(Level.SEVERE, "Could not save config to " + ChestsFile, ex);
 		}
 	}
-//^^
-	public void winner(final Integer a){
-		String[] Spawncoords = spawns.getString("Spawn_coords").split(",");
-		World spawnw = getServer().getWorld(Spawncoords[3]);
-		double spawnx = Double.parseDouble(Spawncoords[0]);
-		double spawny = Double.parseDouble(Spawncoords[1]);
-		double spawnz = Double.parseDouble(Spawncoords[2]);
-		Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
-		//final String a2 = String.valueOf(a); // Jeppa Test
-		if(Playing.get(a).size()== 1 && canjoin.get(a)== true){
-			//Announce winner
-			for(i = 0; i < Playing.get(a).size(); i++){
-				String winnername = Playing.get(a).get(i);
-				Player winner = getServer().getPlayerExact(winnername);
-				String winnername2 = winner.getName();
-				getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
-				winner.getInventory().clear();
-				winner.getInventory().setBoots(null);
-				winner.getInventory().setChestplate(null);
-				winner.getInventory().setHelmet(null);
-				winner.getInventory().setLeggings(null);
-				winner.setLevel(0);
-				for(PotionEffect pe: winner.getActivePotionEffects()){
-					PotionEffectType potion = pe.getType();
-					winner.removePotionEffect(potion);
+	File PFile = null;
+	FileConfiguration PConfig= null;
+	public void reloadPFile(String pname) {
+		if (PFile == null) {
+			PFile = new File(PFilePath, pname + ".yml");  		//  Jeppa: set the new playerfile... or the existing one...
+		}
+		PConfig = YamlConfiguration.loadConfiguration(PFile);
+		InputStream defConfigStream = this.getResource("Player.yml");
+		if (defConfigStream != null) {
+			YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
+			PConfig.setDefaults(defConfig);
+		}
+	}
+	public FileConfiguration getPConfig(String pname) {
+		PFile = null; 									//Jeppa: must get cleared , else a file from another player could (will) be used at save..!!!  
+		this.reloadPFile(pname); 						//Jeppa: load/set file
+		return PConfig;
+	}
+	public void savePFile(String pname) {
+		if (PConfig.getString("player").equals(pname)){ // Jeppa: check if the 'calling' player still is the one who started this...
+			try {
+				this.PConfig.save(PFile);
+			} catch (IOException ex) {
+				this.getLogger().log(Level.SEVERE, "Could not save config to " + PFile, ex);
+			}
+		}else this.getLogger().log(Level.SEVERE, "Could not save config to " + pname + ".yml ! It's not this players inventory!?");
+	}
+	
+	@SuppressWarnings("unchecked")
+	public void RestoreInv(Player p, String pname){ 			// Jeppa: moved here from 'WorldChange' to make it available for calls from other routines... and lots of changes...
+		int u=0;
+		for(u=1;u<Playing.size(); u++){ 						// do a check thru all available arenas and remove the player from the lists as he is NOT playing anymore...
+			if(Playing.get(u)!=null){
+				if(Playing.get(u).contains(pname)){
+					//Jeppa: player is changing map but not 'Frozen' or he is leaving with /ha leave !!!
+					Playing.get(u).remove(pname);										
+					if(config.getBoolean("broadcastAll")){ 
+						p.getServer().broadcastMessage(ChatColor.RED + pname + " Left Arena " + u + "!");
+					}
+					p.sendMessage(ChatColor.AQUA + "You have left the game!");
 				}
-				Tele.add(winner);
-				final World w = winner.getWorld();
-				winner.teleport(Spawn);
-				if(config.getBoolean("reloadWorld")){
+			}
+			if(Ready.get(u)!=null){
+				if(Ready.get(u).contains(pname)) Ready.get(u).remove(pname);		//Jeppa: if ready is set it can be removed now... maybe this player is just changing worlds without /ha leave ...
+																					//when he comes back he has to /ha join again anyway!
+			}
+		}
+		
+		if(new File(PFilePath, pname + ".yml").exists()){ //Jeppa: the new path...
+			FileConfiguration pinfo = this.getPConfig(pname);
+			if((pinfo.getString("player").equals(pname)) && (this.needInv.contains(pname))){ //Jeppa: as waitingroom and playground may be different worlds it will not work checking for the world ... :( but let's check for the player...
+				try{
+					ItemStack[] pinv = null;
+					Object o = pinfo.get("inv");
+					if(o instanceof ItemStack[]){
+						pinv = (ItemStack[]) o;
+					}else if(o instanceof List){
+						pinv = (ItemStack[]) ((List<ItemStack>) o).toArray(new ItemStack[0]);
+					}
+					p.getInventory().setContents(pinv);
+					p.updateInventory(); //Jeppa: is this still necessary ??? seems to work without.. but... 
+					
+					ItemStack[] parmor = null;
+					 o = pinfo.get("armor");
+					if(o instanceof ItemStack[]){
+						parmor = (ItemStack[]) o;
+					}else if(o instanceof List){
+						parmor = (ItemStack[]) ((List<ItemStack>) o).toArray(new ItemStack[0]);
+					}
+					p.getInventory().setArmorContents(parmor);
+					p.updateInventory();
+					
+					p.sendMessage(ChatColor.GOLD + "[HA] " + ChatColor.GREEN + "Your inventory has been restored!");
+					new File(PFilePath, pname + ".yml").delete();
+
+					//Jeppa: maybe there is more than one entry in needInv from disconnection or whatever ... remove them all!
+					for(i = 0; i < needInv.size(); i++){ 
+						String name2 = needInv.get(i);{
+							if (name2.equals(pname)) needInv.remove(pname);
+						}
+					}
+				}catch(Exception e){
+					p.sendMessage(ChatColor.RED + "Something went wrong when trying to restore your inv, please contact an administrator.");
+					System.out.println("Error occured when trying to restore the inv of " + pname + ":");
+					System.out.println(e);
+				}
+			}//else 				p.sendMessage(ChatColor.RED + "This is not your inventory! :)..."); //DEBUG
+		}
+	}
+	
+	@SuppressWarnings("deprecation")
+	public void winner(final Integer a){
+		if(Playing.get(a).size()== 1){
+			//Jeppa: check if the Arena-respawn is available. 
+			String[] Spawncoords;
+			if (spawns.getString("Spawn_coords_" + a) != null){
+				Spawncoords = spawns.getString("Spawn_coords_"+ a).split(",");	
+			} else {
+				Spawncoords = spawns.getString("Spawn_coords").split(",");	
+			}
+			World spawnw = getServer().getWorld(Spawncoords[3]);
+			double spawnx = Double.parseDouble(Spawncoords[0]);
+			double spawny = Double.parseDouble(Spawncoords[1]);
+			double spawnz = Double.parseDouble(Spawncoords[2]);
+			Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
+			
+			if(canjoin.get(a)== true){
+				//Announce winner
+				for(i = 0; i < Playing.get(a).size(); i++){
+					String winnername = Playing.get(a).get(i);
+					final Player winner = getServer().getPlayerExact(winnername);
+					String winnername2 = winner.getName();
+					getServer().broadcastMessage(ChatColor.GREEN + winnername2 + " is the victor of this Hunger Games!");
+					winner.getInventory().clear();
+					winner.getInventory().setBoots(null);
+					winner.getInventory().setChestplate(null);
+					winner.getInventory().setHelmet(null);
+					winner.getInventory().setLeggings(null);
+					winner.setLevel(0);
+					for(PotionEffect pe: winner.getActivePotionEffects()){
+						PotionEffectType potion = pe.getType();
+						winner.removePotionEffect(potion);
+					}
+					Tele.add(winner);
+					needInv.add(winnername2);
+					winner.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
+					if(scoreboards.containsKey(winner.getName()))
+						scoreboards.remove(winner.getName());
+					if(Kills.containsKey(winner.getName()))
+						Kills.remove(winner.getName());
+					//final World w = winner.getWorld();
+					winner.teleport(Spawn);
+
+
+					////////////////////////////////////////////////////////
+					////////////////////  FIREWORKS  ///////////////////////
+					////////////////////////////////////////////////////////
+
+
+					for(i = 0; i < 10; i++){
+						Bukkit.getScheduler().runTaskLater(this, new Runnable(){
+							public void run(){
+								//Spawn the Fireworks, get the FireworkMeta.
+								Firework fw = (Firework) winner.getWorld().spawnEntity(winner.getLocation(), EntityType.FIREWORK);
+								FireworkMeta fwm = fw.getFireworkMeta();
+
+								//Our random generator
+								Random r = new Random();   
+
+								//Get the type
+								int rt = r.nextInt(4) + 1;
+								Type type = Type.BALL;       
+								if (rt == 1) type = Type.BALL;
+								if (rt == 2) type = Type.BALL_LARGE;
+								if (rt == 3) type = Type.BURST;
+								if (rt == 4) type = Type.CREEPER;
+								if (rt == 5) type = Type.STAR;
+
+								//Get our random colours   
+								int r1i = r.nextInt(17) + 1;
+								int r2i = r.nextInt(17) + 1;
+								Color c1 = getColor(r1i);
+								Color c2 = getColor(r2i);
+
+								//Create our effect with this
+								FireworkEffect effect = FireworkEffect.builder().flicker(r.nextBoolean()).withColor(c1).withFade(c2).with(type).trail(r.nextBoolean()).build();
+
+								//Then apply the effect to the meta
+								fwm.addEffect(effect);
+
+								//Generate some random power and set it
+								int rp = r.nextInt(2) + 1;
+								fwm.setPower(rp);
+
+								//Then apply this to our rocket
+								fw.setFireworkMeta(fwm);
+							}
+						},20 + i*20L);
+					}
+
+
+					////////////////////////////////////////////////////////
+					////////////////////////////////////////////////////////
+					////////////////////////////////////////////////////////
+
+
+					/*if(config.getBoolean("reloadWorld")){
 					getServer().unloadWorld(w, false);
 					getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable(){
 						public void run(){
 							getServer().createWorld(new WorldCreator(w.getName()));
 						}
 					},200L);
-				}
-				if(!config.getBoolean("rewardEco.enabled")){
-					for(ItemStack Rewards: Reward){
-						winner.getInventory().addItem(Rewards);
+				}*/
+					
+					//Jeppa: restore the winners inventory 
+					this.RestoreInv(winner, winnername2);
+					
+					if(!config.getBoolean("rewardEco.enabled")){
+						for(ItemStack Rewards: Reward){
+							winner.getInventory().addItem(Rewards);
+						}
+					}else{
+						for(ItemStack Rewards: Reward){
+							winner.getInventory().addItem(Rewards);
+						}
+						econ.depositPlayer(winner.getName(), config.getDouble("rewardEco.reward"));
 					}
-				}else{
-					for(ItemStack Rewards: Reward){
-						winner.getInventory().addItem(Rewards);
+					if(deathtime.get(a)!= null){
+						getServer().getScheduler().cancelTask(deathtime.get(a));
+						deathtime.put(a, null);
 					}
-					econ.depositPlayer(winner.getName(), config.getDouble("rewardEco.reward"));
+					if(grace.get(a)!= null){
+						getServer().getScheduler().cancelTask(grace.get(a));
+						grace.put(a, null);
+					}
+					if(start.get(a)!= null){
+						getServer().getScheduler().cancelTask(start.get(a));
+						start.put(a, null);
+					}
 				}
 				Playing.get(a).clear();
-				getServer().getScheduler().cancelTask(deathtime);
-			}
-			//Show spectators
-			for(String s1: Watching.get(a)){
-				Player spectator = getServer().getPlayerExact(s1);
-				spectator.setAllowFlight(false);
-				spectator.teleport(Spawn);
-				for(Player online:getServer().getOnlinePlayers()){
-					online.showPlayer(spectator);
-				}
-			}
-			if(config.getString("Auto_Restart").equalsIgnoreCase("True")){
-				Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable(){
-					public void run(){
-						Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha restart " + a);
+				//Jeppa: clear the other Lists , too! Game is over!
+				Quit.get(a).clear();
+				Dead.get(a).clear();
+				
+				//Show spectators
+				for(String s1: Watching.get(a)){
+					Player spectator = getServer().getPlayerExact(s1);
+					spectator.setAllowFlight(false);
+					spectator.teleport(Spawn);
+					for(Player online:getServer().getOnlinePlayers()){
+						online.showPlayer(spectator);
 					}
-				}, 220L);
+				}
+				if(config.getString("Auto_Restart").equalsIgnoreCase("True")){
+					Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable(){
+						public void run(){
+							Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha restart " + a);
+						}
+					}, 220L);
+				}
+				//Jeppa: new List that marks arenas as started!
+				MatchRunning.put(a, null);//Jeppa: no, i'm not using boolean ;) this is the marker for the arenas
+			}else{
+				//no real winner
+				for(i = 0; i < Playing.get(a).size(); i++){
+					String winnername = Playing.get(a).get(i);
+					Player winner = getServer().getPlayerExact(winnername);
+					String winnername2 = winner.getName();
+					winner.getInventory().clear();
+					winner.getInventory().setBoots(null);
+					winner.getInventory().setChestplate(null);
+					winner.getInventory().setHelmet(null);
+					winner.getInventory().setLeggings(null);
+					winner.setLevel(0);
+					for(PotionEffect pe: winner.getActivePotionEffects()){
+						PotionEffectType potion = pe.getType();
+						winner.removePotionEffect(potion);
+					}
+					Tele.add(winner);
+					needInv.add(winnername2);
+					//final World w = winner.getWorld();
+					winner.teleport(Spawn);
+					/*if(config.getBoolean("reloadWorld")){
+					getServer().unloadWorld(w, false);
+					getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable(){
+						public void run(){
+							getServer().createWorld(new WorldCreator(w.getName()));
+						}
+					},200L);
+				}*/
+					
+					//Jeppa: restore the winners inventory 
+					this.RestoreInv(winner, winnername2);
+				
+					Playing.get(a).clear();
+					//Jeppa :Fix
+					if(deathtime.get(a)!= null){
+						getServer().getScheduler().cancelTask(deathtime.get(a));
+						deathtime.put(a, null);
+					}
+					//Jeppa: clear the other lists too! Game is over!
+					Quit.get(a).clear();
+					Dead.get(a).clear();
+				}
+				//Show spectators
+				for(String s1: Watching.get(a)){
+					Player spectator = getServer().getPlayerExact(s1);
+					spectator.setAllowFlight(false);
+					spectator.teleport(Spawn);
+					for(Player online:getServer().getOnlinePlayers()){
+						online.showPlayer(spectator);
+					}
+				}
+				if(config.getString("Auto_Restart").equalsIgnoreCase("True")){
+					Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(this, new Runnable(){
+						public void run(){
+							Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha restart " + a);
+						}
+					}, 220L);
+				}
 			}
 		}
 	}
+
+	private Color getColor(int i) {
+		if(i==1)
+			return Color.AQUA;
+		else if(i==2)
+			return Color.BLACK;
+		else if(i==3)
+			return Color.BLUE;
+		else if(i==4)
+			return Color.FUCHSIA;
+		else if(i==5)
+			return Color.GRAY;
+		else if(i==6)
+			return Color.GREEN;
+		else if(i==7)
+			return Color.LIME;
+		else if(i==8)
+			return Color.MAROON;
+		else if(i==9)
+			return Color.NAVY;
+		else if(i==10)
+			return Color.OLIVE;
+		else if(i==11)
+			return Color.ORANGE;
+		else if(i==12)
+			return Color.PURPLE;
+		else if(i==13)
+			return Color.RED;
+		else if(i==14)
+			return Color.SILVER;
+		else if(i==15)
+			return Color.TEAL;
+		else if(i==16)
+			return Color.WHITE;
+		else
+			return Color.YELLOW;
+	}
+
+
+
+	private void scoreboardInit(){
+		Bukkit.getScheduler().scheduleSyncRepeatingTask(this, new Runnable(){
+			public void run(){
+				for(Player pl: getServer().getOnlinePlayers()){
+					updateScoreboard(pl);
+				}
+			}
+		}, 20L, 10L);
+	}
+
+	@SuppressWarnings("deprecation")
+	public void updateScoreboard(Player p){
+		if(getArena(p)!= null){
+			a = getArena(p);
+			if(scoreboards.get(p.getName())!= null && scoreboards.get(p.getName()).getObjective("HA")!= null){
+				Scoreboard sb = scoreboards.get(p.getName());
+				Objective obj = sb.getObjective("HA");
+				if(obj!= null){
+					Score kills = obj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Kills"));
+					Score players = obj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Players"));
+					Score spectators = obj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Spectators"));
+					players.setScore(Playing.get(a).size());
+					if(Kills.containsKey(p.getName()))
+						kills.setScore(Kills.get(p.getName()));
+					if(Watching.get(a)!= null)
+						spectators.setScore(Watching.get(a).size());
+					if(config.getInt("DeathMatch")!= 0){
+						if(timetodeath.get(a)!= null){
+							if(timetodeath.get(a)> 0){
+								String secs = String.valueOf((Integer.valueOf(timetodeath.get(a)-timetodeath.get(a)/60*60)< 10) ? "0" + Integer.valueOf(timetodeath.get(a)-timetodeath.get(a)/60*60) : Integer.valueOf(timetodeath.get(a)-timetodeath.get(a)/60*60));
+								obj.setDisplayName(ChatColor.GREEN + "HA - DMTime: " + ChatColor.AQUA + Integer.valueOf(timetodeath.get(a)/60) + ":" + secs);
+							}else{
+								obj.setDisplayName(ChatColor.GREEN + "HA - " + ChatColor.RED + "DEATHMATCH");
+							}
+						}
+					}else{
+						obj.setDisplayName(ChatColor.GREEN + "HungerArena");
+					}
+					p.setScoreboard(sb);
+				}
+			}
+		}
+	}
+
+	public HashMap<Integer, Integer> grace = new HashMap<Integer, Integer>();
+	public HashMap<Integer, Integer> start = new HashMap<Integer, Integer>();
+	public HashMap<Integer, Integer> deathtime = new HashMap<Integer, Integer>();
+	public HashMap<Integer, Integer> timetodeath = new HashMap<Integer, Integer>();
+	@SuppressWarnings("deprecation")
 	public void startGames(final Integer a){
-		String begin = config.getString("Start_Message");
-		begin = begin.replaceAll("(&([a-f0-9]))", "\u00A7$2");
+		String begin = ChatColor.translateAlternateColorCodes('&', config.getString("Start_Message"));
 		final String msg = begin;
-		/* Jeppa add : */
 		if(config.getInt("Countdown_Timer") != 0) {
 			i = config.getInt("Countdown_Timer") ;
 		} else {
 			i = 10;
 		}
+		for(String gn: Playing.get(a)){
+			Scoreboard scoreboard = getServer().getScoreboardManager().getNewScoreboard();
+			Objective sobj = scoreboard.registerNewObjective("HA", "HAData");
+			sobj.setDisplayName(ChatColor.GREEN + "HA - Starting");
+			Score skills = sobj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Kills"));
+			skills.setScore(0);
+			Score sdeaths = sobj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Spectators"));
+			sdeaths.setScore(0);
+			Score splayers = sobj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Players"));
+			splayers.setScore(0);
+			sobj.setDisplaySlot(DisplaySlot.SIDEBAR);
+			Bukkit.getPlayer(gn).setScoreboard(scoreboard);
+			scoreboards.put(Bukkit.getPlayer(gn).getName(), Bukkit.getPlayer(gn).getScoreboard());
+		}
+		getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha Refill " + a);
+		//Jeppa: new List that marks the arenas as started!
+		MatchRunning.put(a, "true");//Jeppa: no, i'm not using boolean ;)
+		if(start.get(a)!= null) getServer().getScheduler().cancelTask(start.get(a));
+		//start.put(a, null);
 		if(config.getString("Countdown").equalsIgnoreCase("true")){
-			start = getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable(){
+			start.put(a, getServer().getScheduler().scheduleSyncRepeatingTask(this, new Runnable(){
 				public void run(){
 					if(i > 0){
 						if(worlds.isEmpty()){
 							if(config.getBoolean("broadcastAll")){
-								getServer().broadcastMessage(String.valueOf(i));
+								getServer().broadcastMessage(ChatColor.AQUA + "Game " + a + " starting in: " + String.valueOf(i));
 							}else{
 								for(String gn: Playing.get(a)){
 									Player g = getServer().getPlayer(gn);
-									g.sendMessage(String.valueOf(i));
+									g.sendMessage(ChatColor.AQUA + "Game starting in: " + String.valueOf(i));
 								}
 							}
 						}else{
@@ -454,8 +893,22 @@ public class Main extends JavaPlugin{
 						}
 					}
 					i = i-1;
-					canjoin.put(a, true);
+					canjoin.put(a, true); // Jeppa: this was the reason for players not being able to join when the timer task was broken (counting below 0)...
 					if(i== -1){
+						for(String gn: Playing.get(a)){
+							Scoreboard scoreboard = getServer().getScoreboardManager().getNewScoreboard();
+							Objective sobj = scoreboard.registerNewObjective("HA", "HAData");
+							sobj.setDisplayName(ChatColor.GREEN + "HA - Starting");
+							Score skills = sobj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Kills"));
+							skills.setScore(0);
+							Score sdeaths = sobj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Spectators"));
+							sdeaths.setScore(0);
+							Score splayers = sobj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Players"));
+							splayers.setScore(0);
+							sobj.setDisplaySlot(DisplaySlot.SIDEBAR);
+							Bukkit.getPlayer(gn).setScoreboard(scoreboard);
+							scoreboards.put(Bukkit.getPlayer(gn).getName(), Bukkit.getPlayer(gn).getScoreboard());
+						}
 						if(Frozen.get(a)!= null)
 							Frozen.get(a).clear();
 						if(config.getBoolean("broadcastAll")){
@@ -466,52 +919,54 @@ public class Main extends JavaPlugin{
 								g.sendMessage(msg);
 							}
 						}
-						getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha Refill " + a);
-						getServer().getScheduler().cancelTask(start);
 						if(config.getInt("Grace_Period")!= 0){
-							gp = config.getInt("Grace_Period");
-							grace = getServer().getScheduler().scheduleSyncRepeatingTask(Bukkit.getPluginManager().getPlugin("HungerArena"), new Runnable(){
+							gp.put(a, config.getInt("Grace_Period"));
+							if(grace.get(a)== null) grace.put(a, getServer().getScheduler().scheduleSyncRepeatingTask(Bukkit.getPluginManager().getPlugin("HungerArena"), new Runnable(){
 								public void run(){
-									gp = gp-1;
-									if(gp == 30 || gp == 15 || (gp < 11 && gp != 0)){
+									gp.put(a, gp.get(a)-1);
+									if(gp.get(a) == 30 || gp.get(a) == 15 || (gp.get(a) < 11 && gp.get(a) != 0)){
 										if(config.getBoolean("broadcastAll")){
 											for(Player wp: location.get(a).get(1).getWorld().getPlayers()){
-												wp.sendMessage(ChatColor.GREEN + "Grace period ends in " + gp + " seconds!");
+												wp.sendMessage(ChatColor.GREEN + "Grace period ends in " + gp.get(a) + " seconds!");
 											}
 										}else
-											getServer().broadcastMessage(ChatColor.GREEN + "Grace period ends in " + gp + " seconds!");
+											getServer().broadcastMessage(ChatColor.GREEN + "Grace period ends in " + gp.get(a) + " seconds!");
 									}
-									if(gp == 0){
+									if(gp.get(a) <= 0){
 										if(config.getBoolean("broadcastAll")){
 											for(Player wp: location.get(a).get(1).getWorld().getPlayers()){
 												wp.sendMessage(ChatColor.GREEN + "Grace period is over, FIGHT!");
 											}
 										}else
 											getServer().broadcastMessage(ChatColor.GREEN + "Grace period is over, FIGHT!");
-										getServer().getScheduler().cancelTask(grace);
+										getServer().getScheduler().cancelTask(grace.get(a));
+										grace.put(a, null);
 									}
 								}
-							},20L, 20L);
+							},20L, 20L));
 						}
 						if(config.getInt("DeathMatch")!= 0){
 							int death = config.getInt("DeathMatch");
-							timetodeath = death;
-							deathtime = getServer().getScheduler().scheduleSyncRepeatingTask(Bukkit.getPluginManager().getPlugin("HungerArena"), new Runnable(){
+							timetodeath.put(a, death*60);
+							if(deathtime.get(a)== null) deathtime.put(a, getServer().getScheduler().scheduleSyncRepeatingTask(Bukkit.getPluginManager().getPlugin("HungerArena"), new Runnable(){
 								public void run(){
-									timetodeath = timetodeath-1;
-									if(config.getBoolean("broadcastAll")){
-										for(Player wp: location.get(a).get(1).getWorld().getPlayers()){
-											if(timetodeath!= 0){
-												wp.sendMessage(ChatColor.RED + String.valueOf(timetodeath) + " mins till the death match!");
+									timetodeath.put(a, timetodeath.get(a)-1);
+									if(Integer.valueOf(timetodeath.get(a))%300== 0){
+										if(config.getBoolean("broadcastAll")){
+											for(Player wp: location.get(a).get(1).getWorld().getPlayers()){
+												if(timetodeath.get(a)!= 0){
+													wp.sendMessage(ChatColor.YELLOW + String.valueOf(timetodeath.get(a)/60) + ChatColor.RED + " mins till the death match!");
+												}
+											}
+										}else{
+											for(String gn: Playing.get(a)){
+												Player g = getServer().getPlayer(gn);
+												g.sendMessage(ChatColor.YELLOW + String.valueOf(timetodeath.get(a)) + ChatColor.RED + " mins till the death match!");
 											}
 										}
-									}else{
-										for(String gn: Playing.get(a)){
-											Player g = getServer().getPlayer(gn);
-											g.sendMessage(ChatColor.RED + String.valueOf(timetodeath) + " mins till the death match!");
-										}
 									}
-									if(timetodeath== 0){
+									if(timetodeath.get(a)<= 0){
+										i = 1;
 										for(String playing: Playing.get(a)){
 											Player tribute = getServer().getPlayerExact(playing);
 											tribute.teleport(location.get(a).get(i));
@@ -525,23 +980,24 @@ public class Main extends JavaPlugin{
 											}
 										}
 										if(config.getBoolean("broadcastAll")){
-											for(Player wp: location.get(a).get(0).getWorld().getPlayers()){
-												wp.sendMessage(ChatColor.RED + "The final battle has begun! " + Playing.size() + " tributes will be facing off!");
+											for(Player wp: location.get(a).get(1).getWorld().getPlayers()){
+												wp.sendMessage(ChatColor.RED + "The final battle has begun! " + Playing.get(a).size() + " tributes will be facing off!");
 											}
 										}else{
 											for(String gn: Playing.get(a)){
 												Player g = getServer().getPlayer(gn);
-												g.sendMessage(ChatColor.RED + "The final battle has begun! " + Playing.size() + " tributes will be facing off!");
+												g.sendMessage(ChatColor.RED + "The final battle has begun! " + Playing.get(a).size() + " tributes will be facing off!");
 											}
 										}
-										getServer().getScheduler().cancelTask(deathtime);
+										getServer().getScheduler().cancelTask(deathtime.get(a));
+										deathtime.put(a, null);
 									}
 								}
-							}, 1200L, 1200L);
+							}, 20L, 20L));
 						}
 					}
 				}
-			}, 20L, 20L);
+			}, 20L, 20L));
 		}else{
 			Frozen.get(a).clear();
 			if(config.getBoolean("broadcastAll")){

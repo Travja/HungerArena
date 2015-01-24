@@ -1,4 +1,6 @@
-package me.Travja.HungerArena;
+package me.Travja.HungerArena.Listeners;
+
+import me.Travja.HungerArena.Main;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -29,6 +31,11 @@ public class PvP implements Listener {
 					if(event.isCancelled()){
 						event.setCancelled(false);
 					}
+					if(plugin.gp.get(plugin.getArena(p))!= null){
+						if(plugin.gp.get(plugin.getArena(p))!= 0){
+							event.setCancelled(true);
+						}
+					}
 				}
 			}
 			if(plugin.getArena(p)!= null){
@@ -51,14 +58,23 @@ public class PvP implements Listener {
 				if(plugin.getArena(p) != null){
 					Player shooter = (Player) projectile.getShooter();
 					if(plugin.getArena(shooter)!= null){
-						event.setCancelled(false);
+						if(plugin.gp.get(plugin.getArena(p))!= null)
+							if(plugin.gp.get(plugin.getArena(p))!= 0)
+								event.setCancelled(true);
+							else
+								event.setCancelled(false);
 					}
 				}
 			}else if(projectile.getShooter() instanceof Entity){
 				Entity e = projectile.getShooter();
+//				Entity e = (Entity) projectile.getShooter();	// war in 1.5 zuvor so, ursprünglich aber ohne (Entity), in 1.5.1 wieder ohne???
 				if(e instanceof Skeleton){
 					if(plugin.getArena(p)!= null){
-						event.setCancelled(false);
+						if(plugin.gp.get(plugin.getArena((Player) e))!= null)
+							if(plugin.gp.get(plugin.getArena(p))!= 0)
+								event.setCancelled(true);
+							else
+								event.setCancelled(false);
 					}
 				}
 			}
@@ -67,9 +83,10 @@ public class PvP implements Listener {
 	@EventHandler
 	public void PlayerDamage(EntityDamageEvent event){
 		Entity e = event.getEntity();
-		if(e instanceof Player){
-			if(plugin.gp!= 0)
-				event.setCancelled(true);
-		}
+		if(e instanceof Player)
+			if(plugin.getArena((Player) e)!= null)
+				if(plugin.gp.get(plugin.getArena((Player) e))!= null)
+					if(plugin.gp.get(plugin.getArena((Player) e))!= 0)
+						event.setCancelled(true);
 	}
 }
