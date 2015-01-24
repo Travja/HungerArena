@@ -13,6 +13,7 @@ public class CommandBlock implements Listener {
 	public CommandBlock(Main m) {
 		this.plugin = m;
 	}
+	@SuppressWarnings("deprecation")
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void CatchCommand(PlayerCommandPreprocessEvent event){
 		String cmd = event.getMessage();

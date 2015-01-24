@@ -1,4 +1,6 @@
-package me.Travja.HungerArena;
+package me.Travja.HungerArena.Listeners;
+
+import me.Travja.HungerArena.Main;
 
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;

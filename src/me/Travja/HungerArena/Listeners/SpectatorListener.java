@@ -1,4 +1,6 @@
-package me.Travja.HungerArena;
+package me.Travja.HungerArena.Listeners;
+
+import me.Travja.HungerArena.Main;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
@@ -13,6 +15,7 @@ import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.player.*;
+import org.bukkit.scoreboard.DisplaySlot;
 
 public class SpectatorListener implements Listener {
 	public Main plugin;
@@ -84,6 +87,14 @@ public class SpectatorListener implements Listener {
 					if(plugin.Watching.get(i).contains(attackerName)){
 						event.setCancelled(true);
 						Attacker.sendMessage(ChatColor.RED + "You are spectating, you can't interfere with the game!");
+						return;
+					}
+				}
+			}
+			for(i = 0; i < plugin.Playing.size(); i++){
+				if(plugin.Playing.get(i)!= null){
+					if(plugin.Playing.get(i).contains(attackerName)){
+						event.setCancelled(true);
 					}
 				}
 			}
@@ -97,6 +108,14 @@ public class SpectatorListener implements Listener {
 						if(plugin.Watching.get(i).contains(bowManName)){
 							event.setCancelled(true);
 							BowMan.sendMessage(ChatColor.RED + "You are spectating, you can't interfere with the game!");
+							return;
+						}
+					}
+				}
+				for(i = 0; i < plugin.Playing.size(); i++){
+					if(plugin.Playing.get(i)!= null){
+						if(plugin.Playing.get(i).contains(bowManName)){
+							event.setCancelled(true);
 						}
 					}
 				}
@@ -145,6 +164,11 @@ public class SpectatorListener implements Listener {
 					double spawnz = Double.parseDouble(Spawncoords[2]);
 					final Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
 					p.teleport(Spawn);
+					p.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
+					if(plugin.scoreboards.containsKey(p.getName()))
+						plugin.scoreboards.remove(p.getName());
+					if(plugin.Kills.containsKey(p.getName()))
+						plugin.Kills.remove(p.getName());
 				}
 			}
 		}

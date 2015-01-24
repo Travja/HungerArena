@@ -14,7 +14,7 @@ config:
 # worlds:
 # - world
 # - world_nether
-worlds:
+worlds: {}
 
 # If left at 0 there will be no death match, fill in a time in minutes
 DeathMatch: 0
@@ -50,10 +50,10 @@ Grace_Period: 60
 Protected_Arena: 'true'
 
 # Whether or not players (not playing) can break blocks while waiting
-Protected_Arena_Always: 'false'
+Protected_Arena_Always: 'true'
 
 # Whether new or unknown players on HA-maps should be forced to the spawn or not.
-Force_Players_toSpawn: 'false'
+Force_Players_toSpawn: 'true'
 
 # Whether or not players will be frozen when they are teleported to their positions
 Frozen_Teleport: 'true'
@@ -63,6 +63,13 @@ Explode_on_Move: 'false'
 
 # Whether or not thunder will sound upon a players death
 Cannon_Death: 'true'
+
+# Whether or not to have the arena be the world or the WorldEdit selection
+WorldEdit: false
+
+# What item should be used to set spawns after /startpoint [arena#]
+spawnsTool: 286
+
 ######################################
 ######################################
 ######################################

@@ -1,6 +1,8 @@
-package me.Travja.HungerArena;
+package me.Travja.HungerArena.Listeners;
 
 import java.util.List;
+
+import me.Travja.HungerArena.Main;
 
 import org.bukkit.ChatColor;
 import org.bukkit.Material;
@@ -25,6 +27,7 @@ public class BlockStorage implements Listener {
 	public BlockStorage(Main m) {
 		this.plugin = m;
 	}
+	@SuppressWarnings("deprecation")
 	@EventHandler(priority=EventPriority.MONITOR)
 	public void BlockBreak(BlockBreakEvent event) {
 		Block b = event.getBlock();
@@ -38,7 +41,19 @@ public class BlockStorage implements Listener {
 		}
 		if ((plugin.getArena(p) != null) || (protall)) {							/* Bug1a */
 			//int a = this.plugin.getArena(p).intValue();
-			int a = 1;											//Jeppa: define a default (may be needed if protall is true)
+			//Jeppa: get a default arena if protall is true... (but use getArena if set...)
+			int a = 1;
+			if (protall) {
+				String ThisWorld = p.getWorld().getName();
+				int z=0;
+				for(z = 1; z <= plugin.worldsNames.size(); z++){
+					if(plugin.worldsNames.get(z)!= null){	
+						if (plugin.worldsNames.get(z).equals(ThisWorld)){
+							a=z;											// now 'a' is the arenanumber of THIS(current) map -->may still be wrong if there are more than one arena on this map...
+						}
+					}
+				}
+			}
 			if (plugin.getArena(p) != null) a = plugin.getArena(p);
 			if ((!event.isCancelled()) && (((plugin.Playing.get(a)).contains(pname)) || (protall)))		/* Bug1a */
 			{
@@ -68,6 +83,7 @@ public class BlockStorage implements Listener {
 			}
 		}
 	}
+	@SuppressWarnings("deprecation")
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void Explosion(EntityExplodeEvent event){
 		List<Block> blocksd = event.blockList();
@@ -106,6 +122,7 @@ public class BlockStorage implements Listener {
 			}
 		}
 	}
+	@SuppressWarnings("deprecation")
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void burningBlocks(BlockBurnEvent event){
 		Block b = event.getBlock();
@@ -144,7 +161,19 @@ public class BlockStorage implements Listener {
 			}
 		}
 		if ((plugin.getArena(p) != null) || (protall)) {							/* Bug1a */
-			int a = 1;											//Jeppa: define a default (may be needed if protall is true)
+			//Jeppa: get a default arena if protall is true... (but use getArena if set...)
+			int a = 1;
+			if (protall) {
+				String ThisWorld = p.getWorld().getName();
+				int z=0;
+				for(z = 1; z <= plugin.worldsNames.size(); z++){
+					if(plugin.worldsNames.get(z)!= null){	
+						if (plugin.worldsNames.get(z).equals(ThisWorld)){
+							a=z;											// now 'a' is the arenanumber of THIS(current) map -->may still be wrong if there are more than one arena on this map...
+						}
+					}
+				}
+			}
 			if (plugin.getArena(p) != null) a = plugin.getArena(p);
 			if(!event.isCancelled()){
 				if (((plugin.Playing.get(a)).contains(p.getName())) || (protall)) {	
@@ -163,7 +192,6 @@ public class BlockStorage implements Listener {
 										int y = br.getY();
 										int z = br.getZ();
 										String coords = w + "," + x + "," + y + "," + z + "," + a;
-										p.sendMessage(ChatColor.GREEN + "Sand/Gravel will land at " + coords);
 										List<String> blocks = plugin.data.getStringList("Blocks_Placed");
 										blocks.add(coords);
 										plugin.data.set("Blocks_Placed", blocks);
@@ -213,6 +241,7 @@ public class BlockStorage implements Listener {
 			}
 		}
 	}
+	@SuppressWarnings("deprecation")
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void bucketFill(PlayerBucketFillEvent event){
 		if(plugin.getArena(event.getPlayer())!= null){
@@ -241,6 +270,7 @@ public class BlockStorage implements Listener {
 			}
 		}
 	}
+	@SuppressWarnings("deprecation")
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void blockMelt(BlockFadeEvent event){
 		int i = 0;

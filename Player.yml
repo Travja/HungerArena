@@ -1,0 +1,6 @@
+# This is the default inventory file for storing players inventory during matches !
+# DO not Edit anything in here!!!
+
+inv: []
+armor: []
+world: world

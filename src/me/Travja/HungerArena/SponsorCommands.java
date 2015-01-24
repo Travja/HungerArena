@@ -15,6 +15,7 @@ public class SponsorCommands implements CommandExecutor {
 		this.plugin = m;
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
 		if(cmd.getName().equalsIgnoreCase("Sponsor")){
