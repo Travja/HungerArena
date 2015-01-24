@@ -23,11 +23,10 @@ public class SpawnsCommand implements CommandExecutor {
 	public boolean onCommand(CommandSender sender, Command cmd, String commandLabel, String[] args) {
 		Player p = (Player) sender;
 		String ThisWorld = p.getWorld().getName();
-		for(i = 1; i <= plugin.worldsNames.size(); i++){			//worldsNames-Inhalt (integer) entspricht der Arenanummer !!
-			if(plugin.worldsNames.get(i)!= null){					//Jeppa: damit das so geht müssen die Arenen aber wirklich durchgezählt sein!!
+		for(i = 1; i <= plugin.worldsNames.size(); i++){			
+			if(plugin.worldsNames.get(i)!= null){				
 				if (plugin.worldsNames.get(i).equals(ThisWorld)){ 
 					a=i;											// now 'a' is the arenanumber of THIS(current) map , only available if this map already has min. one startpoint!
-	//p.sendMessage(ChatColor.GREEN + "[HungerArena]: Diese Map[KurzeAbfrage!! in startpoint]: "+ ThisWorld + " ist nummer: "+ a);
 					NoPlayerSpawns = false; // mapname found -> there are PlayerSpawns...--> map seems playable
 				}
 			}
@@ -45,7 +44,7 @@ public class SpawnsCommand implements CommandExecutor {
 							a = Integer.valueOf(args[0]);
 						}catch(Exception e){
 							p.sendMessage(ChatColor.RED + "Argument not an integer!");
-							return true; //Jeppa:  true??? false ???
+							return true;
 						}
 
 						String world = args[2];
@@ -90,7 +89,7 @@ public class SpawnsCommand implements CommandExecutor {
 							a = Integer.valueOf(args[0]);
 						}catch(Exception e){
 							p.sendMessage(ChatColor.RED + "Argument not an integer!");
-							return true; //Jeppa: wieso true???
+							return true; 
 						}
 						if(i >= 1 && i <= plugin.config.getInt("maxPlayers")){
 							if(plugin.restricted && !plugin.worlds.contains(p.getWorld().getName())){
@@ -158,15 +157,12 @@ public class SpawnsCommand implements CommandExecutor {
 										start = plugin.config.getInt("maxPlayers")+1;
 										p.sendMessage(ChatColor.DARK_AQUA + "[HungerArena] " + ChatColor.RED + "Begin Setting For Arena " + a + " Starting From Point " + sloc);
 										plugin.setting.put(p.getName(), a + "-" + sloc);
-										//--> Mit angabe der Arena wird NICHT der  erste punkt gesetzt oder weitergemacht, sondern das Wekzeug aktiviert!
-										//dem player hier noch das "Werkzeug" per Befehl in die Hand drücken??? TODO
 										return true;
 									}
 								}
 							}
 							p.sendMessage(ChatColor.DARK_AQUA + "[HungerArena] " + ChatColor.RED + "Begin Setting For Arena " + a + " Starting From Point " + 1);
 							plugin.setting.put(p.getName(), a + "-" + 1);
-							//dem player hier noch das "Werkzeug" per Befehl in die Hand drücken??? TODO
 							return true;
 						}else{
 							sender.sendMessage(ChatColor.BLUE + "This Can Only Be Sent As A Player");

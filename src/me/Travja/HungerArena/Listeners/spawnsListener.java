@@ -27,11 +27,7 @@ public class spawnsListener implements Listener{
 					String[] info = plugin.setting.get(p.getName()).split("-");
 					if(Integer.parseInt(info[1])!= plugin.config.getInt("maxPlayers")+1){
 						String coords = l.getWorld().getName() + " " + (l.getX()+.5) + " " + (l.getY()+1) + " " + (l.getZ()+.5); // fixed (.getName()
-
-						//Jeppa: Hier das Command anpassen!!!??? oder die Daten vorher bearbeiten die übergeben werden? ->done
-						//p.sendMessage(ChatColor.DARK_AQUA + "[ÜbergebeneWerte:] " + ChatColor.RED + "Setting For Arena " + info[0] + " Starting From Point " + info[1]);
-						//p.sendMessage(ChatColor.DARK_AQUA + "[ÜbergebeneWerte:] " + ChatColor.RED + "Coords: " + coords);
-						
+					
 						p.performCommand("startpoint " + info[0] + " " + info[1] + " " + coords);
 						
 						if(Integer.parseInt(info[1])>= plugin.config.getInt("maxPlayers")){
