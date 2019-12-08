@@ -1,0 +1,9 @@
+# This file stores all of the spawns!
+Spawn_coords: []
+# If /ha setspawn has been run
+Spawns_set:
+  0: 'false'
+Spawns:
+  1:
+    1:
+    2:

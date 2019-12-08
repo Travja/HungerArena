@@ -1,17 +1,21 @@
 package me.Travja.HungerArena;
 
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
-//import java.util.Map;
-//import java.util.Map.Entry;
+import java.util.Set;
 
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
+import org.bukkit.attribute.Attribute;
 import org.bukkit.block.Block;
-import org.bukkit.block.Chest;
+import org.bukkit.block.BlockFace;
+import org.bukkit.block.data.BlockData;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
@@ -20,7 +24,10 @@ import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Damageable;
 import org.bukkit.entity.Player;
 import org.bukkit.event.HandlerList;
+import org.bukkit.inventory.InventoryHolder;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.metadata.FixedMetadataValue;
+import org.bukkit.metadata.MetadataValue;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.DisplaySlot;
@@ -38,8 +45,8 @@ public class HaCommands implements CommandExecutor {
 	}
 	int i = 0;
 	int a = 1;
-	boolean NoPlayerSpawns = true; // Jeppa : default for setspawn command...
-	@SuppressWarnings("deprecation")
+	boolean NoPlayerSpawns = true;
+
 	private void clearInv(Player p){
 		p.getInventory().clear();
 		p.getInventory().setBoots(null);
@@ -48,189 +55,138 @@ public class HaCommands implements CommandExecutor {
 		p.getInventory().setLeggings(null);
 		p.updateInventory();
 	}
-	@SuppressWarnings({ "unchecked", "deprecation" })
+	private Location getArenaSpawn(){
+		String[] Spawncoords;
+		if (plugin.spawns.getString("Spawn_coords." + a) != null){
+			Spawncoords = plugin.spawns.getString("Spawn_coords."+ a).split(",");	
+		} else {
+			Spawncoords = plugin.spawns.getString("Spawn_coords.0").split(",");	
+		}
+		double spawnx = Double.parseDouble(Spawncoords[0]);
+		double spawny = Double.parseDouble(Spawncoords[1]);
+		double spawnz = Double.parseDouble(Spawncoords[2]);
+		String spawnworld = Spawncoords[3];
+		World spawnw = plugin.getServer().getWorld(spawnworld);
+		Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
+		return Spawn;
+	}
 	@Override
 	public boolean onCommand(final CommandSender sender, Command cmd, String commandLabel, String[] args){
 
-		if(sender instanceof Player){
+		boolean console = false;
+		boolean playr = false;
+		if(sender instanceof ConsoleCommandSender)console=true;
+		else if(sender instanceof Player)playr=true;
+
+		if(playr){
 			final Player p = (Player) sender;
 			final String pname = p.getName();
 			String ThisWorld = p.getWorld().getName();
-			for(i = 1; i <= plugin.worldsNames.size(); i++){
+			for(int i : plugin.worldsNames.keySet()){
 				if(plugin.worldsNames.get(i)!= null){	
 					if (plugin.worldsNames.get(i).equals(ThisWorld)){
-						a=i;											//Jeppa: now 'a' is the arenanumber of THIS(current) map. Will be default for some commands!
-						NoPlayerSpawns = false; 						//mapname found -> there are PlayerSpawns...--> map seems playable
+						a=i;
+						NoPlayerSpawns = false; 
 					}
 				}
 			}
 			
 			if(plugin.getArena(p)!= null){
-				a = plugin.getArena(p); 				// Now let's look if we already know what map to 'work' on...
-				NoPlayerSpawns = false; 				// Jeppa: there may be no playerspawns, but the arenanumber seems valid... thats enough
+				a = plugin.getArena(p); 
+				NoPlayerSpawns = false;
 			}
-			
-			String[] Spawncoords;
-			if (plugin.spawns.getString("Spawn_coords_" + a) != null){
-				Spawncoords = plugin.spawns.getString("Spawn_coords_"+ a).split(",");	
-			} else {
-				Spawncoords = plugin.spawns.getString("Spawn_coords").split(",");	
-			}
-			double spawnx = Double.parseDouble(Spawncoords[0]);
-			double spawny = Double.parseDouble(Spawncoords[1]);
-			double spawnz = Double.parseDouble(Spawncoords[2]);
-			String spawnworld = Spawncoords[3];
-			World spawnw = plugin.getServer().getWorld(spawnworld);
-			Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
-			// nun ist Spawn Map-abhängig!
-			ChatColor c = ChatColor.AQUA;
 			if(cmd.getName().equalsIgnoreCase("Ha")){
 				if(args.length== 0){
-					p.sendMessage(ChatColor.GREEN + "[HungerArena] by " + ChatColor.AQUA + "travja! Version: " + plugin.getDescription().getVersion());
+					sender.sendMessage(ChatColor.GREEN + "[HungerArena] by " + ChatColor.AQUA + "travja! Version: " + plugin.getDescription().getVersion());
+					sender.sendMessage(ChatColor.GREEN + "[HungerArena] Update by " + ChatColor.AQUA + "Jeppa ! ");
 					return false;
+				}else if(args[0].equalsIgnoreCase("NewArena")){
+					if(p.hasPermission("HungerArena.StartPoint")){
+						if (args.length<2) {
+							p.sendMessage(ChatColor.AQUA + "You have to enter the arena number as 2nd argument");
+						}else{
+							try { a = Integer.parseInt(args[1]);
+							}catch(Exception e){
+								p.sendMessage(ChatColor.RED + "Argument not an integer!");
+								return false;
+							}
+							if (plugin.worldsNames.values().contains(ThisWorld)){
+								p.sendMessage(ChatColor.RED + "This world already has an areana! \n (only one arena per world possible, yet!)");
+								return false; 
+							}
+							((Player)sender).performCommand("startpoint " + a); 
+						}
+					}else{
+						p.sendMessage(ChatColor.RED + "You don't have permission!");
+					}
 				}else if(args[0].equalsIgnoreCase("SetSpawn")){
 					if(p.hasPermission("HungerArena.SetSpawn")){
 						if ((NoPlayerSpawns) && (args.length<2)) {
-							p.sendMessage(ChatColor.AQUA + "You have to set the playerspawns first! Use /startpoint . Or enter the arena number as 2nd argument");
+							p.sendMessage(ChatColor.AQUA + "You have to set the playerspawns first! Use /ha newarena \nOr enter the arena number as 2nd argument, \n0 is default/fallback!");
 						}else{
 							double x = p.getLocation().getX();
 							double y = p.getLocation().getY();
 							double z = p.getLocation().getZ();
-							String w = p.getWorld().getName();
-							plugin.spawns.set("Spawn_coords", x + "," + y + "," + z + "," + w); // Jeppa: keep this as default 
-							plugin.spawns.set("Spawns_set", "true");
-							//Jeppa: set the arenas spawn now
+							if (plugin.spawns.getString("Spawn_coords.0")== null){
+								plugin.spawns.set("Spawn_coords.0", x + "," + y + "," + z + "," + ThisWorld);
+								plugin.spawns.set("Spawns_set.0", "true");
+							}
 							if (args.length>=2) {
-								try { a = Integer.parseInt(args[1]); // Jeppa: replace a (arenanumber from arenalist(current map) or from joined-list) with given argument
+								try { a = Integer.parseInt(args[1]);
 								}catch(Exception e){
 									p.sendMessage(ChatColor.RED + "Argument not an integer!");
-									return false; // true ?? false ?? 
+									return false;
 								}
 							}
-							plugin.spawns.set("Spawn_coords_"+a, x + "," + y + "," + z + "," + w);
-							plugin.spawns.set("Spawns_set_"+a, "true");
-							//^^
+							plugin.spawns.set("Spawn_coords."+a, x + "," + y + "," + z + "," + ThisWorld);
+							plugin.spawns.set("Spawns_set."+a, "true");
 							plugin.saveSpawns();
 							p.sendMessage(ChatColor.AQUA + "You have set the spawn for dead tributes!");
 						}
 					}else{
 						p.sendMessage(ChatColor.RED + "You don't have permission!");
 					}
+				}else if(args[0].equalsIgnoreCase("SetTorch")){
+					if(p.hasPermission("HungerArena.SetSpawn")){
+						if (args.length<2) {
+							p.sendMessage(ChatColor.AQUA + "You have to enter the arena number as 2nd argument");
+						}else{
+							double x = p.getLocation().getX();
+							double y = p.getLocation().getY();
+							double z = p.getLocation().getZ();
+							if (args.length>=2) {
+								try { a = Integer.parseInt(args[1]); 
+								}catch(Exception e){
+									p.sendMessage(ChatColor.RED + "Argument not an integer!");
+									return true; 
+								}
+							}
+							plugin.spawns.set("Start_torch."+a, x + "," + y + "," + z + "," + ThisWorld);
+							plugin.saveSpawns();
+							p.sendMessage(ChatColor.AQUA + "You have set the start redstone torch for arena "+a+"!");
+						}
+					}else{
+						p.sendMessage(ChatColor.RED + "You don't have permission!");
+					}
+					
 				}else if(args[0].equalsIgnoreCase("Help")){
-					p.sendMessage(ChatColor.GREEN + "----HungerArena Help----");
-					sender.sendMessage(c + "/ha - Displays author message!");
-					sender.sendMessage(c + "/sponsor [Player] [ItemID] [Amount] - Lets you sponsor someone!");
-					sender.sendMessage(c + "/startpoint [1,2,3,4,etc] [1,2,3,4,etc] - Sets the starting points of tributes in a specific arena!");
-					if(plugin.hookWE() != null)
-						sender.sendMessage(c + "/ha addArena [1,2,3,4,etc] - Creates an arena using your current WorldEdit selection.");
-					sender.sendMessage(c + "/ha close (1,2,3,4,etc) - Prevents anyone from joining that arena! Numbers are optional");
-					sender.sendMessage(c + "/ha help - Displays this screen!");
-					sender.sendMessage(c + "/ha join [1,2,3,4,etc] - Makes you join the game!");
-					sender.sendMessage(c + "/ha kick [Player] - Kicks a player from the arena!");
-					sender.sendMessage(c + "/ha leave - Makes you leave the game!");
-					sender.sendMessage(c + "/ha list (1,2,3,4,etc) - Shows a list of players in the game and their health! Numbers are optional.");
-					sender.sendMessage(c + "/ha open (1,2,3,4,etc) - Opens the game allowing people to join! Numbers are optional");
-					sender.sendMessage(c + "/ha ready - Votes for the game to start!");
-					sender.sendMessage(c + "/ha refill (1,2,3,4,etc) - Refills all chests! Numbers are optional");
-					sender.sendMessage(c + "/ha reload - Reloads the config!");
-					sender.sendMessage(c + "/ha restart (1,2,3,4,etc) - Restarts the game! Numbers are optional");
-					sender.sendMessage(c + "/ha rlist (1,2,3,4,etc) - See who's ready! Numbers are optional");
-					sender.sendMessage(c + "/ha setspawn - Sets the spawn for dead tributes! You can add the arena # to this command: /setspawn [1,2,3,4,etc.]");
-					sender.sendMessage(c + "/ha tp [player] - Teleports you to a tribute!");
-					sender.sendMessage(c + "/ha start [1,2,3,4,etc] - Unfreezes tributes allowing them to fight!");
-					sender.sendMessage(c + "/ha watch [1,2,3,4,etc] - Lets you watch the tributes!");
-					sender.sendMessage(c + "/ha warpall [1,2,3,4,etc] - Warps all tribute into position!");
-					sender.sendMessage(ChatColor.GREEN + "----------------------");
-				}else if(plugin.restricted && !plugin.worlds.contains(p.getWorld().getName())){
+					help_sub(sender,playr,console);
+
+				}else if(plugin.restricted && !plugin.worldsNames.values().contains(ThisWorld)){
 					p.sendMessage(ChatColor.RED + "That can't be run in this world!");
-				}else if((plugin.restricted && plugin.worlds.contains(p.getWorld().getName())) || !plugin.restricted){
+				}else if(!plugin.restricted || plugin.restricted && plugin.worldsNames.values().contains(ThisWorld)){
 					//////////////////////////////////////// LISTING ///////////////////////////////////////////////
 					if(args[0].equalsIgnoreCase("List")){
 						if(p.hasPermission("HungerArena.GameMaker") || plugin.Watching.get(a).contains(pname) || p.hasPermission("HungerArena.List")){
-							if(args.length>= 2){
-								try{
-									a = Integer.parseInt(args[1]);
-									sender.sendMessage(ChatColor.AQUA + "----- Arena " + a + " -----");
-									if(!plugin.Playing.get(a).isEmpty() && plugin.Playing.containsKey(a)){
-										for(String playernames: plugin.Playing.get(a)){
-											Player players = plugin.getServer().getPlayerExact(playernames);
-											if(p.hasPermission("HungerArena.GameMaker")){
-												sender.sendMessage(ChatColor.GREEN + playernames + " Life: " + ((Damageable)players).getHealth() + "/" + ((Damageable)players).getMaxHealth());
-											}else if(p.hasPermission("HungerArena.List")){
-												sender.sendMessage(ChatColor.GREEN + playernames);
-											}
-										}
-									}else{
-										p.sendMessage(ChatColor.GRAY + "No one is playing!");
-									}
-									p.sendMessage(ChatColor.AQUA + "-------------------");
-								}catch(Exception e){
-									p.sendMessage(ChatColor.RED + "Argument not an integer or is an invalid arena!");
-								}
-							}else{
-								if(plugin.getArena(p)== null){
-									p.sendMessage(ChatColor.AQUA + "----- Arena 1 -----");
-									if(!plugin.Playing.get(1).isEmpty() && plugin.Playing.containsKey(1)){
-										for(String playernames: plugin.Playing.get(1)){
-											Player players = plugin.getServer().getPlayerExact(playernames);
-											if(p.hasPermission("HungerArena.GameMaker")){
-												sender.sendMessage(ChatColor.GREEN + playernames + " Life: " + ((Damageable)players).getHealth() + "/" + ((Damageable)players).getMaxHealth());
-											}else if(p.hasPermission("HungerArena.List")){
-												sender.sendMessage(ChatColor.GREEN + playernames);
-											}
-										}
-									}else{
-										p.sendMessage(ChatColor.GRAY + "No one is playing!");
-									}
-								}else{
-									a = plugin.getArena(p);
-									sender.sendMessage(ChatColor.AQUA + "----- Arena " + a + " -----");
-									if(!plugin.Playing.get(a).isEmpty() && plugin.Playing.containsKey(a)){
-										for(String playernames: plugin.Playing.get(a)){
-											Player players = plugin.getServer().getPlayerExact(playernames);
-											if(p.hasPermission("HungerArena.GameMaker")){
-												sender.sendMessage(ChatColor.GREEN + playernames + " Life: " + ((Damageable)players).getHealth() + "/" + ((Damageable)players).getMaxHealth());
-											}else if(p.hasPermission("HungerArena.List")){
-												sender.sendMessage(ChatColor.GREEN + playernames);
-											}
-										}
-									}else{
-										p.sendMessage(ChatColor.GRAY + "No one is playing!");
-									}
-								}
-								p.sendMessage(ChatColor.AQUA + "-------------------");
-							}
+							list_sub(p,sender,playr,console,args);
+							
 						}else{
 							p.sendMessage(ChatColor.RED + "You don't have permission!");
 						}
 					}else if(args[0].equalsIgnoreCase("rList")){
 						if(p.hasPermission("HungerArena.GameMaker")){
-							if(args.length>= 2){
-								try{
-									a = Integer.parseInt(args[1]);
-									sender.sendMessage(ChatColor.AQUA + "----- Arena " + a + " -----");
-									if(!plugin.Ready.get(a).isEmpty() && plugin.Ready.containsKey(a)){
-										for(String playernames: plugin.Ready.get(a)){
-											sender.sendMessage(ChatColor.GREEN + playernames);
-										}
-									}else{
-										p.sendMessage(ChatColor.GRAY + "No one is ready!");
-									}
-									p.sendMessage(ChatColor.AQUA + "-------------------");
-								}catch(Exception e){
-									p.sendMessage(ChatColor.RED + "Argument not an integer!");
-								}
-							}else{
-								p.sendMessage(ChatColor.AQUA + "----- Arena 1 -----");
-								if(!plugin.Ready.get(1).isEmpty() && plugin.Ready.containsKey(1)){
-									for(String playernames: plugin.Ready.get(1)){
-										sender.sendMessage(ChatColor.GREEN + playernames);
-									}
-								}else{
-									p.sendMessage(ChatColor.GRAY + "No one is ready!");
-								}
-								p.sendMessage(ChatColor.AQUA + "-------------------");
-							}
+							rList_sub(sender, args);
+							
 						}else{
 							p.sendMessage(ChatColor.RED + "You don't have permission!");
 						}
@@ -239,32 +195,30 @@ public class HaCommands implements CommandExecutor {
 					}else if(args[0].equalsIgnoreCase("Join")){
 						if(p.hasPermission("HungerArena.Join")){
 							boolean needconfirm = false;
-							for(i= 1; i< plugin.NeedConfirm.size()+1; i++){
+							for(int i : plugin.NeedConfirm.keySet()){
 								if(plugin.NeedConfirm.get(i).contains(pname)){
 									needconfirm = true;
 									p.sendMessage(ChatColor.GOLD + "You need to run /ha confirm");
 								}
 							}
 							if(!needconfirm){
-								try{
+								if ((args.length>= 2) && checkarena(args[1], sender)){ 
 									a = Integer.parseInt(args[1]); 
-								}catch(Exception e){
-									if (NoPlayerSpawns){			//Jeppa: only if there's no usable argument AND this(THIS!, where the player is standing) is not a playable map (not in the list...).  else keep 'a' as it is (arenanumber of current map)
-										i = 1;
-										while(i <= plugin.Playing.size()){
+								}else{
+									if (NoPlayerSpawns){
+										for(int i : plugin.Playing.keySet()){
 											if(plugin.Playing.get(i).size()< plugin.maxPlayers.get(i)){
 												a = i;
-												i = plugin.Playing.size()+1;
+												p.sendMessage(ChatColor.RED + "Found free slots in Arena "+a+" !");
 											}
-											if(plugin.Playing.size()== i){ 
+											else if(i == plugin.Playing.size()){ 
 												p.sendMessage(ChatColor.RED + "No free slots found / All games are full!");
 											}
-											i++;
 										}
 									}
 
 								}
-								if((plugin.Playing.get(a)!=null) && (plugin.location.get(a).size()!=0)){; //Jeppa: Arena must exist in Playing and must have spawnpoints 
+								if((plugin.Playing.get(a)!=null) && (plugin.location.get(a).size()!=0)){;
 								if(plugin.Playing.get(a).contains(pname))
 										p.sendMessage(ChatColor.RED + "You are already playing!");
 									else if(plugin.Dead.get(a).contains(pname) || plugin.Quit.get(a).contains(pname))
@@ -275,13 +229,13 @@ public class HaCommands implements CommandExecutor {
 										p.sendMessage(ChatColor.RED + "That game is in progress!");
 									else if(!plugin.open.get(a))
 										p.sendMessage(ChatColor.RED + "That game is closed!");
-									else if((plugin.spawns.getString("Spawns_set_"+a)==null) || (plugin.spawns.getString("Spawns_set_"+a).equalsIgnoreCase("false"))) // Jeppa: no respawnpoint?
+									else if((plugin.spawns.getString("Spawns_set."+a)==null) || (plugin.spawns.getString("Spawns_set."+a).equalsIgnoreCase("false"))) 
 										p.sendMessage(ChatColor.RED + "/ha setspawn for Arena "+ a +" hasn't been run!");
 									else if(plugin.getArena(p)!= null)
 										p.sendMessage(ChatColor.RED + "You are already in an arena!");
 									else if(plugin.config.getString("Need_Confirm").equalsIgnoreCase("true")){
 										if(plugin.config.getBoolean("EntryFee.enabled") && plugin.config.getBoolean("EntryFee.eco")){
-											if(!(plugin.econ.getBalance(pname) < plugin.config.getDouble("EntryFee.cost"))){
+											if(!(plugin.econ.getBalance(p) < plugin.config.getDouble("EntryFee.cost"))){
 												i = 0;
 												for(ItemStack fee: plugin.Fee){
 													int total = plugin.Fee.size();
@@ -315,7 +269,7 @@ public class HaCommands implements CommandExecutor {
 												p.sendMessage(ChatColor.RED + "You are missing some items and can't join the games...");
 											}
 										}else if(!plugin.config.getBoolean("EntryFee.enabled") && plugin.config.getBoolean("EntryFee.eco")){
-											if(!(plugin.econ.getBalance(pname) < plugin.config.getDouble("EntryFee.cost"))){
+											if(!(plugin.econ.getBalance(p) < plugin.config.getDouble("EntryFee.cost"))){
 												plugin.NeedConfirm.get(a).add(pname);
 												p.sendMessage(ChatColor.GOLD + "Your inventory will be cleared! Type /ha confirm to procede");
 											}else{
@@ -326,154 +280,9 @@ public class HaCommands implements CommandExecutor {
 											p.sendMessage(ChatColor.GOLD + "Your inventory will be cleared! Type /ha confirm to procede");
 										}
 									}else if(plugin.config.getString("Need_Confirm").equalsIgnoreCase("false")){
-										if(plugin.config.getBoolean("EntryFee.enabled") && plugin.config.getBoolean("EntryFee.eco")){
-											if(!(plugin.econ.getBalance(pname) < plugin.config.getDouble("EntryFee.cost"))){
-												i = 0;
-												for(ItemStack fee: plugin.Fee){
-													int total = plugin.Fee.size();
-													if(p.getInventory().containsAtLeast(fee, fee.getAmount())){
-														i = i+1;
-														if(total == i){
-															plugin.econ.withdrawPlayer(pname, plugin.config.getDouble("EntryFee.cost"));
-															p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + "$" + plugin.config.getDouble("EntryFee.cost") + " has been taken from your account!");
-															for(ItemStack fees: plugin.Fee){
-																String beginning = fees.getType().toString().substring(0, 1);
-																String item = beginning + fees.getType().toString().substring(1).toLowerCase().replace("_", " ");
-																int amount = fees.getAmount();
-																if(amount> 1)
-																	p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + amount + " " + item + "s was paid to join the games.");
-																else
-																	p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + amount + " " + item + " was paid to join the games.");
-															}
-															plugin.Playing.get(a).add(pname);
-															plugin.NeedConfirm.get(a).remove(pname);
-															p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
-															FileConfiguration pinfo = plugin.getPConfig(pname); //Jeppa: get default config and save inv
-															pinfo.set("inv", p.getInventory().getContents());
-															pinfo.set("armor", p.getInventory().getArmorContents());
-															pinfo.set("world", p.getLocation().getWorld().getName());
-															pinfo.set("player", p.getName()); // Jeppa : used to identify player ...
-															plugin.savePFile(pname); // Jeppa: Save inventoty to file
-															clearInv(p);
-															plugin.needInv.add(pname); //Jeppa: mark this player as inventory cleared...
-															if(plugin.config.getBoolean("broadcastAll")){
-																plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "! " + ChatColor.GRAY + plugin.Playing.get(a).size() + "/" + plugin.maxPlayers.get(a));
-															}else{
-																for(String gn: plugin.Playing.get(a)){
-																	Player g = plugin.getServer().getPlayer(gn);
-																	g.sendMessage(ChatColor.AQUA + pname + " has Joined the Game! " + ChatColor.GRAY + plugin.Playing.get(a).size() + "/" + plugin.maxPlayers.get(a));
-																}
-															}
-															if(plugin.Playing.get(a).size()== plugin.maxPlayers.get(a)){
-																plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), "ha warpall " + a);
-															}
-														}
-													}
-												}
-												if(plugin.Fee.size() > i){
-													p.sendMessage(ChatColor.RED + "You are missing some items and can't join the games...");
-												}
-											}else{
-												p.sendMessage(ChatColor.RED + "You don't have enough money to join!");
-											}
-										}else if(plugin.config.getBoolean("EntryFee.enabled") && !plugin.config.getBoolean("EntryFee.eco")){
-											i = 0;
-											for(ItemStack fee: plugin.Fee){
-												int total = plugin.Fee.size();
-												if(p.getInventory().containsAtLeast(fee, fee.getAmount())){
-													i = i+1;
-													if(total == i){
-														for(ItemStack fees: plugin.Fee){
-															String beginning = fees.getType().toString().substring(0, 1);
-															String item = beginning + fees.getType().toString().substring(1).toLowerCase().replace("_", " ");
-															int amount = fees.getAmount();
-															if(amount> 1)
-																p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + amount + " " + item + "s was paid to join the games.");
-															else
-																p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + amount + " " + item + " was paid to join the games.");
-														}
-														plugin.Playing.get(a).add(pname);
-														plugin.NeedConfirm.get(a).remove(pname);
-														p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
-														FileConfiguration pinfo = plugin.getPConfig(pname);
-														pinfo.set("inv", p.getInventory().getContents());
-														pinfo.set("armor", p.getInventory().getArmorContents());
-														pinfo.set("world", p.getLocation().getWorld().getName());
-														pinfo.set("player", p.getName()); // Jeppa : used to identify player ...
-														plugin.savePFile(pname);
-														clearInv(p);
-														plugin.needInv.add(pname); //Jeppa: mark this player as inventory cleared...
-														if(plugin.config.getBoolean("broadcastAll")){
-															plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "! " + ChatColor.GRAY + plugin.Playing.get(a).size() + "/" + plugin.maxPlayers.get(a));
-														}else{
-															for(String gn: plugin.Playing.get(a)){
-																Player g = plugin.getServer().getPlayer(gn);
-																g.sendMessage(ChatColor.AQUA + pname + " has Joined the Game! " + ChatColor.GRAY + plugin.Playing.get(a).size() + "/" + plugin.maxPlayers.get(a));
-															}
-														}												
-														if(plugin.Playing.get(a).size()== plugin.maxPlayers.get(a)){
-															plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), "ha warpall " + a);
-														}
-													}
-												}
-											}
-											if(plugin.Fee.size() > i){
-												p.sendMessage(ChatColor.RED + "You are missing some items and can't join the games...");
-											}
-										}else if(!plugin.config.getBoolean("EntryFee.enabled") && plugin.config.getBoolean("EntryFee.eco")){
-											if(!(plugin.econ.getBalance(pname) < plugin.config.getDouble("EntryFee.cost"))){
-												plugin.econ.withdrawPlayer(pname, plugin.config.getDouble("EntryFee.cost"));
-												p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + "$" + plugin.config.getDouble("EntryFee.cost") + " has been taken from your account!");
-												plugin.Playing.get(a).add(pname);
-												plugin.NeedConfirm.get(a).remove(pname);
-												p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
-												FileConfiguration pinfo = plugin.getPConfig(pname);
-												pinfo.set("inv", p.getInventory().getContents());
-												pinfo.set("armor", p.getInventory().getArmorContents());
-												pinfo.set("world", p.getLocation().getWorld().getName());
-												pinfo.set("player", p.getName()); // Jeppa : used to identify player ...
-												plugin.savePFile(pname);
-												clearInv(p);
-												plugin.needInv.add(pname); //Jeppa: mark this player as inventory cleared...
-												if(plugin.config.getBoolean("broadcastAll")){
-													plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "! " + ChatColor.GRAY + plugin.Playing.get(a).size() + "/" + plugin.maxPlayers.get(a));
-												}else{
-													for(String gn: plugin.Playing.get(a)){
-														Player g = plugin.getServer().getPlayer(gn);
-														g.sendMessage(ChatColor.AQUA + pname + " has Joined the Game! " + ChatColor.GRAY + plugin.Playing.get(a).size() + "/" + plugin.maxPlayers.get(a));
-													}
-												}										
-												if(plugin.Playing.get(a).size()== plugin.maxPlayers.get(a)){
-													plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), "ha warpall " + a);
-												}
-											}else{
-												p.sendMessage(ChatColor.RED + "You don't have enough money to join!");
-											}
-										}else{
-											plugin.Playing.get(a).add(pname);
-											plugin.NeedConfirm.get(a).remove(pname);
-											p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
-											FileConfiguration pinfo = plugin.getPConfig(pname);
-											pinfo.set("inv", p.getInventory().getContents());
-											pinfo.set("armor", p.getInventory().getArmorContents());
-											pinfo.set("world", p.getLocation().getWorld().getName());
-											pinfo.set("player", p.getName()); // Jeppa : used to identify player ...
-											plugin.savePFile(pname);
-											clearInv(p);
-											plugin.needInv.add(pname); //Jeppa: mark this player as inventory cleared...
-											if(plugin.config.getBoolean("broadcastAll")){
-												plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "! " + ChatColor.GRAY + plugin.Playing.get(a).size() + "/" + plugin.maxPlayers.get(a));
-											}else{
-												for(String gn: plugin.Playing.get(a)){
-													Player g = plugin.getServer().getPlayer(gn);
-													g.sendMessage(ChatColor.AQUA + pname + " has Joined the Game! " + ChatColor.GRAY + plugin.Playing.get(a).size() + "/" + plugin.maxPlayers.get(a));
-												}
-											}
-											if(plugin.Playing.get(a).size()== plugin.maxPlayers.get(a)){
-												plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), "ha warpall " + a);
-											}
-										}
+										confirmSub(p, pname, ThisWorld);
 									}
+										
 								}else{
 									p.sendMessage(ChatColor.RED + "That arena doesn't exist!");
 								}
@@ -484,160 +293,12 @@ public class HaCommands implements CommandExecutor {
 						////////////////////////////////////////////////////////////////////////////////////////////////
 						////////////////////////////////// CONFIRMATION ///////////////////////////////////////////////
 					}else if(args[0].equalsIgnoreCase("Confirm")){
-						int v = 0;
-						for(v = 1; v < plugin.NeedConfirm.size()+1; v++){
+						for(int v : plugin.NeedConfirm.keySet()){
 							if(plugin.NeedConfirm.get(v).contains(pname)){
 								a = v;
-								v = plugin.NeedConfirm.size()+1;
-								if(plugin.config.getBoolean("EntryFee.enabled") && plugin.config.getBoolean("EntryFee.eco")){
-									if(!(plugin.econ.getBalance(pname) < plugin.config.getDouble("EntryFee.cost"))){
-										i = 0;
-										for(ItemStack fee: plugin.Fee){
-											int total = plugin.Fee.size();
-											if(p.getInventory().containsAtLeast(fee, fee.getAmount())){
-												i = i+1;
-												if(total == i){
-													plugin.econ.withdrawPlayer(pname, plugin.config.getDouble("EntryFee.cost"));
-													p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + "$" + plugin.config.getDouble("EntryFee.cost") + " has been taken from your account!");
-													for(ItemStack fees: plugin.Fee){
-														String beginning = fees.getType().toString().substring(0, 1);
-														String item = beginning + fees.getType().toString().substring(1).toLowerCase().replace("_", " ");
-														int amount = fees.getAmount();
-														if(amount> 1)
-															p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + amount + " " + item + "s was paid to join the games.");
-														else
-															p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + amount + " " + item + " was paid to join the games.");
-													}
-													plugin.Playing.get(a).add(pname);
-													plugin.NeedConfirm.get(a).remove(pname);
-													p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
-													FileConfiguration pinfo = plugin.getPConfig(pname);
-													pinfo.set("inv", p.getInventory().getContents());
-													pinfo.set("armor", p.getInventory().getArmorContents());
-													pinfo.set("world", p.getLocation().getWorld().getName());
-													pinfo.set("player", p.getName()); // Jeppa : used to identify player ...
-													plugin.savePFile(pname);
-													clearInv(p);
-													plugin.needInv.add(pname); //Jeppa: mark this player as inventory cleared...
-													if(plugin.config.getBoolean("broadcastAll")){
-														plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "!");
-													}else{
-														for(String gn: plugin.Playing.get(a)){
-															Player g = plugin.getServer().getPlayer(gn);
-															g.sendMessage(ChatColor.AQUA + pname + " has Joined the Game!");
-														}
-													}
-													if(plugin.Playing.get(a).size()== plugin.maxPlayers.get(a)){
-														plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), "ha warpall " + a);
-													}
-												}
-											}
-										}
-										if(plugin.Fee.size() > i){
-											p.sendMessage(ChatColor.RED + "You are missing some items and can't join the games...");
-										}
-									}else{
-										p.sendMessage(ChatColor.RED + "You don't have enough money to join!");
-									}
-								}else if(plugin.config.getBoolean("EntryFee.enabled") && !plugin.config.getBoolean("EntryFee.eco")){
-									i = 0;
-									for(ItemStack fee: plugin.Fee){
-										int total = plugin.Fee.size();
-										if(p.getInventory().containsAtLeast(fee, fee.getAmount())){
-											i = i+1;
-											if(total == i){
-												for(ItemStack fees: plugin.Fee){
-													String beginning = fees.getType().toString().substring(0, 1);
-													String item = beginning + fees.getType().toString().substring(1).toLowerCase().replace("_", " ");
-													int amount = fees.getAmount();
-													if(amount> 1)
-														p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + amount + " " + item + "s was paid to join the games.");
-													else
-														p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + amount + " " + item + " was paid to join the games.");
-												}
-												plugin.Playing.get(a).add(pname);
-												plugin.NeedConfirm.get(a).remove(pname);
-												p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
-												FileConfiguration pinfo = plugin.getPConfig(pname);
-												pinfo.set("inv", p.getInventory().getContents());
-												pinfo.set("armor", p.getInventory().getArmorContents());
-												pinfo.set("world", p.getLocation().getWorld().getName());
-												pinfo.set("player", p.getName()); // Jeppa : used to identify player ...
-												plugin.savePFile(pname);
-												clearInv(p);
-												plugin.needInv.add(pname); //Jeppa: mark this player as inventory cleared...
-												if(plugin.config.getBoolean("broadcastAll")){
-													plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "!");
-												}else{
-													for(String gn: plugin.Playing.get(a)){
-														Player g = plugin.getServer().getPlayer(gn);
-														g.sendMessage(ChatColor.AQUA + pname + " has Joined the Game!");
-													}
-												}												
-												if(plugin.Playing.get(a).size()== plugin.maxPlayers.get(a)){
-													plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), "ha warpall " + a);
-												}
-											}
-										}
-									}
-									if(plugin.Fee.size() > i){
-										p.sendMessage(ChatColor.RED + "You are missing some items and can't join the games...");
-									}
-								}else if(!plugin.config.getBoolean("EntryFee.enabled") && plugin.config.getBoolean("EntryFee.eco")){
-									if(!(plugin.econ.getBalance(pname) < plugin.config.getDouble("EntryFee.cost"))){
-										plugin.econ.withdrawPlayer(pname, plugin.config.getDouble("EntryFee.cost"));
-										p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + "$" + plugin.config.getDouble("EntryFee.cost") + " has been taken from your account!");
-										plugin.Playing.get(a).add(pname);
-										plugin.NeedConfirm.get(a).remove(pname);
-										p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
-										FileConfiguration pinfo = plugin.getPConfig(pname);
-										pinfo.set("inv", p.getInventory().getContents());
-										pinfo.set("armor", p.getInventory().getArmorContents());
-										pinfo.set("world", p.getLocation().getWorld().getName());
-										pinfo.set("player", p.getName()); // Jeppa : used to identify player ...
-										plugin.savePFile(pname);
-										clearInv(p);
-										plugin.needInv.add(pname); //Jeppa: mark this player as inventory cleared...
-										if(plugin.config.getBoolean("broadcastAll")){
-											plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "!");
-										}else{
-											for(String gn: plugin.Playing.get(a)){
-												Player g = plugin.getServer().getPlayer(gn);
-												g.sendMessage(ChatColor.AQUA + pname + " has Joined the Game!");
-											}
-										}										
-										if(plugin.Playing.get(a).size()== plugin.maxPlayers.get(a)){
-											plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), "ha warpall " + a);
-										}
-									}else{
-										p.sendMessage(ChatColor.RED + "You don't have enough money to join!");
-									}
-								}else{
-									plugin.Playing.get(a).add(pname);
-									plugin.NeedConfirm.get(a).remove(pname);
-									p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
-									FileConfiguration pinfo = plugin.getPConfig(pname);
-									pinfo.set("inv", p.getInventory().getContents());
-									pinfo.set("armor", p.getInventory().getArmorContents());
-									pinfo.set("world", p.getLocation().getWorld().getName());
-									pinfo.set("player", p.getName()); // Jeppa : used to identify player ...
-									plugin.savePFile(pname);
-									clearInv(p);
-									plugin.needInv.add(pname); //Jeppa: mark this player as inventory cleared...
-									if(plugin.config.getBoolean("broadcastAll")){
-										plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "!");
-									}else{
-										for(String gn: plugin.Playing.get(a)){
-											Player g = plugin.getServer().getPlayer(gn);
-											g.sendMessage(ChatColor.AQUA + pname + " has Joined the Game!");
-										}
-									}
-									if(plugin.Playing.get(a).size()== plugin.maxPlayers.get(a)){
-										plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), "ha warpall " + a);
-									}
-								}
+								confirmSub(p, pname, ThisWorld);
 							}
-							if((v== plugin.NeedConfirm.size()) && (plugin.config.getString("Need_Confirm").equalsIgnoreCase("true"))){
+							else if((v== plugin.NeedConfirm.size()) && (plugin.config.getString("Need_Confirm").equalsIgnoreCase("true"))){
 								p.sendMessage(ChatColor.RED + "You haven't joined any games!");
 							}
 						}
@@ -660,8 +321,10 @@ public class HaCommands implements CommandExecutor {
 										}
 									}
 									p.sendMessage(ChatColor.AQUA + "You have marked yourself as READY!");
-									if(((double) plugin.Playing.get(a).size())%60<= plugin.Ready.get(a).size() || plugin.Playing.get(a).size()==plugin.Ready.get(a).size()){
-										Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha warpall " + a);
+									if(plugin.config.getBoolean("Auto_Warp")){
+										if(((double) plugin.Playing.get(a).size())%60<= plugin.Ready.get(a).size() || plugin.Playing.get(a).size()==plugin.Ready.get(a).size()){
+											Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha warpall " + a);
+										}
 									}
 								}
 							}
@@ -669,61 +332,38 @@ public class HaCommands implements CommandExecutor {
 							p.sendMessage(ChatColor.RED + "You aren't playing in any games!");
 						}
 					}else if(args[0].equalsIgnoreCase("Leave")){
-						//TODO **Give inv back if they enter the correct world.**  Jeppa: -> inv is given back when player respawns now!
 						if(plugin.getArena(p)!= null){
 							a = plugin.getArena(p);
-							//plugin.needInv.add(pname); // Jeppa: not when leaving but at join! 
 							if(plugin.canjoin.get(a)== true){
-								plugin.Playing.get(a).remove(pname);
-								p.sendMessage(ChatColor.AQUA + "You have left the game!");
-								if(plugin.config.getBoolean("broadcastAll")){
-									p.getServer().broadcastMessage(ChatColor.RED + pname + " Left Arena " + a + "!");
-								}else{
-									for(String gn: plugin.Playing.get(a)){
-										Player g = plugin.getServer().getPlayer(gn);
-										g.sendMessage(ChatColor.RED + pname + " Quit!");
-									}
-								}
-								p.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
-								plugin.scoreboards.remove(p.getName());
-								plugin.Kills.remove(p.getName());
 								clearInv(p);
-								p.teleport(Spawn);
+								p.teleport(getArenaSpawn());
 								if(plugin.Frozen.get(a).contains(pname)){
 									plugin.Frozen.get(a).remove(pname);
 								}
 								
-								plugin.RestoreInv(p, pname); // Jeppa: call for restore inventory of leaving player!!
+								if(plugin.Playing.get(a).size()!=1) plugin.RestoreInv(p, pname); 
 								
 								plugin.winner(a); 
 							}else{ 
-								plugin.Playing.get(a).remove(pname);
-								p.sendMessage(ChatColor.AQUA + "You have left the game!");
-								if(plugin.config.getBoolean("broadcastAll")){
-									p.getServer().broadcastMessage(ChatColor.RED + pname + " Left Arena " + a + "!");
-								}else{
-									for(String gn: plugin.Playing.get(a)){
-										Player g = plugin.getServer().getPlayer(gn);
-										g.sendMessage(ChatColor.RED + pname + " Quit!");
-									}
-								}
 								clearInv(p);
-								p.teleport(Spawn);
+								p.teleport(getArenaSpawn());
 								
-								plugin.RestoreInv(p, pname); // Jeppa: call for restore inventory of leaving player!!
+								plugin.RestoreInv(p, pname); 
 								
 								if(plugin.config.getBoolean("EntryFee.enabled") && plugin.config.getBoolean("EntryFee.eco")){
-									plugin.econ.depositPlayer(pname, plugin.config.getDouble("EntryFee.cost"));
+									plugin.econ.depositPlayer(p, plugin.config.getDouble("EntryFee.cost"));
 									p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + "$" + plugin.config.getDouble("EntryFee.cost") + " has been added to your account!");
 									for(ItemStack fees: plugin.Fee){
+										p.getInventory().addItem(fees);
 										p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + fees.getType().toString().toLowerCase().replace("_", " ") + " was refunded because you left the games.");
 									}
 								}else if(plugin.config.getBoolean("EntryFee.enabled") && !plugin.config.getBoolean("EntryFee.eco")){
 									for(ItemStack fees: plugin.Fee){
+										p.getInventory().addItem(fees);
 										p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + fees.getType().toString().toLowerCase().replace("_", " ") + " was refunded because you left the games.");
 									}
 								}else if(!plugin.config.getBoolean("EntryFee.enabled") && plugin.config.getBoolean("EntryFee.eco")){
-									plugin.econ.depositPlayer(pname, plugin.config.getDouble("EntryFee.cost"));
+									plugin.econ.depositPlayer(p, plugin.config.getDouble("EntryFee.cost"));
 									p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + "$" + plugin.config.getDouble("EntryFee.cost") + " has added to your account!");
 								}
 							}
@@ -735,21 +375,27 @@ public class HaCommands implements CommandExecutor {
 					}else if(args[0].equalsIgnoreCase("Watch")){
 						if(sender.hasPermission("HungerArena.Watch")){
 							if(args.length>= 2){
+							  if (checkarena(args[1], sender)){
 								a = Integer.parseInt(args[1]);
 								if(!plugin.Watching.get(a).contains(pname) && plugin.getArena(p)== null && plugin.canjoin.get(a)== true){
 									plugin.Watching.get(a).add(pname);
 									p.teleport(Bukkit.getPlayer(plugin.Playing.get(a).get(0)));
 									for(Player online:plugin.getServer().getOnlinePlayers()){
-										online.hidePlayer(p);
+										online.hidePlayer(plugin,p);
 									}
 									p.setAllowFlight(true);
 									p.sendMessage(ChatColor.AQUA + "You can now spectate!");
 									Scoreboard scoreboard = plugin.getServer().getScoreboardManager().getNewScoreboard();
-									Objective sobj = scoreboard.registerNewObjective("HA", "HAData");
-									sobj.setDisplayName(ChatColor.GREEN + "HA - Starting");
-									Score sdeaths = sobj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Spectators"));
+									Objective sobj;
+									try{
+										sobj = scoreboard.registerNewObjective("HA", "HAData", ChatColor.GREEN + "HA - Starting"); 
+									} catch (NoSuchMethodError e){ 
+										sobj = scoreboard.registerNewObjective("HA", "HAData");
+										sobj.setDisplayName(ChatColor.GREEN + "HA - Starting"); 
+									}
+									Score sdeaths = sobj.getScore((ChatColor.RED + "Spectators"));
 									sdeaths.setScore(0);
-									Score splayers = sobj.getScore(Bukkit.getOfflinePlayer(ChatColor.RED + "Players"));
+									Score splayers = sobj.getScore((ChatColor.RED + "Players"));
 									splayers.setScore(0);
 									sobj.setDisplaySlot(DisplaySlot.SIDEBAR);
 									p.setScoreboard(scoreboard);
@@ -761,14 +407,15 @@ public class HaCommands implements CommandExecutor {
 								}else if(plugin.Watching.get(a).contains(pname)){
 									plugin.Watching.get(a).remove(pname);
 									for(Player online:plugin.getServer().getOnlinePlayers()){
-										online.showPlayer(p);
+										online.showPlayer(plugin,p);
 									}
 									p.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
 									plugin.scoreboards.remove(p.getName());
-									p.teleport(Spawn);
+									p.teleport(getArenaSpawn());
 									p.setAllowFlight(false);
 									p.sendMessage(ChatColor.AQUA + "You are not spectating any more");
 								}
+							  }
 							}else{
 								p.sendMessage(ChatColor.RED + "Too few arguments!");
 							}
@@ -776,9 +423,8 @@ public class HaCommands implements CommandExecutor {
 							p.sendMessage(ChatColor.RED + "You don't have permission!");
 						}
 					}else if(args[0].equalsIgnoreCase("tp")){
-						int b = 0;
-						for(i = 1; i <= plugin.Watching.size(); i++){
-							if(plugin.Watching.get(a).contains(pname)){
+						for(int i : plugin.Watching.keySet()){
+							if(plugin.Watching.get(i).contains(pname)){ 
 								if(plugin.getArena(Bukkit.getServer().getPlayer(args[1])) != null){
 									Player target = Bukkit.getServer().getPlayer(args[1]);
 									p.teleport(target);
@@ -789,8 +435,7 @@ public class HaCommands implements CommandExecutor {
 									return true;
 								}
 							}else{
-								b = b+1;
-								if(b== plugin.Watching.size()){
+								if(i== plugin.Watching.size()){ 
 									p.sendMessage(ChatColor.RED + "You have to be spectating first!");
 									return true;
 								}
@@ -827,421 +472,50 @@ public class HaCommands implements CommandExecutor {
 							return true;
 						}
 					}else if(args[0].equalsIgnoreCase("Kick")){
-						if (args.length != 2) {
-							sender.sendMessage(ChatColor.RED + "/ha kick [playername]!");
-							return false;
-						}
-						Player target = Bukkit.getServer().getPlayer(args[1]);
-						if(target == null){
-							sender.sendMessage(ChatColor.RED + "Use playername !");
-							return false;
-						}
-						if(p.hasPermission("HungerArena.Kick")){
-							if(plugin.getArena(target) != null){
-								a = plugin.getArena(target);
-								plugin.Playing.get(a).remove(target.getName());
-								if(plugin.config.getBoolean("broadcastAll")){
-									p.getServer().broadcastMessage(ChatColor.RED + target.getName() + " was kicked from arena " + a + "!");
-								}else{
-									for(String gn: plugin.Playing.get(a)){
-										Player g = plugin.getServer().getPlayer(gn);
-										g.sendMessage(ChatColor.RED + target.getName() + " was kicked from the game!");
-									}
-								}
-								clearInv(target);
-								target.teleport(Spawn);
-								plugin.Quit.get(a).add(target.getName());
-								plugin.RestoreInv(target, target.getName()); // Jeppa: call for restore inventory of leaving player!!
-								plugin.winner(a);
-								return true;
-							}else{
-								sender.sendMessage(ChatColor.RED + "That player isn't in the game!");
-								return true;
-							}
-						}else{
-							sender.sendMessage(ChatColor.RED + "You don't have permission!");
-							return true;
-						}
+						return kick_sub(sender, args, playr, console, getArenaSpawn());
+
 					}else if(args[0].equalsIgnoreCase("Refill")){
 						if(p.hasPermission("HungerArena.Refill")){
-							plugin.reloadChests();
-							if(args.length>= 2){
-								a = Integer.parseInt(args[1]);
-								int list056;
-								list056 = 0;
-								int limit = plugin.getChests().getStringList("StorageXYZ").size(); 
-								while(limit > list056){
-									String xyz2 = plugin.getChests().getStringList("StorageXYZ").get(list056);
-									int chestx = plugin.getChests().getInt("Storage." + xyz2 + ".Location.X");
-									int chesty = plugin.getChests().getInt("Storage." + xyz2 + ".Location.Y");
-									int chestz = plugin.getChests().getInt("Storage." + xyz2 + ".Location.Z");
-									int chesta = plugin.getChests().getInt("Storage." + xyz2 + ".Arena");
-									String chestw = plugin.getChests().getString("Storage." + xyz2 + ".Location.W");
-									Block blockatlocation = Bukkit.getWorld(chestw).getBlockAt(chestx, chesty, chestz);  
-									plugin.exists = false;
-									if(chesta== a){
-										if(blockatlocation.getType()== Material.CHEST){
-											plugin.exists = true;
-											Chest chest = (Chest) blockatlocation.getState();
-											chest.getInventory().clear();
-											ItemStack[] itemsinchest = null;
-											Object o = plugin.getChests().get("Storage." + xyz2 + ".ItemsInStorage");
-											if(o instanceof ItemStack[]){
-												itemsinchest = (ItemStack[]) o;
-											}else if(o instanceof List){
-												itemsinchest = (ItemStack[]) ((List<ItemStack>) o).toArray(new ItemStack[0]);
-											}
-											list056 = list056+1;
-											chest.getInventory().setContents(itemsinchest);
-											chest.update(true);
-										}
-									}else{
-										list056 = list056+1;
-									}
-									if(limit== list056){
-										sender.sendMessage(ChatColor.GREEN + "All for arena " + a + " refilled!");
-									}
-								}
-							}else{
-								int list056;
-								list056 = 0;
-								int limit = plugin.getChests().getStringList("StorageXYZ").size();
-								while(limit > list056){
-									String xyz2 = plugin.getChests().getStringList("StorageXYZ").get(list056);
-									int chestx = plugin.getChests().getInt("Storage." + xyz2 + ".Location.X");
-									int chesty = plugin.getChests().getInt("Storage." + xyz2 + ".Location.Y");
-									int chestz = plugin.getChests().getInt("Storage." + xyz2 + ".Location.Z");
-									String chestw = plugin.getChests().getString("Storage." + xyz2 + ".Location.W");
-									Block blockatlocation = Bukkit.getWorld(chestw).getBlockAt(chestx, chesty, chestz);  
-									plugin.exists = false;
-									if(blockatlocation.getType()== Material.CHEST){
-										plugin.exists = true;
-										Chest chest = (Chest) blockatlocation.getState();
-										chest.getInventory().clear();
-										ItemStack[] itemsinchest = null;
-										Object o = plugin.getChests().get("Storage." + xyz2 + ".ItemsInStorage");
-										if(o instanceof ItemStack[]){
-											itemsinchest = (ItemStack[]) o;
-										}else if(o instanceof List){
-											itemsinchest = (ItemStack[]) ((List<ItemStack>) o).toArray(new ItemStack[0]);
-										}
-										list056 = list056+1;
-										chest.getInventory().setContents(itemsinchest);
-										chest.update(true);
-									}
-								}
-								if(limit== list056){
-									sender.sendMessage(ChatColor.GREEN + "All chests refilled!");
-								}
-								return true;
-							}
+							ReFill_sub(sender,args);
 						}else{
 							p.sendMessage(ChatColor.RED + "You don't have permission!");
 							return true;
 						}
 					}else if(args[0].equalsIgnoreCase("Restart")){ 
 						if(p.hasPermission("HungerArena.Restart")){
-							i = 1;
-							int e = plugin.open.size();
-							if(args.length>= 2){
-								i = Integer.parseInt(args[1]);
-								if(i > e) i=e;
-								if(i < 1) i=1;
-								e = i;
-							}
-							for(a = i; a <= e; a++){
-								if(plugin.deathtime.get(a)!= null){
-									plugin.getServer().getScheduler().cancelTask(plugin.deathtime.get(a));
-									plugin.deathtime.put(a, null);
-								}
-								if(plugin.grace.get(a)!= null){
-									plugin.getServer().getScheduler().cancelTask(plugin.grace.get(a));
-									plugin.grace.put(a, null);
-								}
-								if(plugin.start.get(a)!= null){
-									plugin.getServer().getScheduler().cancelTask(plugin.start.get(a));
-									plugin.start.put(a, null);
-								}
-								
-								if(plugin.timetodeath.get(a)!= null)
-									plugin.timetodeath.remove(a);
-								plugin.Frozen.get(a).clear();//Clear this , just to be sure.. gets used and cleared again!
-								if(plugin.Playing.get(a)!= null){
-									for(String players: plugin.Playing.get(a)){
-										Player tributes = plugin.getServer().getPlayerExact(players);
-										clearInv(tributes);
-										tributes.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
-										tributes.teleport(tributes.getWorld().getSpawnLocation());
-										plugin.scoreboards.remove(players);
-										plugin.Kills.remove(players);
-										plugin.Frozen.get(a).add(players);//Jeppa: Temporarly move player there
-									}
-								}
-								if(plugin.Watching.get(a)!= null){
-									for(String sname: plugin.Watching.get(a)){
-										Player spectators = plugin.getServer().getPlayerExact(sname);
-										spectators.teleport(spectators.getWorld().getSpawnLocation());
-										spectators.setAllowFlight(false);
-										spectators.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
-										for(Player online:plugin.getServer().getOnlinePlayers()){
-											online.showPlayer(spectators);
-										}
-										plugin.scoreboards.remove(sname);
-									}
-								}
-								if(plugin.Frozen.get(a)!= null){// Jeppa: use this temp. List to restore the players inventory
-									for(String sname: plugin.Frozen.get(a)){
-										Player player = plugin.getServer().getPlayerExact(sname);
-										plugin.RestoreInv(player, sname);
-									}
-								}
-								plugin.Dead.get(a).clear();
-								plugin.Quit.get(a).clear();
-								plugin.Watching.get(a).clear();
-								plugin.Frozen.get(a).clear();
-								plugin.Ready.get(a).clear();
-								plugin.NeedConfirm.get(a).clear();
-								plugin.Out.get(a).clear();
-								plugin.Playing.get(a).clear();
-								plugin.inArena.get(a).clear();
-								plugin.canjoin.put(a, false);
-								plugin.open.put(a, true);
-								List<String> blocksbroken = plugin.data.getStringList("Blocks_Destroyed");
-								List<String> blocksplaced = plugin.data.getStringList("Blocks_Placed");
-								ArrayList<String> toremove = new ArrayList<String>();
-								ArrayList<String> toremove2 = new ArrayList<String>();
-								for(String blocks:blocksplaced){
-									String[] coords = blocks.split(",");
-									World w = plugin.getServer().getWorld(coords[0]);
-									double x = Double.parseDouble(coords[1]);
-									double y = Double.parseDouble(coords[2]);
-									double z = Double.parseDouble(coords[3]);
-									int arena = Integer.parseInt(coords[4]);
-									int d = 0;
-									byte m = 0;
-									Location blockl = new Location(w, x, y, z);
-									Block block = w.getBlockAt(blockl);
-									if(arena== a){
-										block.setTypeIdAndData(d, m, true);
-										block.getState().update();
-										toremove.add(blocks);
-									}
-								}
-								for(String blocks:blocksbroken){
-									String[] coords = blocks.split(",");
-									World w = plugin.getServer().getWorld(coords[0]);
-									double x = Double.parseDouble(coords[1]);
-									double y = Double.parseDouble(coords[2]);
-									double z = Double.parseDouble(coords[3]);
-									int d = Integer.parseInt(coords[4]);
-									byte m = Byte.parseByte(coords[5]);
-									int arena = Integer.parseInt(coords[6]);
-									Location blockl = new Location(w, x, y, z);
-									Block block = w.getBlockAt(blockl);
-									if(arena== a){
-										block.setTypeIdAndData(d, m, true);
-										block.getState().update();
-										toremove2.add(blocks);
-									}
-								}
-								for(String blocks: toremove){
-									blocksplaced.remove(blocks);
-								}
-								for(String blocks: toremove2){
-									blocksbroken.remove(blocks);
-								}
-								toremove.clear();
-								toremove2.clear();
-								plugin.data.set("Blocks_Destroyed", blocksbroken);
-								plugin.data.set("Blocks_Placed", blocksplaced);
-								plugin.data.options().copyDefaults();
-								plugin.saveData();
-								p.performCommand("ha refill " + a);
-								p.sendMessage(ChatColor.AQUA + "Arena " + a + " has been reset!");
-							}
+							Restart_Close_sub(sender, args, playr, false);
 						}else{
 							p.sendMessage(ChatColor.RED + "You don't have permission!");
 						}
 						/////////////////////////////////// Toggle //////////////////////////////////////////////////
 					}else if(args[0].equalsIgnoreCase("close")){
 						if(p.hasPermission("HungerArena.toggle")){
-							i = 1;
-							int e = plugin.open.size();
-							if(args.length>= 2){
-								i = Integer.parseInt(args[1]);
-								if(i > e) i=e;
-								if(i < 1) i=1;
-								e = i;
-							}
-							for(a = i; a <= e; a++){
-								if(plugin.open.get(a)){
-									plugin.open.put(a, false);
-									if(plugin.deathtime.get(a)!= null){
-										plugin.getServer().getScheduler().cancelTask(plugin.deathtime.get(a));
-										plugin.deathtime.put(a, null);
-									}
-									if(plugin.grace.get(a)!= null){
-										plugin.getServer().getScheduler().cancelTask(plugin.grace.get(a));
-										plugin.grace.put(a, null);
-									}
-									if(plugin.start.get(a)!= null){
-										plugin.getServer().getScheduler().cancelTask(plugin.start.get(a));
-										plugin.start.put(a, null);
-									}
-									if(plugin.timetodeath.get(a)!= null)
-										plugin.timetodeath.remove(a);
-									plugin.Frozen.get(a).clear();//Clear this , just to be sure.. gets used and cleared again!
-									if(plugin.Playing.get(a)!= null){
-										for(String players: plugin.Playing.get(a)){
-											Player tributes = plugin.getServer().getPlayerExact(players);
-											clearInv(tributes);
-											tributes.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
-											tributes.teleport(tributes.getWorld().getSpawnLocation());
-											plugin.scoreboards.remove(players);
-											plugin.Kills.remove(players);
-											plugin.Frozen.get(a).add(players);//Jeppa: Temporarly move player there
-										}
-									}
-									if(plugin.Watching.get(a)!= null){
-										for(String sname: plugin.Watching.get(a)){
-											Player spectators = plugin.getServer().getPlayerExact(sname);
-											spectators.teleport(spectators.getWorld().getSpawnLocation());
-											spectators.setAllowFlight(false);
-											spectators.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
-											for(Player online:plugin.getServer().getOnlinePlayers()){
-												online.showPlayer(spectators);
-											}
-											plugin.scoreboards.remove(sname);
-										}
-									}
-									if(plugin.Frozen.get(a)!= null){// Jeppa: use this temp. List to restore the players inventory
-										for(String sname: plugin.Frozen.get(a)){
-											Player player = plugin.getServer().getPlayerExact(sname);
-											plugin.RestoreInv(player, sname);
-										}
-									}
-									plugin.Dead.get(a).clear();
-									plugin.Quit.get(a).clear();
-									plugin.Watching.get(a).clear();
-									plugin.Frozen.get(a).clear();
-									plugin.Ready.get(a).clear();
-									plugin.NeedConfirm.get(a).clear();
-									plugin.Out.get(a).clear();
-									plugin.Playing.get(a).clear();
-									plugin.inArena.get(a).clear();
-									p.performCommand("ha refill " + a);
-									p.sendMessage(ChatColor.GOLD + "Arena " + a + " Closed!");
-								}else{
-									p.sendMessage(ChatColor.RED + "Arena " + a + " already closed, type /ha open to re-open them!");
-								}
-							}
+							Restart_Close_sub(sender,args,playr, true);
 						}else{
 							p.sendMessage(ChatColor.RED + "No Perms!");
 						}
 					}else if(args[0].equalsIgnoreCase("open")){
 						if(p.hasPermission("HungerArena.toggle")){
-							if(args.length>= 2){
-								a = Integer.parseInt(args[1]);
-								if(!plugin.open.get(a)){
-									plugin.open.put(a, true);
-									p.sendMessage(ChatColor.GOLD + "Arena " + a + " Open!");
-								}else{
-									p.sendMessage(ChatColor.RED + "Arena " + a + " already open, type /ha close to close them!");
-								}
-							}else{
-								for(i = 1; i <= plugin.open.size(); i++){
-									if(!plugin.open.get(i)){
-										plugin.open.put(i, true);
-										p.sendMessage(ChatColor.GOLD + "Arena " + i + " Open!");
-									}else{
-										p.sendMessage(ChatColor.RED + "Arena " + i + " already open, type /ha close to close them!");
-									}
-								}
-							}
+							open_sub(sender,args);
 						}else{
 							p.sendMessage(ChatColor.RED + "No Perms!");
 						}
 						////////////////////////////////////////////////////////////////////////////////////////////
 					}else if(args[0].equalsIgnoreCase("Reload")){
 						if(p.hasPermission("HungerArena.Reload")){
-							plugin.location.clear();
-							plugin.Reward.clear();
-							plugin.Cost.clear();
-							plugin.Fee.clear();
-							HandlerList.unregisterAll(plugin); 	//Jeppa: Close all running Listeners before reopening them!
-							plugin.reloadConfig();
-							plugin.onEnable();	
-							p.sendMessage(ChatColor.AQUA + "HungerArena Reloaded!");
-							System.out.println(ChatColor.GREEN + pname + " reloaded HungerArena!");
+							reload_sub(sender);
 						}else{
 							p.sendMessage(ChatColor.RED + "You don't have permission");
 						}
 					}else if(args[0].equalsIgnoreCase("WarpAll")){
 						if(p.hasPermission("HungerArena.Warpall")){
-							if(plugin.spawns.getString("Spawns_set").equalsIgnoreCase("false")){
-								sender.sendMessage(ChatColor.RED + "/ha setspawn hasn't ever been run!");
-							}else{
-								if(args.length>= 2){
-									a = Integer.parseInt(args[1]);
-									//Jeppa: get that maps respawn...
-									if((plugin.spawns.getString("Spawns_set_"+a)==null) || (plugin.spawns.getString("Spawns_set_"+a).equalsIgnoreCase("false"))){ // Mapbezogen, a ist hier angegebene Arena
-										sender.sendMessage(ChatColor.RED + "/ha setspawn for Arena "+ a +" hasn't been run!");
-									}else{	
-									//^^
-										if(plugin.Playing.get(a).size()== 1){
-											sender.sendMessage(ChatColor.RED + "There are not enough players!");
-										}else{
-											if(plugin.config.getString("Auto_Start").equalsIgnoreCase("true")){
-												plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-													public void run(){
-														Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha start " + a);
-													}
-												}, 20L);
-											}
-											i = 1;
-											for(String playing:plugin.Playing.get(a)){
-												Player tribute = plugin.getServer().getPlayerExact(playing);
-												plugin.Frozen.get(a).add(tribute.getName()); //Jeppa: moved here to prevent giving back the players inventory at mapchange if this is because of moving to 'playground'!
-												tribute.teleport(plugin.location.get(a).get(i));
-												tribute.setHealth(20);
-												tribute.setFoodLevel(20);
-												tribute.setSaturation(20);
-												tribute.setLevel(0);
-												clearInv(tribute); //Jeppa: obsolete?
-												for(PotionEffect pe: tribute.getActivePotionEffects()){
-													PotionEffectType potion = pe.getType();
-													tribute.removePotionEffect(potion);
-												}
-												if(tribute.getAllowFlight()){
-													tribute.setAllowFlight(false);
-												}
-												i = i+1;
-											}
-											plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-												public void run(){
-													p.sendMessage(ChatColor.AQUA + "All Tributes warped!");
-												}
-											}, 20L);
-										}
-									}
-								}else{
-									p.sendMessage(ChatColor.RED + "Too few arguments, specify an arena");
-								}
-							}
+							warpall_sub(sender,args);
+						}else{
+							p.sendMessage(ChatColor.RED + "You don't have permission");
 						}
 					}else if(args[0].equalsIgnoreCase("Start")){
 						if(p.hasPermission("HungerArena.Start")){
-							if(args.length!= 2){
-								p.sendMessage(ChatColor.RED + "You need an arena!");
-							}else{
-								a = Integer.parseInt(args[1]);
-								if(plugin.canjoin.get(a)== true)
-									p.sendMessage(ChatColor.RED + "Game already in progress!");
-								else if(plugin.Playing.get(a).isEmpty())
-									p.sendMessage(ChatColor.RED + "No one is in that game!");
-								else
-									plugin.startGames(a);
-							}
+							start_sub(sender,args);
 						}else{
 							p.sendMessage(ChatColor.RED + "You don't have permission!");
 						}
@@ -1250,496 +524,638 @@ public class HaCommands implements CommandExecutor {
 					}
 				}
 			}
+			
+// Console ///////////////////////////////////
 		}else if(sender instanceof ConsoleCommandSender){ 
 			if(cmd.getName().equalsIgnoreCase("Ha")){
 				if(args.length== 0){
 					sender.sendMessage(ChatColor.GREEN + "[HungerArena] by " + ChatColor.AQUA + "travja! Version: " + plugin.getDescription().getVersion());
+					sender.sendMessage(ChatColor.GREEN + "[HungerArena] Update by " + ChatColor.AQUA + "Jeppa ! ");
 					return false;
 				}
 				if(args[0].equalsIgnoreCase("Help")){
-					ChatColor c = ChatColor.AQUA;
-					sender.sendMessage(ChatColor.GREEN + "----HungerArena Help----");
-					sender.sendMessage(c + "/ha - Displays author message!");
-					sender.sendMessage(c + "/sponsor [Player] [ItemID] [Amount] - Lets you sponsor someone!");
-					sender.sendMessage(c + "/startpoint [1,2,3,4,etc] [1,2,3,4,etc] - Sets the starting points of tributes in a specific arena!");
-					sender.sendMessage(c + "/ha close (1,2,3,4,etc) - Prevents anyone from joining that arena! Numbers are optional");
-					sender.sendMessage(c + "/ha help - Displays this screen!");
-					sender.sendMessage(c + "/ha join [1,2,3,4,etc] - Makes you join the game!");
-					sender.sendMessage(c + "/ha kick [Player] - Kicks a player from the arena!");
-					sender.sendMessage(c + "/ha leave - Makes you leave the game!");
-					sender.sendMessage(c + "/ha list (1,2,3,4,etc) - Shows a list of players in the game and their health! Numbers are optional.");
-					sender.sendMessage(c + "/ha open (1,2,3,4,etc) - Opens the game allowing people to join! Numbers are optional");
-					sender.sendMessage(c + "/ha ready - Votes for the game to start!");
-					sender.sendMessage(c + "/ha refill (1,2,3,4,etc) - Refills all chests! Numbers are optional");
-					sender.sendMessage(c + "/ha reload - Reloads the config!");
-					sender.sendMessage(c + "/ha restart (1,2,3,4,etc) - Restarts the game! Numbers are optional");
-					sender.sendMessage(c + "/ha rlist (1,2,3,4,etc) - See who's ready! Numbers are optional");
-					sender.sendMessage(c + "/ha setspawn - Sets the spawn for dead tributes!");
-					sender.sendMessage(c + "/ha tp [player] - Teleports you to a tribute!");
-					sender.sendMessage(c + "/ha start [1,2,3,4,etc] - Unfreezes tributes allowing them to fight!");
-					sender.sendMessage(c + "/ha watch [1,2,3,4,etc] - Lets you watch the tributes!");
-					sender.sendMessage(c + "/ha warpall [1,2,3,4,etc] - Warps all tribute into position!");
-					sender.sendMessage(ChatColor.GREEN + "----------------------");
+					help_sub(sender,playr,console);
 					return false;
 				}else if(args[0].equalsIgnoreCase("List")){
-					if(args.length>= 2){
-						try{
-							a = Integer.parseInt(args[1]);
-							sender.sendMessage(ChatColor.AQUA + "----- Arena " + a + " -----");
-							if(!plugin.Playing.get(a).isEmpty() && plugin.Playing.containsKey(a)){
-								for(String playernames: plugin.Playing.get(a)){
-									Player players = plugin.getServer().getPlayerExact(playernames);
-									sender.sendMessage(ChatColor.GREEN + playernames + " Life: " + ((Damageable)players).getHealth() + "/20");
-								}
-							}else{
-								sender.sendMessage(ChatColor.GRAY + "No one is playing!");
-							}
-							sender.sendMessage(ChatColor.AQUA + "---------------------");
-						}catch(Exception e){
-							sender.sendMessage(ChatColor.RED + "Argument not an integer!");
-						}
-					}else{
-						sender.sendMessage(ChatColor.AQUA + "----- Arena 1 -----");
-						if(!plugin.Playing.get(1).isEmpty() && plugin.Playing.containsKey(1)){
-							for(String playernames: plugin.Playing.get(1)){
-								Player players = plugin.getServer().getPlayerExact(playernames);
-								sender.sendMessage(ChatColor.GREEN + playernames + " Life: " + ((Damageable)players).getHealth() + "/20");
-							}
-						}else{
-							sender.sendMessage(ChatColor.GRAY + "No one is playing!");
-						}
-						sender.sendMessage(ChatColor.AQUA + "---------------------");
-					}
+					list_sub(null,sender,playr,console,args); 
+					
 				}else if(args[0].equalsIgnoreCase("rList")){
-					if(args.length>= 2){
-						try{
-							a = Integer.parseInt(args[1]);
-							sender.sendMessage(ChatColor.AQUA + "----- Arena " + a + " -----");
-							if(!plugin.Ready.get(a).isEmpty() && plugin.Ready.containsKey(a)){
-								for(String playernames: plugin.Ready.get(a)){
-									sender.sendMessage(ChatColor.GREEN + playernames);
-								}
-							}else{
-								sender.sendMessage(ChatColor.GRAY + "No one is ready!");
-							}
-							sender.sendMessage(ChatColor.AQUA + "---------------------");
-						}catch(Exception e){
-							sender.sendMessage(ChatColor.RED + "Argument not an integer!");
-						}
-					}else{
-						sender.sendMessage(ChatColor.AQUA + "----- Arena 1 -----");
-						if(!plugin.Ready.get(1).isEmpty() && plugin.Ready.containsKey(1)){
-							for(String playernames: plugin.Ready.get(1)){
-								sender.sendMessage(ChatColor.GREEN + playernames);
-							}
-						}else{
-							sender.sendMessage(ChatColor.GRAY + "No one is ready!");
-						}
-						sender.sendMessage(ChatColor.AQUA + "---------------------");
-					}
-				}else if(args[0].equalsIgnoreCase("SetSpawn") || args[0].equalsIgnoreCase("Join") || args[0].equalsIgnoreCase("Confirm") || args[0].equalsIgnoreCase("Ready") || args[0].equalsIgnoreCase("Leave") || args[0].equalsIgnoreCase("Watch")){
+					rList_sub(sender, args);
+					
+				}else if(args[0].equalsIgnoreCase("SetSpawn") || args[0].equalsIgnoreCase("Join") || args[0].equalsIgnoreCase("Confirm") || args[0].equalsIgnoreCase("Ready") || args[0].equalsIgnoreCase("Leave") || args[0].equalsIgnoreCase("Watch") || args[0].equalsIgnoreCase("NewArena")){
 					sender.sendMessage(ChatColor.RED + "That can only be run by a player!");
 				}else if(args[0].equalsIgnoreCase("Kick")){
-					if(args.length>= 2){
-						Player target = Bukkit.getPlayer(args[1]);
-						if(target == null){
-							sender.sendMessage(ChatColor.RED + "Use playername !");
-							return false;
-						}
-						if(plugin.getArena(target) != null){
-							a = plugin.getArena(target);
-							plugin.Playing.get(a).remove(target.getName());
-							if(plugin.config.getBoolean("broadcastAll")){
-								sender.getServer().broadcastMessage(ChatColor.RED + target.getName() + " was kicked from arena " + a + "!");
-							}else{
-								for(String gn: plugin.Playing.get(a)){
-									Player g = plugin.getServer().getPlayer(gn);
-									g.sendMessage(ChatColor.RED + target.getName() + " was kicked from the game!");
-								}
-							}
-							clearInv(target);
-							String[] Spawncoords;
-							if (plugin.spawns.getString("Spawn_coords_" + a) != null){
-								Spawncoords = plugin.spawns.getString("Spawn_coords_"+ a).split(",");	
-							} else {
-								Spawncoords = plugin.spawns.getString("Spawn_coords").split(",");	
-							}
-							double spawnx = Double.parseDouble(Spawncoords[0]);
-							double spawny = Double.parseDouble(Spawncoords[1]);
-							double spawnz = Double.parseDouble(Spawncoords[2]);
-							String spawnworld = Spawncoords[3];
-							World spawnw = plugin.getServer().getWorld(spawnworld);
-							Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
-							//^^
-							target.teleport(Spawn);
-							plugin.Quit.get(a).add(target.getName());
-							plugin.RestoreInv(target, target.getName()); // Jeppa: call for restore inventory of leaving player!!
-							plugin.winner(a);
-						}else{
-							sender.sendMessage(ChatColor.RED + "That player isn't in the game!");
-						}
-					}else{
-						sender.sendMessage(ChatColor.RED + "Too few arguments");
-					}
+					return kick_sub(sender, args, playr, console, getArenaSpawn());
+
 				}else if(args[0].equalsIgnoreCase("Refill")){
-					plugin.reloadChests();
-					if(args.length>= 2){
-						a = Integer.parseInt(args[1]);
-						int list056;
-						list056 = 0;
-						int limit = plugin.getChests().getStringList("StorageXYZ").size();
-						while(limit > list056){
-							String xyz2 = plugin.getChests().getStringList("StorageXYZ").get(list056);
-							int chestx = plugin.getChests().getInt("Storage." + xyz2 + ".Location.X");
-							int chesty = plugin.getChests().getInt("Storage." + xyz2 + ".Location.Y");
-							int chestz = plugin.getChests().getInt("Storage." + xyz2 + ".Location.Z");
-							int chesta = plugin.getChests().getInt("Storage." + xyz2 + ".Arena");
-							String chestw = plugin.getChests().getString("Storage." + xyz2 + ".Location.W");
-							Block blockatlocation = Bukkit.getWorld(chestw).getBlockAt(chestx, chesty, chestz);  
-							plugin.exists = false;
-							if(chesta== a){
-								if(blockatlocation.getType()== Material.CHEST){
-									plugin.exists = true;
-									Chest chest = (Chest) blockatlocation.getState();
-									chest.getInventory().clear();
-									ItemStack[] itemsinchest = null;
-									Object o = plugin.getChests().get("Storage." + xyz2 + ".ItemsInStorage");
-									if(o instanceof ItemStack[]){
-										itemsinchest = (ItemStack[]) o;
-									}else if(o instanceof List){
-										itemsinchest = (ItemStack[]) ((List<ItemStack>) o).toArray(new ItemStack[0]);
-									}
-									list056 = list056+1;
-									chest.getInventory().setContents(itemsinchest);
-									chest.update(true);
-								}
-							}else{
-								list056 = list056+1;
-							}
-						}
-						if(limit== list056){
-							sender.sendMessage(ChatColor.GREEN + "All for arena " + a + " refilled!");
-						}
-					}else{
-						int list056;
-						list056 = 0;
-						int limit = plugin.getChests().getStringList("StorageXYZ").size();
-						while(limit > list056){
-							String xyz2 = plugin.getChests().getStringList("StorageXYZ").get(list056);
-							int chestx = plugin.getChests().getInt("Storage." + xyz2 + ".Location.X");
-							int chesty = plugin.getChests().getInt("Storage." + xyz2 + ".Location.Y");
-							int chestz = plugin.getChests().getInt("Storage." + xyz2 + ".Location.Z");
-							String chestw = plugin.getChests().getString("Storage." + xyz2 + ".Location.W");
-							Block blockatlocation = Bukkit.getWorld(chestw).getBlockAt(chestx, chesty, chestz);  
-							plugin.exists = false;
-							if(blockatlocation.getType()== Material.CHEST){
-								plugin.exists = true;
-								Chest chest = (Chest) blockatlocation.getState();
-								chest.getInventory().clear();
-								ItemStack[] itemsinchest = null;
-								Object o = plugin.getChests().get("Storage." + xyz2 + ".ItemsInStorage");
-								if(o instanceof ItemStack[]){
-									itemsinchest = (ItemStack[]) o;
-								}else if(o instanceof List){
-									itemsinchest = (ItemStack[]) ((List<ItemStack>) o).toArray(new ItemStack[0]);
-								}
-								list056 = list056+1;
-								chest.getInventory().setContents(itemsinchest);
-								chest.update(true);
-							}
-						}
-						if(limit== list056){
-							sender.sendMessage(ChatColor.GREEN + "All chests refilled!");
-						}
-					}
+					ReFill_sub(sender,args);
+						
 				}else if(args[0].equalsIgnoreCase("Restart")){
-					//int b = 0;
-					i = 1;
-					int e = plugin.open.size();
-					if(args.length>= 2){
-						i = Integer.parseInt(args[1]);
-						if(i > e) i=e;
-						if(i < 1) i=1;
-						e = i;
-					}
-					for(a = i; a <= e; a++){
-						if(plugin.deathtime.get(a)!= null){
-							plugin.getServer().getScheduler().cancelTask(plugin.deathtime.get(a));
-							plugin.deathtime.put(a, null);
-						}
-						if(plugin.grace.get(a)!= null){
-							plugin.getServer().getScheduler().cancelTask(plugin.grace.get(a));
-							plugin.grace.put(a, null);
-						}
-						if(plugin.start.get(a)!= null){
-							plugin.getServer().getScheduler().cancelTask(plugin.start.get(a));
-							plugin.start.put(a, null);
-						}
-						if(plugin.timetodeath.get(a)!= null)
-							plugin.timetodeath.remove(a);
-						plugin.Frozen.get(a).clear();//Clear this , just to be sure.. gets used and cleared again!
-						if(plugin.Playing.get(a)!= null){
-							for(String players: plugin.Playing.get(a)){
-								Player tributes = plugin.getServer().getPlayerExact(players);
-								clearInv(tributes);
-								tributes.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
-								tributes.teleport(tributes.getWorld().getSpawnLocation());
-								plugin.scoreboards.remove(players);
-								plugin.Kills.remove(players);
-								plugin.Frozen.get(a).add(players);//Jeppa: Temporarly move player there
-							}
-						}
-						if(plugin.Watching.get(a)!= null){
-							for(String sname: plugin.Watching.get(a)){
-								Player spectators = plugin.getServer().getPlayerExact(sname);
-								spectators.teleport(spectators.getWorld().getSpawnLocation());
-								spectators.setAllowFlight(false);
-								spectators.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
-								for(Player online:plugin.getServer().getOnlinePlayers()){
-									online.showPlayer(spectators);
-								}
-								plugin.scoreboards.remove(sname);
-							}
-						}
-						if(plugin.Frozen.get(a)!= null){// Jeppa: use this temp. list to restore the players inventory
-							for(String sname: plugin.Frozen.get(a)){
-								Player player = plugin.getServer().getPlayerExact(sname);
-								plugin.RestoreInv(player, sname);
-							}
-						}
-						plugin.Dead.get(a).clear();
-						plugin.Quit.get(a).clear();
-						plugin.Watching.get(a).clear();
-						plugin.Frozen.get(a).clear();
-						plugin.Ready.get(a).clear();
-						plugin.NeedConfirm.get(a).clear();
-						plugin.Out.get(a).clear();
-						plugin.Playing.get(a).clear();
-						plugin.inArena.get(a).clear();
-						plugin.canjoin.put(a, false);
-						plugin.open.put(a, true);
-						List<String> blocksbroken = plugin.data.getStringList("Blocks_Destroyed");
-						List<String> blocksplaced = plugin.data.getStringList("Blocks_Placed");
-						ArrayList<String> toremove = new ArrayList<String>();
-						ArrayList<String> toremove2 = new ArrayList<String>();
-						for(String blocks:blocksplaced){
-							String[] coords = blocks.split(",");
-							World w = plugin.getServer().getWorld(coords[0]);
-							double x = Double.parseDouble(coords[1]);
-							double y = Double.parseDouble(coords[2]);
-							double z = Double.parseDouble(coords[3]);
-							int arena = Integer.parseInt(coords[4]);
-							int d = 0;
-							byte m = 0;
-							Location blockl = new Location(w, x, y, z);
-							Block block = w.getBlockAt(blockl);
-							if(arena== a){
-								block.setTypeIdAndData(d, m, true);
-								block.getState().update();
-								toremove.add(blocks);
-							}
-						}
-						for(String blocks:blocksbroken){
-							String[] coords = blocks.split(",");
-							World w = plugin.getServer().getWorld(coords[0]);
-							double x = Double.parseDouble(coords[1]);
-							double y = Double.parseDouble(coords[2]);
-							double z = Double.parseDouble(coords[3]);
-							int d = Integer.parseInt(coords[4]);
-							byte m = Byte.parseByte(coords[5]);
-							int arena = Integer.parseInt(coords[6]);
-							Location blockl = new Location(w, x, y, z);
-							Block block = w.getBlockAt(blockl);
-							if(arena== a){
-								block.setTypeIdAndData(d, m, true);
-								block.getState().update();
-								toremove2.add(blocks);
-							}
-						}
-						for(String blocks: toremove){
-							blocksplaced.remove(blocks);
-						}
-						for(String blocks: toremove2){
-							blocksbroken.remove(blocks);
-						}
-						toremove.clear();
-						toremove2.clear();
-						plugin.data.set("Blocks_Destroyed", blocksbroken);
-						plugin.data.set("Blocks_Placed", blocksplaced);
-						plugin.data.options().copyDefaults();
-						plugin.saveData();
-						plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), "ha refill " + a);
-						sender.sendMessage(ChatColor.AQUA + "Arena " + a + " has been reset!");
-					}
+					Restart_Close_sub(sender, args, playr, false);
+					
 					/////////////////////////////////// Toggle //////////////////////////////////////////////////
 				}else if(args[0].equalsIgnoreCase("close")){
-					i = 1;
-					int e = plugin.open.size();
-					if(args.length>= 2){
-						i = Integer.parseInt(args[1]);
-						if(i > e) i=e;
-						if(i < 1) i=1;
-						e = i;
-					}
-					for(a = i; a <= e; a++){
-						if(plugin.open.get(a)){
-							plugin.open.put(a, false);
-							if(plugin.deathtime.get(a)!= null){
-								plugin.getServer().getScheduler().cancelTask(plugin.deathtime.get(a));
-								plugin.deathtime.put(a, null);
-							}
-							if(plugin.grace.get(a)!= null){
-								plugin.getServer().getScheduler().cancelTask(plugin.grace.get(a));
-								plugin.grace.put(a, null);
-							}
-							if(plugin.start.get(a)!= null){
-								plugin.getServer().getScheduler().cancelTask(plugin.start.get(a));
-								plugin.start.put(a, null);
-							}
-							if(plugin.timetodeath.get(a)!= null)
-								plugin.timetodeath.remove(a);
-							plugin.Frozen.get(a).clear();//Clear this , just to be sure.. gets used and cleared again!
-							if(plugin.Playing.get(a)!= null){
-								for(String players: plugin.Playing.get(a)){
-									Player tributes = plugin.getServer().getPlayerExact(players);
-									clearInv(tributes);
-									tributes.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
-									tributes.teleport(tributes.getWorld().getSpawnLocation());
-									plugin.scoreboards.remove(players);
-									plugin.Kills.remove(players);
-									plugin.Frozen.get(a).add(players);//Jeppa: Temporarly move player there
-								}
-							}
-							if(plugin.Watching.get(a)!= null){
-								for(String sname: plugin.Watching.get(a)){
-									Player spectators = plugin.getServer().getPlayerExact(sname);
-									spectators.teleport(spectators.getWorld().getSpawnLocation());
-									spectators.setAllowFlight(false);
-									spectators.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
-									for(Player online:plugin.getServer().getOnlinePlayers()){
-										online.showPlayer(spectators);
-									}
-									plugin.scoreboards.remove(sname);
-								}
-							}
-							if(plugin.Frozen.get(a)!= null){// Jeppa: use this temp. List to restore the players inventory
-								for(String sname: plugin.Frozen.get(a)){
-									Player player = plugin.getServer().getPlayerExact(sname);
-									plugin.RestoreInv(player, sname);
-								}
-							}
-							plugin.Dead.get(a).clear();
-							plugin.Quit.get(a).clear();
-							plugin.Watching.get(a).clear();
-							plugin.Frozen.get(a).clear();
-							plugin.Ready.get(a).clear();
-							plugin.NeedConfirm.get(a).clear();
-							plugin.Out.get(a).clear();
-							plugin.Playing.get(a).clear();
-							plugin.inArena.get(a).clear();
-							Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha refill " + a);
-							sender.sendMessage(ChatColor.GOLD + "Arena " + a + " Closed!");
-						}else{
-							sender.sendMessage(ChatColor.RED + "Arena " + a + " already closed, type /ha open to re-open them!");
-						}
-					}
-				}else if(args[0].equalsIgnoreCase("open")){ // Jeppa: i / a fixed ;)
-					if(args.length>= 2){
-						a = Integer.parseInt(args[1]);
-						if(!plugin.open.get(a)){
-							plugin.open.put(a, true);
-							sender.sendMessage(ChatColor.GOLD + "Arena " + a + " Open!");
-						}else{
-							sender.sendMessage(ChatColor.RED + "Arena " + a + " already open, type /ha close to close them!");
-						}
-					}else{
-						for(i = 1; i <= plugin.open.size(); i++){
-							if(!plugin.open.get(i)){
-								plugin.open.put(i, true);
-								sender.sendMessage(ChatColor.GOLD + "Arena " + i + " Open!");
-							}else{
-								sender.sendMessage(ChatColor.RED + "Arena " + i + " already open, type /ha close to close them!");
-							}
-						}
-					}
+					Restart_Close_sub(sender, args, playr, true);
+					
+				}else if(args[0].equalsIgnoreCase("open")){
+					open_sub(sender, args);
+					
 					////////////////////////////////////////////////////////////////////////////////////////////
 				}else if(args[0].equalsIgnoreCase("Reload")){
-					plugin.location.clear();
-					plugin.Reward.clear();
-					plugin.Cost.clear();
-					plugin.Fee.clear();
-					HandlerList.unregisterAll(plugin); 	//Jeppa: Close all running Listeners before reopening them!
-					plugin.reloadConfig();
-					plugin.onEnable();
-					sender.sendMessage(ChatColor.AQUA + "HungerArena Reloaded!");
+					reload_sub(sender);
+					
 				}else if(args[0].equalsIgnoreCase("WarpAll")){
-					if(plugin.spawns.getString("Spawns_set").equalsIgnoreCase("false")){
-						sender.sendMessage(ChatColor.RED + "/ha setspawn hasn't ever been run!");
-					}else{
-						if(args.length>= 2){
-							a = Integer.parseInt(args[1]);
-							//Jeppa: ...
-							if((plugin.spawns.getString("Spawns_set_"+a)==null) || (plugin.spawns.getString("Spawns_set_"+a).equalsIgnoreCase("false"))){ 
-								sender.sendMessage(ChatColor.RED + "/ha setspawn for Arena "+ a +" hasn't been run!");
-							}else{	
-							//^^
-								if(plugin.Playing.get(a).size()== 1){
-									sender.sendMessage(ChatColor.RED + "There are not enough players!");
-								}else{
-									if(plugin.config.getString("Auto_Start").equalsIgnoreCase("true")){
-										plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-											public void run(){
-												Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha start " + a);
-											}
-										}, 20L);
-									}
-									i = 1;
-									for(String playing: plugin.Playing.get(a)){
-										Player tribute = plugin.getServer().getPlayerExact(playing);
-										plugin.Frozen.get(a).add(tribute.getName()); //Jeppa: moved here to prevent restoring inv at teleport when moving to fightplace ;)
-										tribute.teleport(plugin.location.get(a).get(i));
-										tribute.setHealth(20);
-										tribute.setFoodLevel(20);
-										tribute.setSaturation(20);
-										tribute.setLevel(0);
-										clearInv(tribute); //Jeppa: obsolete?
-										for(PotionEffect pe: tribute.getActivePotionEffects()){
-											PotionEffectType potion = pe.getType();
-											tribute.removePotionEffect(potion);
-										}
-										if(tribute.getAllowFlight()){
-											tribute.setAllowFlight(false);
-										}
-										i = i+1;
-									}
-									plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-										public void run(){
-											sender.sendMessage(ChatColor.AQUA + "All Tributes warped!");
-										}
-									}, 20L);
-								}
-							}
-						}else{
-							sender.sendMessage(ChatColor.RED + "Too few arguments, specify an arena");
-						}
-					}
+					warpall_sub(sender, args);
+					
 				}else if(args[0].equalsIgnoreCase("Start")){
-					if(args.length!= 2){
-						sender.sendMessage(ChatColor.RED + "You need an arena!");
-					}else{
-						a = Integer.parseInt(args[1]);
-						if(plugin.canjoin.get(a)== true)
-							sender.sendMessage(ChatColor.RED + "Game already in progress!");
-						else if(plugin.Playing.get(a).isEmpty())
-							sender.sendMessage(ChatColor.RED + "No one is in that game!");
-						else
-							plugin.startGames(a);
-					}
+					start_sub(sender,args);
+					
 				}else{
 					sender.sendMessage(ChatColor.RED + "Unknown command, type /ha help to see all commands!");
 				}
 			}
 		}
 		return false;
+	}
+	
+	///////////////////////////// Subroutines //////////////////////////////////
+	
+	private void help_sub(CommandSender sender, boolean playr, boolean console) {
+		ChatColor c = ChatColor.AQUA;
+		sender.sendMessage(ChatColor.GREEN + "----HungerArena Help----");
+		sender.sendMessage(c + "/ha - Displays author message!");
+		sender.sendMessage(c + "/sponsor [Player] [ItemID] [Amount] - Lets you sponsor someone!");
+		sender.sendMessage(c + "/startpoint [1,2,3,4,etc] [1,2,3,4,etc] - Sets the starting points of tributes in a specific arena!");
+		sender.sendMessage(c + "/ha newarena [1,2,3,4,etc] - Add a new arena to the server and start setting up the starting points of tributes!\n Use the spawnsTool for setting up all starting points!");
+		if(playr && plugin.hookWE() != null)
+			sender.sendMessage(c + "/ha addArena [1,2,3,4,etc] - Creates an arena using your current WorldEdit selection.");
+		sender.sendMessage(c + "/ha close (1,2,3,4,etc) - Prevents anyone from joining that arena! Numbers are optional");
+		sender.sendMessage(c + "/ha help - Displays this screen!");
+		sender.sendMessage(c + "/ha join [1,2,3,4,etc] - Makes you join the game!");
+		sender.sendMessage(c + "/ha kick [Player] - Kicks a player from the arena!");
+		sender.sendMessage(c + "/ha leave - Makes you leave the game!");
+		sender.sendMessage(c + "/ha list (1,2,3,4,etc) - Shows a list of players in the game and their health! Numbers are optional.");
+		sender.sendMessage(c + "/ha open (1,2,3,4,etc) - Opens the game allowing people to join! Numbers are optional");
+		sender.sendMessage(c + "/ha ready - Votes for the game to start!");
+		sender.sendMessage(c + "/ha refill (1,2,3,4,etc) - Refills all chests! Numbers are optional");
+		sender.sendMessage(c + "/ha reload - Reloads the config!");
+		sender.sendMessage(c + "/ha restart (1,2,3,4,etc) - Restarts the game! Numbers are optional");
+		sender.sendMessage(c + "/ha rlist (1,2,3,4,etc) - See who's ready! Numbers are optional");
+		sender.sendMessage(c + "/ha setspawn - Sets the spawn for dead tributes! You can add the arena # to this command: /setspawn [1,2,3,4,etc.]");
+		sender.sendMessage(c + "/ha settorch - Sets the location for a redstone torch in an arena that will be placed at match start!");
+		sender.sendMessage(c + "/ha tp [player] - Teleports you to a tribute!");
+		sender.sendMessage(c + "/ha start [1,2,3,4,etc] - Unfreezes tributes allowing them to fight!");
+		sender.sendMessage(c + "/ha watch [1,2,3,4,etc] - Lets you watch the tributes!");
+		sender.sendMessage(c + "/ha warpall [1,2,3,4,etc] - Warps all tribute into position!");
+		sender.sendMessage(ChatColor.GREEN + "----------------------");
+	}
+	private void list_sub(Player p, CommandSender sender, boolean playr, boolean console, String[] args){
+		if(args.length>= 2){
+			if (checkarena(args[1], sender)){
+				a = Integer.parseInt(args[1]);
+				list_subsub(p, sender, console);
+			}
+		}else{
+			if(console || (p!=null && plugin.getArena(p)==null)){
+				a=1;
+				list_subsub(p, sender, console);
+			}else{
+					a = plugin.getArena(p);
+					list_subsub(p, sender, console);
+			}
+		}
+	}
+	private void list_subsub(Player p, CommandSender sender, boolean console){
+		sender.sendMessage(ChatColor.AQUA + "----- Arena " + a + " -----");
+		if(!plugin.Playing.get(a).isEmpty() && plugin.Playing.containsKey(a)){
+			for(String playernames: plugin.Playing.get(a)){
+				Player players = plugin.getServer().getPlayerExact(playernames);
+				if(console || (p!=null && p.hasPermission("HungerArena.GameMaker"))){
+					double maxh;
+					try {
+						maxh = players.getAttribute(Attribute.GENERIC_MAX_HEALTH).getValue();
+					} catch (Exception e){
+						maxh = ((Damageable)players).getMaxHealth();
+					}
+					sender.sendMessage(ChatColor.GREEN + playernames + " Life: " + ((Damageable)players).getHealth() + "/" + maxh); 
+				}else if(console || (p!=null && p.hasPermission("HungerArena.List"))){
+					sender.sendMessage(ChatColor.GREEN + playernames);
+				}
+			}
+		}else{
+			sender.sendMessage(ChatColor.GRAY + "No one is playing!");
+		}
+		sender.sendMessage(ChatColor.AQUA + "-------------------");
+	}
+	private void rList_sub (CommandSender sender,String[] args){
+		if(args.length>= 2){
+			if (checkarena(args[1], sender)){
+				a = Integer.parseInt(args[1]);
+				sender.sendMessage(ChatColor.AQUA + "----- Arena " + a + " -----");
+				if(!plugin.Ready.get(a).isEmpty() && plugin.Ready.containsKey(a)){
+					for(String playernames: plugin.Ready.get(a)){
+						sender.sendMessage(ChatColor.GREEN + playernames);
+					}
+				}else{
+					sender.sendMessage(ChatColor.GRAY + "No one is ready!");
+				}
+				sender.sendMessage(ChatColor.AQUA + "-------------------");
+			}
+		}else{
+			sender.sendMessage(ChatColor.AQUA + "----- Arena 1 -----");
+			if(!plugin.Ready.get(1).isEmpty() && plugin.Ready.containsKey(1)){
+				for(String playernames: plugin.Ready.get(1)){
+					sender.sendMessage(ChatColor.GREEN + playernames);
+				}
+			}else{
+				sender.sendMessage(ChatColor.GRAY + "No one is ready!");
+			}
+			sender.sendMessage(ChatColor.AQUA + "-------------------");
+		}
+	}
+	private boolean kick_sub(CommandSender sender, String[] args, boolean playr, boolean console, Location Spawn){
+		if (args.length != 2) {
+			sender.sendMessage(ChatColor.RED + "/ha kick [playername]!");
+			return false;
+		}
+		Player target = Bukkit.getServer().getPlayer(args[1]);
+		if(target == null){
+			sender.sendMessage(ChatColor.RED + "Use playername !");
+			return false;
+		}
+		if(console || (playr && ((Player)sender).hasPermission("HungerArena.Kick"))){
+			if(plugin.getArena(target) != null){
+				a = plugin.getArena(target);
+				plugin.Playing.get(a).remove(target.getName());
+				if(!plugin.config.getBoolean("broadcastAll")){
+					plugin.getServer().broadcastMessage(ChatColor.RED + target.getName() + " was kicked from arena " + a + "!");
+				}else{
+					for(String gn: plugin.Playing.get(a)){
+						Player g = plugin.getServer().getPlayer(gn);
+						g.sendMessage(ChatColor.RED + target.getName() + " was kicked from the game!");
+					}
+				}
+				clearInv(target);
+				target.teleport(Spawn);
+				plugin.Quit.get(a).add(target.getName());
+				plugin.RestoreInv(target, target.getName());
+				plugin.winner(a);
+				return true;
+			}else{
+				sender.sendMessage(ChatColor.RED + "That player isn't in the game!");
+				return true;
+			}
+		}else{
+			sender.sendMessage(ChatColor.RED + "You don't have permission!");
+			return true;
+		}
+	}
+	private void ReFill_sub(CommandSender sender, String[]args){
+		plugin.reloadChests();
+		int arena = 0;
+		if(args.length>=2) if(checkarena(args[1],sender)) arena=Integer.parseInt(args[1]);
+
+			Set<String> StorList = plugin.getChests().getConfigurationSection("Storage").getKeys(false);
+			for (String xyz2:StorList){
+				int chestx = plugin.getChests().getInt("Storage." + xyz2 + ".Location.X");
+				int chesty = plugin.getChests().getInt("Storage." + xyz2 + ".Location.Y");
+				int chestz = plugin.getChests().getInt("Storage." + xyz2 + ".Location.Z");
+				int chesta = plugin.getChests().getInt("Storage." + xyz2 + ".Arena");
+				String chestw = plugin.getChests().getString("Storage." + xyz2 + ".Location.W");
+				Block blockatlocation = Bukkit.getWorld(chestw).getBlockAt(chestx, chesty, chestz);  
+				plugin.exists = false;
+				if(chesta == arena || arena == 0){
+					if(blockatlocation.getState() instanceof InventoryHolder){
+						plugin.exists = true;
+						int ChunkX= ((new Double(blockatlocation.getX()/16).intValue()));
+						int ChunkZ= ((new Double(blockatlocation.getZ()/16).intValue()));
+						if (!blockatlocation.getWorld().isChunkLoaded(ChunkX,ChunkZ)){
+							blockatlocation.getWorld().loadChunk(ChunkX,ChunkZ,true);
+						}
+						InventoryHolder chest = (InventoryHolder) blockatlocation.getState(); 
+						chest.getInventory().clear();
+						ItemStack[] itemsinchest = null;
+						Object o = plugin.getChests().get("Storage." + xyz2 + ".ItemsInStorage");
+						if(o instanceof ItemStack[]){
+							itemsinchest = (ItemStack[]) o;
+						}else if(o instanceof List){
+							itemsinchest = (ItemStack[]) ((List<ItemStack>) o).toArray(new ItemStack[]{});
+						}
+						if (chest.getInventory().getSize()==itemsinchest.length){
+							chest.getInventory().setContents(itemsinchest);
+						} else {
+							for (ItemStack item:itemsinchest){
+								if ((item !=null) && (item.getType()!=null)) chest.getInventory().addItem(item);
+							}
+						}
+					}
+				}
+			}
+			if (arena != 0)sender.sendMessage(ChatColor.GREEN + "All for arena " + arena + " refilled!");
+			else sender.sendMessage(ChatColor.GREEN + "All chests refilled!");		
+	}
+	private void Restart_Close_sub(CommandSender sender, String[]args, boolean playr, boolean closeit){ 
+		Set<Integer> list = plugin.open.keySet();
+		if(args.length>= 2){
+			list = new HashSet<Integer>(); 
+			if (checkarena(args[1], sender)) 
+			list.add(Integer.parseInt(args[1])); 
+		}
+		for(int a : list){
+		  if(!closeit || (closeit && plugin.open.get(a))){
+			if(plugin.deathtime.get(a)!= null){
+				plugin.getServer().getScheduler().cancelTask(plugin.deathtime.get(a));
+				plugin.deathtime.put(a, null);
+			}
+			if(plugin.grace.get(a)!= null){
+				plugin.getServer().getScheduler().cancelTask(plugin.grace.get(a));
+				plugin.grace.put(a, null);
+			}
+			if(plugin.start.get(a)!= null){
+				plugin.getServer().getScheduler().cancelTask(plugin.start.get(a));
+				plugin.start.put(a, null);
+			}
+			
+			if(plugin.timetodeath.get(a)!= null)
+				plugin.timetodeath.remove(a);
+			plugin.Frozen.get(a).clear();
+			if(plugin.Playing.get(a)!= null){
+				for(String players: plugin.Playing.get(a)){
+					Player tributes = plugin.getServer().getPlayerExact(players);
+					clearInv(tributes);
+					tributes.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
+					tributes.teleport(tributes.getWorld().getSpawnLocation());
+					plugin.scoreboards.remove(players);
+					plugin.Kills.remove(players);
+					plugin.Frozen.get(a).add(players);
+				}
+			}
+			if (plugin.Kills.containsKey("__SuM__")) plugin.Kills.remove("__SuM__");
+			if(plugin.Watching.get(a)!= null){
+				for(String sname: plugin.Watching.get(a)){
+					Player spectators = plugin.getServer().getPlayerExact(sname);
+					spectators.teleport(spectators.getWorld().getSpawnLocation());
+					spectators.setAllowFlight(false);
+					spectators.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
+					for(Player online:plugin.getServer().getOnlinePlayers()){
+						online.showPlayer(plugin,spectators);
+					}
+					plugin.scoreboards.remove(sname);
+				}
+			}
+			if(plugin.Frozen.get(a)!= null){
+				for(String sname: plugin.Frozen.get(a)){
+					Player player = plugin.getServer().getPlayerExact(sname);
+					plugin.RestoreInv(player, sname);
+				}
+			}
+			plugin.Dead.get(a).clear();
+			plugin.Quit.get(a).clear();
+			plugin.Watching.get(a).clear();
+			plugin.Frozen.get(a).clear();
+			plugin.Ready.get(a).clear();
+			plugin.NeedConfirm.get(a).clear();
+			plugin.Out.get(a).clear();
+			plugin.Playing.get(a).clear();
+			plugin.inArena.get(a).clear();
+			
+			if (closeit) {
+				plugin.open.put(a, false);
+			} else { 
+				plugin.canjoin.put(a, false);
+				plugin.open.put(a, true);
+			}
+			
+			plugin.MatchRunning.put(a, null);
+			List<String> blocksbroken = plugin.data.getStringList("Blocks_Destroyed");
+			List<String> blocksplaced = plugin.data.getStringList("Blocks_Placed");
+			ArrayList<String> toremove = new ArrayList<String>();
+			ArrayList<String> toremove2 = new ArrayList<String>();
+			for(String blocks:blocksplaced){
+				String[] coords = blocks.split(",");
+				World w = plugin.getServer().getWorld(coords[0]);
+				double x = Double.parseDouble(coords[1]);
+				double y = Double.parseDouble(coords[2]);
+				double z = Double.parseDouble(coords[3]);
+				int arena = Integer.parseInt(coords[4]);
+				Location blockl = new Location(w, x, y, z);
+				Block block = w.getBlockAt(blockl);
+				if(arena==a){
+					block.setType(Material.AIR); 
+					block.getState().update();
+					toremove.add(blocks);
+				}
+			}
+			for(String blocks:blocksbroken){
+				String[] coords = blocks.split(blocks.contains(";")?";":",");
+				World w = plugin.getServer().getWorld(coords[0]);
+				double x = Double.parseDouble(coords[1]);
+				double y = Double.parseDouble(coords[2]);
+				double z = Double.parseDouble(coords[3]);
+				String d = coords[4];
+				byte m=0;
+				BlockData newBlData=null;
+				try{ 
+					m = Byte.parseByte(coords[5]);
+				} catch (NumberFormatException Ex) {
+					newBlData = Bukkit.createBlockData(coords[5]);
+				}
+				int arena = Integer.parseInt(coords[6]);
+				Location blockl = new Location(w, x, y, z);
+				Block block = w.getBlockAt(blockl);
+				if(arena==a){
+					if (newBlData==null) { 
+						try{ 
+							int d2 = Integer.parseInt(d);
+							Method setD = Class.forName("org.bukkit.block.Block").getDeclaredMethod("setTypeIdAndData",int.class,byte.class,boolean.class); 
+							setD.setAccessible(true);
+							setD.invoke(block, d2,m,true);
+						} catch (Exception | NoSuchMethodError e){
+							if (d.replaceAll("[0-9]","").equals("")){
+								int d2 = Integer.parseInt(d);
+								d = plugin.findOldMaterial(d2,m).name(); 
+							}
+							block.setType(Material.getMaterial(d), true);
+							try{ 
+								Method setD = Class.forName("org.bukkit.block.Block").getDeclaredMethod("setData",byte.class,boolean.class);
+								setD.setAccessible(true);
+								setD.invoke(block, m,true);
+							} catch (Exception | NoSuchMethodError ee){
+								try {
+									BlockData BlData = block.getBlockData();
+									if (BlData instanceof org.bukkit.block.data.type.Snow ){
+										if (m>0)((org.bukkit.block.data.type.Snow)BlData).setLayers(m+1); 
+									}
+									if (BlData instanceof org.bukkit.block.data.type.Cake ){
+										((org.bukkit.block.data.type.Cake)BlData).setBites(m);
+									}
+									if (coords.length>7 && (coords[7]!=null || coords[7].isEmpty())){
+										String BlDir = coords[7];
+										if (BlData instanceof org.bukkit.block.data.Directional) {
+											((org.bukkit.block.data.Directional)BlData).setFacing(BlockFace.valueOf(BlDir)); 
+										}
+									}
+									block.setBlockData(BlData);
+								} catch (Exception | NoSuchMethodError xx){}
+							}
+						}
+					} else {
+						block.setBlockData(newBlData);
+					}
+					block.getState().update();
+					toremove2.add(blocks);
+				}
+			}
+			for(String blocks: toremove){
+				blocksplaced.remove(blocks);
+			}
+			for(String blocks: toremove2){
+				blocksbroken.remove(blocks);
+			}
+			toremove.clear();
+			toremove2.clear();
+			plugin.data.set("Blocks_Destroyed", blocksbroken);
+			plugin.data.set("Blocks_Placed", blocksplaced);
+			plugin.data.options().copyDefaults();
+			plugin.saveData();
+			
+			plugin.setTorch(a, false);
+			
+			if (playr) ((Player)sender).performCommand("ha refill " + a);
+			else plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), "ha refill " + a);
+
+			if (closeit){
+				sender.sendMessage(ChatColor.GOLD + "Arena " + a + " Closed!");
+			} else {
+				sender.sendMessage(ChatColor.AQUA + "Arena " + a + " has been reset!");
+			}
+			
+		  }else{
+			  sender.sendMessage(ChatColor.RED + "Arena " + a + " already closed, type /ha open to re-open them!");
+		  }
+		}
+	}
+
+	private void open_sub(CommandSender sender, String[] args){
+		Set<Integer> list = plugin.open.keySet();
+		if(args.length>= 2){
+			list = new HashSet<Integer>();
+			if (checkarena(args[1], sender))
+			list.add(Integer.parseInt(args[1]));
+		}
+		for(int i : list){
+			if(!plugin.open.get(i)){
+				plugin.open.put(i, true);
+				sender.sendMessage(ChatColor.GOLD + "Arena " + i + " Open!");
+			}else{
+				sender.sendMessage(ChatColor.RED + "Arena " + i + " already open, type /ha close to close them!");
+			}
+		}
+	}
+	private void reload_sub(CommandSender sender){
+		for(Player online:plugin.getServer().getOnlinePlayers()){
+			if(plugin.getArena(online)!= null){
+				a=plugin.getArena(online);
+				plugin.RestoreInv(online, online.getName());
+				online.teleport(getArenaSpawn());
+			}
+		}
+
+		plugin.location.clear();
+		plugin.Reward.clear();
+		plugin.Cost.clear();
+		plugin.Fee.clear();
+		plugin.ChestPay.clear();
+		plugin.spawns = null;
+		plugin.worldsNames.clear();
+		plugin.data = null;
+		plugin.management = null;
+		plugin.MyChests = null;
+		HandlerList.unregisterAll(plugin);
+		plugin.reloadConfig();
+		plugin.onEnable();	
+		sender.sendMessage(ChatColor.AQUA + "HungerArena Reloaded!");
+		System.out.println(ChatColor.GREEN + sender.getName() + " reloaded HungerArena!");
+	}
+	private void warpall_sub(final CommandSender sender, String[] args){
+		if((plugin.spawns.getString("Spawns_set.0")==null) || plugin.spawns.getString("Spawns_set.0").equalsIgnoreCase("false")){
+			sender.sendMessage(ChatColor.RED + "/ha setspawn hasn't ever been run!");
+		}else{
+			if(args.length>= 2){
+			  if (checkarena(args[1], sender)){
+				a = Integer.parseInt(args[1]);
+				if((plugin.spawns.getString("Spawns_set."+a)==null) || (plugin.spawns.getString("Spawns_set."+a).equalsIgnoreCase("false"))){ 
+					sender.sendMessage(ChatColor.RED + "/ha setspawn for Arena "+ a +" hasn't been run!");
+				}else{	
+					if(plugin.Playing.get(a).size()<= 1){
+						sender.sendMessage(ChatColor.RED + "There are not enough players!");
+						
+					}else if (plugin.canjoin.get(a)== true) {
+							sender.sendMessage(ChatColor.RED + "Game already in progress!");	
+						
+					}else{
+						plugin.setTorch(a, false);
+						
+						if(plugin.config.getString("Auto_Start").equalsIgnoreCase("true")){
+							plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
+								public void run(){
+									Bukkit.getServer().dispatchCommand(Bukkit.getConsoleSender(), "ha start " + a);
+								}
+							}, 20L);
+						}
+						List<Integer> shuffle = new ArrayList<Integer>();
+						for (i=1;i<=plugin.location.get(a).size();shuffle.add(i++)){} 
+						Collections.shuffle(shuffle);
+						i=1;
+						for(String playing:plugin.Playing.get(a)){
+							Player tribute = plugin.getServer().getPlayerExact(playing);
+							plugin.Frozen.get(a).add(tribute.getName()); 
+							Location toLoc = plugin.location.get(a).get(shuffle.get(i));
+							tribute.setHealth(20); 
+							tribute.setFoodLevel(20);
+							tribute.setSaturation(20);
+							tribute.setLevel(0);
+							clearInv(tribute);
+							for(PotionEffect pe: tribute.getActivePotionEffects()){
+								PotionEffectType potion = pe.getType();
+								tribute.removePotionEffect(potion);
+							}
+							if(tribute.getAllowFlight()){
+								tribute.setAllowFlight(false);
+							}
+							Location opposite = toLoc.clone();
+							double dist=0;
+							double dist2;
+							for (Location loc:plugin.location.get(a).values()){
+								dist2=loc.distance(toLoc);
+								if (dist2>dist){ 
+									dist = dist2;
+									opposite = loc.clone();
+								}
+							}
+							toLoc.setDirection(opposite.toVector().subtract(toLoc.toVector()));
+							MetadataValue MdV_Location = new FixedMetadataValue(plugin,toLoc);
+							tribute.setMetadata("HA-Location", MdV_Location);
+							tribute.teleport(toLoc);
+							i+=1; 
+						}
+						plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
+							public void run(){
+								sender.sendMessage(ChatColor.AQUA + "All Tributes warped!");
+								plugin.MatchRunning.put(a, "warped");
+							}
+						}, 10L);
+					}
+				}
+			  }
+			}else{
+				sender.sendMessage(ChatColor.RED + "Too few arguments, specify an arena");
+			}
+		}
+	}
+	private void start_sub(CommandSender sender, String[] args){
+		if(args.length!= 2){
+			sender.sendMessage(ChatColor.RED + "You need to specify the arena to start!");
+		}else{
+			if (checkarena(args[1], sender)){
+				a = Integer.parseInt(args[1]);
+				if(plugin.canjoin.get(a)== true)
+					sender.sendMessage(ChatColor.RED + "Game already in progress!");
+				else if(plugin.Playing.get(a).size()== 1){
+					sender.sendMessage(ChatColor.RED + "There are not enough players!");
+				}
+				else if(plugin.Playing.get(a).isEmpty())
+					sender.sendMessage(ChatColor.RED + "No one is in that game!");
+				else if ((plugin.MatchRunning.get(a)!=null) && (plugin.MatchRunning.get(a).equals("warped")))
+					plugin.startGames(a);
+				else sender.sendMessage(ChatColor.RED + "First all players must be warped!");					
+			}
+		}
+	}
+	private boolean checkarena(String Int, CommandSender sender){
+		  a=0;
+		  try {	
+				a = Integer.parseInt(Int);
+		  } catch (NumberFormatException e){
+				sender.sendMessage(ChatColor.RED + "You have to enter the Arena number!");
+				return false;
+		  }
+		  if (a>0){
+			  if (plugin.canjoin.containsKey(a)){
+				  return true;
+			  } 
+		  } 
+		  sender.sendMessage(ChatColor.RED + "That arena doesn't exist!");
+		  return false;
+	}
+
+	private void confirmSub(Player p, String pname, String ThisWorld){
+		if(plugin.config.getBoolean("EntryFee.enabled")){ 
+			if((!plugin.config.getBoolean("EntryFee.eco")) || (plugin.config.getBoolean("EntryFee.eco") && !(plugin.econ.getBalance(p) < plugin.config.getDouble("EntryFee.cost")))){ 
+				i = 0;
+				for(ItemStack fee: plugin.Fee){ 
+					int total = plugin.Fee.size();
+					if(p.getInventory().containsAtLeast(fee, fee.getAmount())){
+						i += 1;
+						if(total == i){
+							if (plugin.config.getBoolean("EntryFee.eco")) {
+								plugin.econ.withdrawPlayer(p, plugin.config.getDouble("EntryFee.cost"));
+								p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + "$" + plugin.config.getDouble("EntryFee.cost") + " has been taken from your account!");
+							}
+							for(ItemStack fees: plugin.Fee){
+								String beginning = fees.getType().toString().substring(0, 1);
+								String item = beginning.toUpperCase() + fees.getType().toString().substring(1).toLowerCase().replace("_", " "); 
+								int amount = fees.getAmount();
+								p.getInventory().removeItem(fees);
+								if(amount> 1)
+									p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + amount + " " + item + "s was paid to join the games.");
+								else
+									p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + amount + " " + item + " was paid to join the games.");
+							}
+							preparePlayer(p, pname, ThisWorld); 
+						}
+					}
+				}
+				if(plugin.Fee.size() > i){
+					p.sendMessage(ChatColor.RED + "You are missing some items and can't join the games...");
+				}
+			}else{
+				p.sendMessage(ChatColor.RED + "You don't have enough money to join!");
+			}
+		}else if(plugin.config.getBoolean("EntryFee.eco")){
+			if(!(plugin.econ.getBalance(p) < plugin.config.getDouble("EntryFee.cost"))){
+				plugin.econ.withdrawPlayer(p, plugin.config.getDouble("EntryFee.cost"));
+				p.sendMessage(ChatColor.GOLD + "[HungerArena] " + ChatColor.GREEN + "$" + plugin.config.getDouble("EntryFee.cost") + " has been taken from your account!");
+				preparePlayer(p, pname, ThisWorld);
+			}else{
+				p.sendMessage(ChatColor.RED + "You don't have enough money to join!");
+			}
+		}else{ 
+			preparePlayer(p, pname, ThisWorld); 
+		}
+	}
+	private void preparePlayer(Player p, String pname, String ThisWorld){
+		plugin.Playing.get(a).add(pname);
+		plugin.NeedConfirm.get(a).remove(pname);
+		p.sendMessage(ChatColor.GREEN + "Do /ha ready to vote to start the games!");
+		FileConfiguration pinfo = plugin.getPConfig(pname);
+		pinfo.set("inv", p.getInventory().getContents());
+		pinfo.set("armor", p.getInventory().getArmorContents());
+		pinfo.set("world", ThisWorld);
+		pinfo.set("player", pname);
+		plugin.savePFile(pname); 	
+		clearInv(p);
+		plugin.needInv.add(pname); 
+		if(plugin.config.getBoolean("broadcastAll")){
+			plugin.getServer().broadcastMessage(ChatColor.AQUA + pname +  " has Joined Arena " + a + "! " + ChatColor.GRAY + plugin.Playing.get(a).size() + "/" + plugin.maxPlayers.get(a));
+		}else{
+			for(String gn: plugin.Playing.get(a)){
+				Player g = plugin.getServer().getPlayer(gn);
+				g.sendMessage(ChatColor.AQUA + pname + " has Joined the Game! " + ChatColor.GRAY + plugin.Playing.get(a).size() + "/" + plugin.maxPlayers.get(a));
+			}
+		}
+		if(plugin.Playing.get(a).size()== plugin.maxPlayers.get(a)){
+			plugin.getServer().dispatchCommand(plugin.getServer().getConsoleSender(), "ha warpall " + a);
+		}
 	}
 }

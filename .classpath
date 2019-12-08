@@ -1,8 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" path="src"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6"/>
-	<classpathentry kind="lib" path="C:/Users/Travja/Documents/Plugins/Vault.jar"/>
-	<classpathentry kind="lib" path="C:/Users/Travja/Downloads/craftbukkit-1.5.1-R0.1-20130321.220235-8.jar"/>
+	<classpathentry excluding="me/Travja/HungerArena/ConfigManager.java" kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"/>
+	<classpathentry kind="lib" path="W:/Java_Dev/workspace/spigot-1.14.4_BT101.jar">
+		<attributes>
+			<attribute name="javadoc_location" value="jar:file:/W:/Java_Dev/workspace/spigot-api-1.14.2-R0.1-20190529.100137-6-javadoc!/"/>
+		</attributes>
+	</classpathentry>
+	<classpathentry kind="lib" path="W:/Java_Dev/workspace/Vault_1.7.2.jar"/>
+	<classpathentry kind="lib" path="W:/Java_Dev/workspace/worldedit-bukkit-6.0.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>

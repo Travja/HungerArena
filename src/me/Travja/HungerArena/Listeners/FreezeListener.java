@@ -2,6 +2,7 @@ package me.Travja.HungerArena.Listeners;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 import me.Travja.HungerArena.Main;
 
@@ -12,6 +13,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerMoveEvent;
+import org.bukkit.metadata.MetadataValue;
 
 public class FreezeListener implements Listener {
 	public Main plugin;
@@ -22,7 +24,7 @@ public class FreezeListener implements Listener {
 	int a = 0;
 	private HashMap<Integer, Boolean> timeUp= new HashMap<Integer, Boolean>();
 	private ArrayList<Integer> timing = new ArrayList<Integer>();
-	@SuppressWarnings("deprecation")
+
 	@EventHandler
 	public void onPlayerMove(PlayerMoveEvent event){
 		Player p = event.getPlayer();
@@ -90,12 +92,26 @@ public class FreezeListener implements Listener {
 						}
 						plugin.winner(a);
 					}
-				}else{
-					for(String players:plugin.Playing.get(a)){
-						Player playing = plugin.getServer().getPlayerExact(players);
-						i = plugin.Playing.get(a).indexOf(players)+1;
-						if(!playing.getLocation().getBlock().getLocation().equals(plugin.location.get(a).get(i).getBlock().getLocation())){
-							playing.teleport(plugin.location.get(a).get(i));
+				}else{ 
+					i = plugin.Playing.get(a).indexOf(pname)+1; 
+					Location pLoc=null;
+					if (p.hasMetadata("HA-Location")){
+						List<MetadataValue> l=p.getMetadata("HA-Location");
+						if (l !=null && l.size()!=0 ){
+							try {
+								pLoc=(Location) l.get(0).value();
+							} catch (Exception e){}
+						}
+						if (pLoc!=null) {
+							if(p.getLocation().getBlockX()!=(pLoc.getBlockX()) || p.getLocation().getBlockZ()!=(pLoc.getBlockZ())){ 
+								pLoc.setX(pLoc.getBlock().getLocation().getX()+.5); 
+								pLoc.setZ(pLoc.getBlock().getLocation().getZ()+.5);
+								p.teleport(pLoc); 
+							}
+						} else {
+							if(!p.getLocation().getBlock().getLocation().equals(plugin.location.get(a).get(i).getBlock().getLocation())){
+								p.teleport(plugin.location.get(a).get(i)); 
+							}
 						}
 					}
 				}

@@ -1,6 +1,5 @@
-Orig README by Travja:
-http://dev.bukkit.org/server-mods/hungerarena
-Working on a rewrite :D Going to be EPIC https://github.com/travja/HungerArena-Reloaded
+Orig plugin by Travja:
+https://dev.bukkit.org/projects/hungerarena
 /\
 |
 |
@@ -9,16 +8,27 @@ Go there for more info!
 ====================================
 
 README by Jeppa:
-This version was fixed by Jeppa to have safe maps (block-protection)
-and more than one spawnpoint (one spawnpoint per arena!)
+This plugin has been heavily improved and fixed by Jeppa !
+
+- autoupdating MaterialIDs to Materials
+- improved chest-handling and added more chest-like storages (hopper, furnace, dispenser...)
+- pay the player for finding undiscovered chests
+- improved handling of placed/destroyed blocks
+- added placeable redstone torch to enable redstone stuff at gamestart!
+- multi arena support
+- improved sign handling: 1 command per line (2nd/3rd) or one combined command in line 2/3 possible
+- new command /ha newarena for easier arena creation
+- default spawnpoint for lobby possible
+- spawn fix 
+- autoset for player yaw on warp points
+- random spawn/warp points
+- configurable disabling of bed interaction
+- scoreboard improved!
+- storing/restoring players inventories
+- support for 1.9 to 1.14
+- safe maps (block-protection)
+- spawnpoints per arena!
+- sponsoring improved
+- lots of bug fixes !!!
+
 You may have to edit the config.yml! 
-The worlds order is the corresponding worlds-number !!!
-First world ist world #1 etc...
-The worlds/arenas numbers should start with #1 and count up...
-There are default-values for arenas in the configfile 
-so you will see up to 20 arenas after first spawns set.
-This is just done to avoid some bugs if arenas are not in a row starting by 1 :/
-You may have arena numbers like 2,4,6 with this, 
-but still should count them like 1,2,3,4... !!!
-With this in your mind: don't have arena-numbers bigger
-than 20 until you realy have that amount! 

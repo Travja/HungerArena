@@ -2,19 +2,15 @@
 
 #config version for us devs. DONT CHANGE THIS, or it will screw up some things PRETTY badly.
 config:
-  version: 1.3
+  version: 1.4
 
 ######################################
 ######## Game Configuration ######### 
 ######################################
 
-# The world(s) that all HA features are restricted to.
-# If left blank all worlds will be allowed.
-# ie:
-# worlds:
-# - world
-# - world_nether
-worlds: {}
+# If all HA features are restricted to the HA-world(s) only .
+# If set to 'false' all worlds will be allowed.
+Restricted: true
 
 # If left at 0 there will be no death match, fill in a time in minutes
 DeathMatch: 0
@@ -25,6 +21,9 @@ broadcastAll: true
 # The max amount of players that can be in a game, This is also dependent on the amount of startpoints you have set.
 maxPlayers: 24
 
+# If the worlds spawn is not the same as your Arena spawn you can set this to true for players spawn at arena
+joinTeleport: 'false'
+
 # Message to display when the games start
 Start_Message: '&bLet The Games Begin!'
 
@@ -33,6 +32,9 @@ Auto_Restart: 'false'
 
 # If it should automatically start the countdown on warping
 Auto_Start: 'false'
+
+# If it should automatically warp players if there are enough (else wait for the command 'warpall')
+Auto_Warp: 'true'
 
 # If tributes need to type /ha confirm to join
 Need_Confirm: 'true'
@@ -64,11 +66,14 @@ Explode_on_Move: 'false'
 # Whether or not thunder will sound upon a players death
 Cannon_Death: 'true'
 
+# Whether players are allowed to use beds, or not!
+DenyBedUsage: 'true'
+
 # Whether or not to have the arena be the world or the WorldEdit selection
 WorldEdit: false
 
 # What item should be used to set spawns after /startpoint [arena#]
-spawnsTool: 286
+spawnsTool: GOLDEN_AXE
 
 ######################################
 ######################################
@@ -80,24 +85,29 @@ spawnsTool: 286
 
 # What the reward for winning is
 Reward:
-- 264,10
+- DIAMOND,10
 Sponsor_Cost:
-- 264,1
+- DIAMOND,1
 EntryFee:
   enabled: false
   eco: false
   cost: 50
   fee:
-  - 265,1
+  - IRON_INGOT,1
 # True means give money to winner, false means don't.
+# How much money to give the winner.
 rewardEco:
   enabled: false
   reward: 100
+# What sponsors have to pay to sponsor tributes
 sponsorEco:
   enabled: false
   cost: 50
-# How much money to give the winner.
-# What sponsors have to pay to sponsor tributes
+# Pay the Players for finding chests etc.
+ChestPay:
+  enabled: false
+  items:
+  - COOKED_BEEF,2
 ################################
 ################################
 ################################

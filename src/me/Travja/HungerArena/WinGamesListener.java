@@ -6,7 +6,7 @@ import org.bukkit.event.Listener;
 
 /**
  *
- * @author YoshiGenius
+ * based on YoshiGenius
  */
 public class WinGamesListener implements Listener {
     
@@ -18,7 +18,7 @@ public class WinGamesListener implements Listener {
     @EventHandler
     public void onWin(PlayerWinGamesEvent evt) {
         Player p = evt.getPlayer();
-        plugin.econ.depositPlayer(p.getName(), plugin.config.getDouble("EcoReward"));
+        plugin.econ.depositPlayer(p, plugin.config.getDouble("EcoReward"));
     }
 
 }
