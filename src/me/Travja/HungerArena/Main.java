@@ -109,7 +109,7 @@ public class Main extends JavaPlugin{
 	SignsAndBeds SignsAndBeds = null;
 	SignsAndBedsOld SignsAndBedsOld = null;
 	Listener BlockStorage = new BlockStorage(this);
-	Listener WinGames = new WinGamesListener(this);
+	//Listener WinGames = new WinGamesListener(this);
 	Listener WorldChange = new WorldChange(this);
 	Listener Boundaries = new Boundaries(this);
 	Listener spawnsListener = new spawnsListener(this);
@@ -190,7 +190,7 @@ public class Main extends JavaPlugin{
 				getLogger().info("Events 1.12- enabled!");
 			} 
 		getServer().getPluginManager().registerEvents(BlockStorage, this);
-		getServer().getPluginManager().registerEvents(WinGames, this);
+		//getServer().getPluginManager().registerEvents(WinGames, this);
 		getServer().getPluginManager().registerEvents(WorldChange, this);
 		getServer().getPluginManager().registerEvents(Boundaries, this);
 		getServer().getPluginManager().registerEvents(spawnsListener, this);
