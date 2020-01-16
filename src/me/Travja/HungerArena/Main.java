@@ -33,11 +33,13 @@ import me.Travja.HungerArena.Listeners.TeleportListener;
 import me.Travja.HungerArena.Listeners.spawnsListener;
 import net.milkbowl.vault.economy.Economy;
 
+import org.apache.commons.lang.mutable.MutableInt;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Color;
 import org.bukkit.FireworkEffect;
 import org.bukkit.FireworkEffect.Type;
+import org.bukkit.GameMode;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -62,6 +64,7 @@ import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.DisplaySlot;
 import org.bukkit.scoreboard.Objective;
 import org.bukkit.scoreboard.Score;
@@ -94,7 +97,7 @@ public class Main extends JavaPlugin{
 	public ArrayList<String> needInv = new ArrayList<String>();
 	public HashMap<Integer, String> worldsNames = new HashMap<Integer, String>();
 
-	public HashMap<String, Scoreboard> scoreboards = new HashMap<String, Scoreboard>();
+    public HashMap<String, Scoreboard> scoreboards = new HashMap<String, Scoreboard>();
 
 	Listener DeathListener = new DeathListener(this);
 	Listener SpectatorListener = null;
@@ -120,16 +123,16 @@ public class Main extends JavaPlugin{
 	public boolean exists;
 	public boolean restricted;
 
-	public FileConfiguration config;
-	public FileConfiguration spawns = null;
-	public File spawnsFile = null;
-	public FileConfiguration data = null;
-	public File dataFile = null;
-	public FileConfiguration management = null;
-	public File managementFile = null;
+    public FileConfiguration config;
+    public FileConfiguration spawns = null;
+    public File spawnsFile = null;
+    public FileConfiguration data = null;
+    public File dataFile = null;
+    public FileConfiguration management = null;
+    public File managementFile = null;
 
-	public FileConfiguration MyChests = null;
-	public File ChestsFile = null;
+    public FileConfiguration MyChests = null;
+    public File ChestsFile = null;
 
 	public ArrayList<ItemStack> Reward = new ArrayList<ItemStack>();
 	public ArrayList<ItemStack> Cost = new ArrayList<ItemStack>();
@@ -387,11 +390,13 @@ public class Main extends JavaPlugin{
 	public WorldEditPlugin hookWE() {
 		Plugin wPlugin = getServer().getPluginManager().getPlugin("WorldEdit");
 
-		if ((wPlugin == null) || (!(wPlugin instanceof WorldEditPlugin)))
-			return null;
+    public void onDisable() {
+        log.info("Disabled v" + getDescription().getVersion());
+    }
 
-		return (WorldEditPlugin) wPlugin;
-	}
+    public static Main getInstance() {
+        return instance;
+    }
 
 	public boolean setupEconomy() {
 		if (getServer().getPluginManager().getPlugin("Vault") == null) {
@@ -730,6 +735,16 @@ public class Main extends JavaPlugin{
 					////////////////////  FIREWORKS  ///////////////////////
 					////////////////////////////////////////////////////////
 
+    public void saveSpawns() {
+        if (spawns == null || spawnsFile == null) {
+            return;
+        }
+        try {
+            getSpawns().save(spawnsFile);
+        } catch (IOException ex) {
+            this.getLogger().log(Level.SEVERE, "Could not save config to " + spawnsFile, ex);
+        }
+    }
 
 					 for(i = 0; i < 10; i++){
 						Bukkit.getScheduler().runTaskLater(this, new Runnable(){
@@ -738,33 +753,50 @@ public class Main extends JavaPlugin{
 								Firework fw = (Firework) winner.getWorld().spawnEntity(winner.getLocation(), EntityType.FIREWORK);
 								FireworkMeta fwm = fw.getFireworkMeta();
 
-								//Our random generator
-								Random r = new Random();   
+        InputStream defConfigStream = this.getResource("Data.yml");
+        if (defConfigStream != null) {
+            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
+            data.setDefaults(defConfig);
+        }
+    }
 
-								//Get the type
-								int rt = r.nextInt(4) + 1;
-								Type type = Type.BALL;       
-								if (rt == 1) type = Type.BALL;
-								if (rt == 2) type = Type.BALL_LARGE;
-								if (rt == 3) type = Type.BURST;
-								if (rt == 4) type = Type.CREEPER;
-								if (rt == 5) type = Type.STAR;
+    public FileConfiguration getData() {
+        if (data == null) {
+            this.reloadData();
+        }
+        return data;
+    }
 
-								//Get our random colours   
-								int r1i = r.nextInt(17) + 1;
-								int r2i = r.nextInt(17) + 1;
-								Color c1 = getColor(r1i);
-								Color c2 = getColor(r2i);
+    public void saveData() {
+        if (data == null || dataFile == null) {
+            return;
+        }
+        try {
+            getData().save(dataFile);
+        } catch (IOException ex) {
+            this.getLogger().log(Level.SEVERE, "Could not save config to " + dataFile, ex);
+        }
+    }
 
-								//Create our effect with this
-								FireworkEffect effect = FireworkEffect.builder().flicker(r.nextBoolean()).withColor(c1).withFade(c2).with(type).trail(r.nextBoolean()).build();
+    public void reloadManagement() {
+        if (managementFile == null) {
+            managementFile = new File(getDataFolder(), "commandAndBlockManagement.yml");
+        }
+        management = YamlConfiguration.loadConfiguration(managementFile);
 
-								//Then apply the effect to the meta
-								fwm.addEffect(effect);
+        InputStream defConfigStream = this.getResource("commandAndBlockManagement.yml");
+        if (defConfigStream != null) {
+            YamlConfiguration defConfig = YamlConfiguration.loadConfiguration(defConfigStream);
+            management.setDefaults(defConfig);
+        }
+    }
 
-								//Generate some random power and set it
-								int rp = r.nextInt(2) + 1;
-								fwm.setPower(rp);
+    public FileConfiguration getManagement() {
+        if (management == null) {
+            this.reloadManagement();
+        }
+        return management;
+    }
 
 								//Then apply this to our rocket
 								fw.setFireworkMeta(fwm);
@@ -772,6 +804,12 @@ public class Main extends JavaPlugin{
 						},20 + i*20L);
 					 }
 
+    public void reloadChests() {
+        if (ChestsFile == null) {
+            ChestsFile = new File(getDataFolder(), "Chests.yml");
+        }
+        MyChests = YamlConfiguration.loadConfiguration(ChestsFile);
+    }
 
 					////////////////////////////////////////////////////////
 					////////////////////////////////////////////////////////

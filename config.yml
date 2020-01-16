@@ -16,6 +16,18 @@ config:
 # - world_nether
 worlds: {}
 
+# Whether or not TNT should auto light
+AutoTNT: true
+
+# Whether or not auto TNT should harm the arena
+aTNTdamage: false
+
+# Whether or not explosions damage the arena
+explosionDamage: false
+
+# Amount of time it takes to refill the chests in the arena (default: 600 or 10 mins)
+refillTime: 600
+
 # If left at 0 there will be no death match, fill in a time in minutes
 DeathMatch: 0
 
@@ -54,6 +66,9 @@ Protected_Arena_Always: 'false'
 
 # Whether new or unknown players on HA-maps should be forced to the spawn or not.
 Force_Players_toSpawn: 'false'
+
+# Whether or not spawns should be randomized at game start
+randomSpawns: true
 
 # Whether or not players will be frozen when they are teleported to their positions
 Frozen_Teleport: 'true'

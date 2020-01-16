@@ -1,6 +1,8 @@
 package me.Travja.HungerArena.Listeners;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import me.Travja.HungerArena.Main;
 
@@ -90,10 +92,29 @@ public class BlockStorage implements Listener {
 							if (!b.getType().name().equalsIgnoreCase("AIR")){
 								addDestroyedBlockToList(b, ThisWorld, i);
 							}
+							if(tnts.contains(e.getUniqueId()) || !plugin.config.getBoolean("explosionDamage")){
+								event.blockList().clear();
+							}else{
+								for(Block b:blocksd){
+									String w = event.getEntity().getWorld().getName();
+									int x = b.getX();
+									int y = b.getY();
+									int z = b.getZ();
+									int d = b.getTypeId();
+									byte m = b.getData();
+									String coords = w + "," + x + "," + y + "," + z + "," + d + "," + m + "," + i;
+									List<String> blocks = plugin.data.getStringList("Blocks_Destroyed");
+									if(!plugin.data.getStringList("Blocks_Placed").contains(w + "," + x + "," + y + "," + z + "," + i) || !plugin.data.getStringList("Blocks_Destroyed").contains(w + "," + x + "," + y + "," + z + "," + i)){
+										blocks.add(coords);
+										plugin.data.set("Blocks_Destroyed", blocks);
+										plugin.saveData();
+									}
+								}
+							}
 						}
 					}
 				}
-			}
+			//}
 		}
 	}
 
@@ -111,6 +132,7 @@ public class BlockStorage implements Listener {
 			}
 		}
 	}
+	@SuppressWarnings("deprecation")
 	@EventHandler(priority = EventPriority.MONITOR)
 	public void blockPlace(BlockPlaceEvent event){
 		Block b = event.getBlock();

@@ -1,5 +1,8 @@
 package me.Travja.HungerArena.Listeners;
 
+import java.util.HashMap;
+import java.util.List;
+
 import me.Travja.HungerArena.Main;
 
 import org.bukkit.Bukkit;
@@ -10,11 +13,13 @@ import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.DisplaySlot;
 
 public class DeathListener implements Listener{
