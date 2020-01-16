@@ -1,0 +1,126 @@
+# default config.yml
+
+#config version for us devs. DONT CHANGE THIS, or it will screw up some things PRETTY badly.
+config:
+  version: 1.4
+
+######################################
+######## Game Configuration ######### 
+######################################
+
+# If all HA features are restricted to the HA-world(s) only .
+# If set to 'false' all worlds will be allowed.
+Restricted: true
+
+# If left at 0 there will be no death match, fill in a time in minutes
+DeathMatch: 0
+
+#Whether or not to broadcast game messages to all players
+broadcastAll: true
+
+# The max amount of players that can be in a game, This is also dependent on the amount of startpoints you have set.
+maxPlayers: 24
+
+# If the worlds spawn is not the same as your Arena spawn you can set this to true for players spawn at arena
+joinTeleport: 'false'
+
+# Message to display when the games start
+Start_Message: '&bLet The Games Begin!'
+
+# If the games should automatically restart at the end
+Auto_Restart: 'false'
+
+# If it should automatically start the countdown on warping
+Auto_Start: 'false'
+
+# If it should automatically warp players if there are enough (else wait for the command 'warpall')
+Auto_Warp: 'true'
+
+# If tributes need to type /ha confirm to join
+Need_Confirm: 'true'
+
+# Whether or not the countdown will start upon warping.
+Countdown: 'true'
+
+# Duration of the countdown .
+Countdown_Timer: 15
+
+# How long the grace period should last (seconds)
+Grace_Period: 60
+
+# Whether or not players can break ANY blocks while playing
+Protected_Arena: 'true'
+
+# Whether or not players (not playing) can break blocks while waiting
+Protected_Arena_Always: 'true'
+
+# Whether new or unknown players on HA-maps should be forced to the spawn or not.
+Force_Players_toSpawn: 'true'
+
+# Whether or not players will be frozen when they are teleported to their positions
+Frozen_Teleport: 'true'
+
+# If the Tributes will get blown to bits when stepping off the pedestal
+Explode_on_Move: 'false'
+
+# Whether or not thunder will sound upon a players death
+Cannon_Death: 'true'
+
+# Whether players are allowed to use beds, or not!
+DenyBedUsage: 'true'
+
+# Whether or not to have the arena be the world or the WorldEdit selection
+WorldEdit: false
+
+# What item should be used to set spawns after /startpoint [arena#]
+spawnsTool: GOLDEN_AXE
+
+######################################
+######################################
+######################################
+
+################################
+###### Rewards/Sponsoring ######
+################################
+
+# What the reward for winning is
+Reward:
+- DIAMOND,10
+Sponsor_Cost:
+- DIAMOND,1
+EntryFee:
+  enabled: false
+  eco: false
+  cost: 50
+  fee:
+  - IRON_INGOT,1
+# True means give money to winner, false means don't.
+# How much money to give the winner.
+rewardEco:
+  enabled: false
+  reward: 100
+# What sponsors have to pay to sponsor tributes
+sponsorEco:
+  enabled: false
+  cost: 50
+# Pay the Players for finding chests etc.
+ChestPay:
+  enabled: false
+  items:
+  - COOKED_BEEF,2
+################################
+################################
+################################
+
+#############################
+####### Chat Related ########
+#############################
+
+# If players will only talk to close players of the whole server
+ChatClose: 'true'
+
+# How close the players have to be to talk to them
+ChatClose_Radius: 10
+#############################
+#############################
+#############################

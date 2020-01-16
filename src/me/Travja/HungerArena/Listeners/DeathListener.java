@@ -5,16 +5,14 @@ import me.Travja.HungerArena.Main;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
+import org.bukkit.Material;
 import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
-import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
-import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.scoreboard.DisplaySlot;
@@ -31,94 +29,47 @@ public class DeathListener implements Listener{
 	public void onPlayerRespawn(PlayerRespawnEvent event){
 		final Player p = event.getPlayer();
 		String pname = p.getName();
-		for(i = 1; i < plugin.Dead.size(); i++){
-			if(plugin.Dead.get(i).contains(pname)){
-				String[] Spawncoords = plugin.spawns.getString("Spawn_coords").split(",");
-				World spawnw = plugin.getServer().getWorld(Spawncoords[3]);
-				double spawnx = Double.parseDouble(Spawncoords[0]);
-				double spawny = Double.parseDouble(Spawncoords[1]);
-				double spawnz = Double.parseDouble(Spawncoords[2]);
-				final Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
-				Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
-					public void run(){
-						p.teleport(Spawn);
-					}
-				}, 10L);
-			}
-		}
-	}
-	@EventHandler (priority = EventPriority.HIGHEST)
-	public void damage(EntityDamageEvent event){
-		Entity e = event.getEntity();
-		if(e instanceof Player){
-			Player p = (Player) e;
-			if(plugin.getArena(p)!= null){
-				a = plugin.getArena(p);
-				if(plugin.Playing.get(a).size()== 2){
-					if(event.getDamage()>= p.getHealth()){
-						event.setCancelled(true);
-						String[] Spawncoords = plugin.spawns.getString("Spawn_coords").split(",");
-						World spawnw = plugin.getServer().getWorld(Spawncoords[3]);
-						double spawnx = Double.parseDouble(Spawncoords[0]);
-						double spawny = Double.parseDouble(Spawncoords[1]);
-						double spawnz = Double.parseDouble(Spawncoords[2]);
-						final Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
-						p.setHealth((double) 20);
-						p.setFoodLevel(20);
-						p.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
-						plugin.scoreboards.remove(p.getName());
-						plugin.Kills.remove(p.getName());
-						clearInv(p);
-						p.teleport(Spawn);
-						plugin.Frozen.get(a).remove(p.getName());
-						plugin.Playing.get(a).remove(p.getName());
-						plugin.winner(a);
-					}
+
+		//get the arena the player has died in...	(may be not the one he joined...)
+		String ThisWorld = p.getWorld().getName();
+		for(int z : plugin.worldsNames.keySet()){
+			if(plugin.worldsNames.get(z)!= null){	
+				if (plugin.worldsNames.get(z).equals(ThisWorld)){
+					a=z;
 				}
 			}
 		}
-	}
-	@EventHandler (priority = EventPriority.HIGHEST)
-	public void damage(EntityDamageByEntityEvent event){
-		Entity e = event.getEntity();
-		Entity d = event.getEntity();
-		if(e instanceof Player){
-			Player p = (Player) e;
-			if(plugin.getArena(p)!= null){
-				a = plugin.getArena(p);
-				if(plugin.Playing.get(a).size()== 2){
-					if(event.getDamage()>= p.getHealth()){
-						event.setCancelled(true);
-						String[] Spawncoords = plugin.spawns.getString("Spawn_coords").split(",");
-						World spawnw = plugin.getServer().getWorld(Spawncoords[3]);
-						double spawnx = Double.parseDouble(Spawncoords[0]);
-						double spawny = Double.parseDouble(Spawncoords[1]);
-						double spawnz = Double.parseDouble(Spawncoords[2]);
-						final Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
-						p.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
-						plugin.scoreboards.remove(p.getName());
-						plugin.Kills.remove(p.getName());
-						clearInv(p);
-						p.setHealth((double) 20);
-						p.setFoodLevel(20);
-						p.teleport(Spawn);
-						if(d instanceof Player){
-							Player k = (Player) d;
-							if(plugin.getArena(k)!= null){
-								if(plugin.Kills.containsKey(k.getName()))
-									plugin.Kills.put(k.getName(), plugin.Kills.get(k.getName())+1);
-							}
-						}
-						plugin.Frozen.get(a).remove(p.getName());
-						plugin.Playing.get(a).remove(p.getName());
-						plugin.winner(a);
-					}
-				}
+		
+		//Jeppa: Fix for lonely players :)
+		for(int i : plugin.Dead.keySet()){ 
+			if ((plugin.Dead.get(i) != null) &&	(plugin.Dead.get(i).contains(pname)) &&	(plugin.MatchRunning.get(i) == null)) { 
+				plugin.Dead.get(i).clear();
+			}
+		}
+		
+		for(int i = 0; i < plugin.needInv.size(); i++){ 
+			if(plugin.needInv.contains(pname)){
+				RespawnDeadPlayer(p,a); 
 			}
 		}
 	}
-	@SuppressWarnings("deprecation")
-	@EventHandler (priority = EventPriority.HIGHEST)
+	private void RespawnDeadPlayer(Player p, int a){
+		final Player player = p;
+		String[] Spawncoords = plugin.spawns.getString("Spawn_coords."+a).split(","); 
+		World spawnw = plugin.getServer().getWorld(Spawncoords[3]);
+		double spawnx = Double.parseDouble(Spawncoords[0]);
+		double spawny = Double.parseDouble(Spawncoords[1]);
+		double spawnz = Double.parseDouble(Spawncoords[2]);
+		final Location Spawn = new Location(spawnw, spawnx, spawny, spawnz);
+		Bukkit.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
+			public void run(){
+				player.teleport(Spawn);
+				plugin.RestoreInv(player, player.getName()); 
+			}
+		}, 10L);
+	}
+
+	@EventHandler (priority = EventPriority.HIGHEST) 
 	public void onPlayerDeath(PlayerDeathEvent event){
 		Player p = event.getEntity();
 		Server s = p.getServer();
@@ -128,6 +79,7 @@ public class DeathListener implements Listener{
 			int players = plugin.Playing.get(a).size()-1;
 			String leftmsg = null;
 			clearInv(p);
+			event.getDrops().clear();
 			p.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
 			plugin.scoreboards.remove(p.getName());
 			if(!plugin.Frozen.get(a).isEmpty()){
@@ -179,7 +131,7 @@ public class DeathListener implements Listener{
 				plugin.Dead.get(a).add(pname);
 				plugin.Playing.get(a).remove(pname);
 				if(p.getKiller() instanceof Player){
-					if(p.getKiller().getItemInHand().getType().getId()== 0){
+					if(p.getKiller().getInventory().getItemInMainHand().getType()== Material.AIR){ 
 						Player killer = p.getKiller();
 						String killername = killer.getName();
 						event.setDeathMessage("");
@@ -195,14 +147,18 @@ public class DeathListener implements Listener{
 						}
 						if(plugin.Kills.containsKey(killername))
 							plugin.Kills.put(killername, plugin.Kills.get(killername)+1);
+						else plugin.Kills.put(killername, 1);
+						if(plugin.Kills.containsKey("__SuM__"))
+							plugin.Kills.put("__SuM__", plugin.Kills.get("__SuM__")+1);
+						else plugin.Kills.put("__SuM__", 1);
 						plugin.winner(a);
 					}else{
 						Player killer = p.getKiller();
 						String killername = killer.getName();
-						String weapon = "a(n) " + killer.getItemInHand().getType().toString().replace('_', ' ');
-						if(killer.getItemInHand().hasItemMeta())
-							if(killer.getItemInHand().getItemMeta().hasDisplayName())
-								weapon = killer.getItemInHand().getItemMeta().getDisplayName();
+						String weapon = "a(n) " + killer.getInventory().getItemInMainHand().getType().name().replace('_', ' ');
+						if(killer.getInventory().getItemInMainHand().hasItemMeta())
+							if(killer.getInventory().getItemInMainHand().getItemMeta().hasDisplayName())
+								weapon = killer.getInventory().getItemInMainHand().getItemMeta().getDisplayName();
 						String msg = ChatColor.LIGHT_PURPLE + "**BOOM** Tribute " + pname + " was killed by tribute " + killername + " with " + weapon;
 						event.setDeathMessage("");
 						if(plugin.config.getBoolean("broadcastAll")){
@@ -217,6 +173,10 @@ public class DeathListener implements Listener{
 						}
 						if(plugin.Kills.containsKey(killername))
 							plugin.Kills.put(killername, plugin.Kills.get(killername)+1);
+						else plugin.Kills.put(killername, 1);
+						if(plugin.Kills.containsKey("__SuM__"))
+							plugin.Kills.put("__SuM__", plugin.Kills.get("__SuM__")+1);
+						else plugin.Kills.put("__SuM__", 1);
 						plugin.winner(a);
 					}
 				}else{
@@ -236,7 +196,6 @@ public class DeathListener implements Listener{
 			}
 		}
 	}
-	@SuppressWarnings("deprecation")
 	private void clearInv(Player p){
 		p.getInventory().clear();
 		p.getInventory().setBoots(null);

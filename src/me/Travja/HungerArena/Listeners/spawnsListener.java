@@ -1,5 +1,7 @@
 package me.Travja.HungerArena.Listeners;
 
+import java.util.Collection;
+
 import me.Travja.HungerArena.Main;
 
 import org.bukkit.ChatColor;
@@ -16,18 +18,34 @@ public class spawnsListener implements Listener{
 		this.plugin = m;
 	}
 
-	@SuppressWarnings("deprecation")
 	@EventHandler
 	public void interact(PlayerInteractEvent event){
 		Player p = event.getPlayer();
 		if(plugin.setting.containsKey(p.getName())){
 			if(event.getAction()==Action.RIGHT_CLICK_BLOCK){
 				Location l = event.getClickedBlock().getLocation();
-				if(p.getItemInHand().getTypeId()== plugin.config.getInt("spawnsTool")){
+				String HandItem;
+				try {
+					HandItem=p.getInventory().getItemInMainHand().getType().name();
+				} catch (Exception e){
+					HandItem=p.getItemInHand().getType().name();
+				}
+				if(HandItem == plugin.config.getString("spawnsTool")){ 
 					String[] info = plugin.setting.get(p.getName()).split("-");
 					if(Integer.parseInt(info[1])!= plugin.config.getInt("maxPlayers")+1){
-						String coords = l.getWorld() + " " + (l.getX()+.5) + " " + (l.getY()+1) + " " + (l.getZ()+.5);
+						String coords = l.getWorld().getName() + " " + ((double)l.getX()+.5) + " " + ((double)l.getY()+1) + " " + ((double)l.getZ()+.5); 
+
+						int arena = Integer.parseInt(info[0]);
+						if (plugin.spawns.get("Spawns." + arena) != null){
+							Collection<Object> temp = plugin.spawns.getConfigurationSection("Spawns."+arena).getValues(false).values();
+							if (temp.contains(coords.trim().replace(' ', ','))){
+								event.setCancelled(true);
+								return;
+							}
+						}
+						
 						p.performCommand("startpoint " + info[0] + " " + info[1] + " " + coords);
+						
 						if(Integer.parseInt(info[1])>= plugin.config.getInt("maxPlayers")){
 							p.sendMessage(ChatColor.DARK_AQUA + "[HungerArena] " + ChatColor.RED + "All spawns set!");
 							plugin.setting.remove(p.getName());

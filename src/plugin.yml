@@ -1,0 +1,18 @@
+name: HungerArena
+main: me.Travja.HungerArena.Main
+version: 1.6_Jeppa
+api-version: 1.13
+description: A lightweight and powerful plugin to help with playing The Hunger Games!
+softdepend: [Vault, WorldEdit, Multiverse-Core]
+commands:
+  Ha:
+    description: Makes you join a game or start the game!
+  StartPoint:
+    description: Sets the starting point of a tribute.
+    usage: /<command> [arenanumber] [startpointnumber]
+    permission: HungerArena.StartPoint
+    permission-message: §4[HungerArena]§rYou don't have permission!!!!
+  Sponsor:
+    description: Sponsors a Tribute
+    permission: HungerArena.Sponsor
+    permission-message: §4[HungerArena]§rYou don't have permission!!!!

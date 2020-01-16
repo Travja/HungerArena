@@ -11,7 +11,6 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
-
 public class PvP implements Listener {
 	public Main plugin;
 	public PvP(Main m) {
@@ -31,8 +30,8 @@ public class PvP implements Listener {
 					if(event.isCancelled()){
 						event.setCancelled(false);
 					}
-					if(plugin.gp.get(plugin.getArena(p))!= null){
-						if(plugin.gp.get(plugin.getArena(p))!= 0){
+					if(plugin.gp.get(plugin.getArena(p))!= null){	
+						if(plugin.gp.get(plugin.getArena(p))!= 0){	
 							event.setCancelled(true);
 						}
 					}
@@ -82,10 +81,17 @@ public class PvP implements Listener {
 	@EventHandler
 	public void PlayerDamage(EntityDamageEvent event){
 		Entity e = event.getEntity();
-		if(e instanceof Player)
-			if(plugin.getArena((Player) e)!= null)
-				if(plugin.gp.get(plugin.getArena((Player) e))!= null)
-					if(plugin.gp.get(plugin.getArena((Player) e))!= 0)
-						event.setCancelled(true);
+		if(e instanceof Player) {
+			Player p = (Player)e;
+			if(plugin.getArena(p)!=null){
+				a = plugin.getArena(p);
+				if(plugin.gp.get(a)!= null && plugin.gp.get(a)!= 0)
+					event.setCancelled(true);
+				if (plugin.Frozen.get(a)!=null && plugin.Frozen.get(a).contains(p.getName())){
+					event.setCancelled(true);
+				}
+			}
+		}
 	}
+
 }

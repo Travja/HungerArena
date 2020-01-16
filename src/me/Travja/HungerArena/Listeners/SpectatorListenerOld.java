@@ -13,15 +13,14 @@ import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
 import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
-import org.bukkit.event.entity.EntityPickupItemEvent;
 import org.bukkit.event.entity.EntityTargetEvent;
 import org.bukkit.event.player.*;
 import org.bukkit.projectiles.ProjectileSource;
 import org.bukkit.scoreboard.DisplaySlot;
 
-public class SpectatorListener implements Listener {
+public class SpectatorListenerOld implements Listener {
 	public Main plugin;
-	public SpectatorListener(Main m){
+	public SpectatorListenerOld(Main m){
 		this.plugin = m;
 	}
 	int i = 0;
@@ -50,16 +49,28 @@ public class SpectatorListener implements Listener {
 			p.sendMessage(ChatColor.RED + "You are spectating, you can't interfere with the game!");
 		}
 	}
+	@SuppressWarnings("deprecation")
 	@EventHandler
-	public void SpectatorItems(EntityPickupItemEvent event){
-		if (event.getEntity() instanceof Player) {
-			Player p = (Player)event.getEntity();
-			if (denyInteraction(p)){
-				event.setCancelled(true);
-				p.sendMessage(ChatColor.RED + "You are spectating, you can't interfere with the game!");
+	public void SpectatorItems(PlayerPickupItemEvent event){ 
+		Player p = event.getPlayer();
+		if (denyInteraction(p)){
+			event.setCancelled(true);
+			p.sendMessage(ChatColor.RED + "You are spectating, you can't interfere with the game!");
+		}
+
+	}
+	private boolean denyInteraction(Player p){
+		String pname = p.getName();
+		for(int i : plugin.Watching.keySet()){
+			if(plugin.Watching.get(i)!= null){
+				if(plugin.Watching.get(i).contains(pname)){
+					return true;
+				}
 			}
 		}
+		return false;
 	}
+	
 	
 	@EventHandler
 	public void SpectatorPvP(EntityDamageByEntityEvent event){
@@ -85,7 +96,7 @@ public class SpectatorListener implements Listener {
 			}
 		}else if(event.getDamager() instanceof Projectile){
 			Projectile arrow = (Projectile) offense;
-			ProjectileSource shooter = arrow.getShooter();
+			ProjectileSource shooter = arrow.getShooter(); 
 			if(shooter instanceof Player){
 				Player BowMan = (Player) shooter;
 				String bowManName = BowMan.getName();
@@ -167,17 +178,5 @@ public class SpectatorListener implements Listener {
 				}
 			}
 		}
-	}
-	
-	private boolean denyInteraction(Player p){
-		String pname = p.getName();
-		for(int i : plugin.Watching.keySet()){
-			if(plugin.Watching.get(i)!= null){
-				if(plugin.Watching.get(i).contains(pname)){
-					return true;
-				}
-			}
-		}
-		return false;
 	}
 }

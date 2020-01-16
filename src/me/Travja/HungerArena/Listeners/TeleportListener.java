@@ -1,7 +1,5 @@
 package me.Travja.HungerArena.Listeners;
 
-import java.util.List;
-
 import me.Travja.HungerArena.Main;
 
 import org.bukkit.ChatColor;
@@ -20,8 +18,7 @@ public class TeleportListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onTP(PlayerTeleportEvent event){
     	Player p = event.getPlayer();
-    	List<String> worlds = plugin.config.getStringList("worlds");
-    	if(worlds.contains(event.getTo().getWorld().getName()) && plugin.Tele.contains(p)){
+    	if(plugin.worldsNames.values().contains(event.getTo().getWorld().getName()) && plugin.Tele.contains(p)){
     		event.setCancelled(true);
     		p.sendMessage(ChatColor.RED + "You are a dead tribute... How are you supposed to get back into the arena....");
     		plugin.Tele.remove(p);
@@ -32,21 +29,4 @@ public class TeleportListener implements Listener {
     		}
     	}
     }
-    /*@EventHandler          Unwanted right now...
-    public void onTP(PlayerTeleportEvent evt) {
-        @SuppressWarnings("unused")
-		Player p = evt.getPlayer();
-        TeleportCause tc = evt.getCause();
-        if (tc == TeleportCause.ENDER_PEARL) {
-            return;
-        }
-        if (tc == TeleportCause.END_PORTAL) {
-            return;
-        }
-        if (tc == TeleportCause.NETHER_PORTAL) {
-            return;
-        }
-        evt.setCancelled(true);
-    }*/
-
 }
