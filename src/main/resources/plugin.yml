@@ -1,6 +1,6 @@
 name: HungerArena
 main: me.Travja.HungerArena.Main
-version: 1.6_Jeppa
+version: 1.7.0
 api-version: 1.13
 description: A lightweight and powerful plugin to help with playing The Hunger Games!
 softdepend: [Vault, WorldEdit, Multiverse-Core]
