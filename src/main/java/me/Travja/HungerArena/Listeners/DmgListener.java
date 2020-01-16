@@ -25,8 +25,8 @@ public class DmgListener implements Listener {
 		if (e instanceof Player) {
 			Player p = (Player) e;
 			String pn = p.getName();
-			for(i= 1; i < plugin.Frozen.size(); i++){
-				if (plugin.Frozen.get(i).contains(pn))
+			for(i= 1; i < plugin.frozen.size(); i++){
+				if (plugin.frozen.get(i).contains(pn))
 					evt.setCancelled(true);
 			}
 		}

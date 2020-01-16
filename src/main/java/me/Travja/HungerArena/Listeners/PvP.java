@@ -87,7 +87,7 @@ public class PvP implements Listener {
 				a = plugin.getArena(p);
 				if(plugin.gp.get(a)!= null && plugin.gp.get(a)!= 0)
 					event.setCancelled(true);
-				if (plugin.Frozen.get(a)!=null && plugin.Frozen.get(a).contains(p.getName())){
+				if (plugin.frozen.get(a)!=null && plugin.frozen.get(a).contains(p.getName())){
 					event.setCancelled(true);
 				}
 			}

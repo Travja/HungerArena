@@ -61,9 +61,9 @@ public class SpectatorListenerOld implements Listener {
 	}
 	private boolean denyInteraction(Player p){
 		String pname = p.getName();
-		for(int i : plugin.Watching.keySet()){
-			if(plugin.Watching.get(i)!= null){
-				if(plugin.Watching.get(i).contains(pname)){
+		for(int i : plugin.watching.keySet()){
+			if(plugin.watching.get(i)!= null){
+				if(plugin.watching.get(i).contains(pname)){
 					return true;
 				}
 			}
@@ -78,9 +78,9 @@ public class SpectatorListenerOld implements Listener {
 		if(offense instanceof Player){
 			Player Attacker = (Player) event.getDamager();
 			String attackerName = Attacker.getName();
-			for(int i : plugin.Watching.keySet()){
-				if(plugin.Watching.get(i)!= null){
-					if(plugin.Watching.get(i).contains(attackerName)){
+			for(int i : plugin.watching.keySet()){
+				if(plugin.watching.get(i)!= null){
+					if(plugin.watching.get(i).contains(attackerName)){
 						event.setCancelled(true);
 						Attacker.sendMessage(ChatColor.RED + "You are spectating, you can't interfere with the game!");
 						return;
@@ -100,9 +100,9 @@ public class SpectatorListenerOld implements Listener {
 			if(shooter instanceof Player){
 				Player BowMan = (Player) shooter;
 				String bowManName = BowMan.getName();
-				for(int i : plugin.Watching.keySet()){
-					if(plugin.Watching.get(i)!= null){
-						if(plugin.Watching.get(i).contains(bowManName)){
+				for(int i : plugin.watching.keySet()){
+					if(plugin.watching.get(i)!= null){
+						if(plugin.watching.get(i).contains(bowManName)){
 							event.setCancelled(true);
 							BowMan.sendMessage(ChatColor.RED + "You are spectating, you can't interfere with the game!");
 							return;
@@ -139,10 +139,10 @@ public class SpectatorListenerOld implements Listener {
 	public void SpectatorQuit(PlayerQuitEvent event){
 		Player p = event.getPlayer();
 		String pname = p.getName();
-		for(int i : plugin.Watching.keySet()){
-			if(plugin.Watching.get(i)!= null){
-				if(plugin.Watching.get(i).contains(pname)){
-					plugin.Watching.get(i).remove(pname);
+		for(int i : plugin.watching.keySet()){
+			if(plugin.watching.get(i)!= null){
+				if(plugin.watching.get(i).contains(pname)){
+					plugin.watching.get(i).remove(pname);
 					String[] Spawncoords = plugin.spawns.getString("Spawn_coords.0").split(",");
 					String w = Spawncoords[3];
 					World spawnw = plugin.getServer().getWorld(w);
@@ -154,8 +154,8 @@ public class SpectatorListenerOld implements Listener {
 					p.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
 					if(plugin.scoreboards.containsKey(p.getName()))
 						plugin.scoreboards.remove(p.getName());
-					if(plugin.Kills.containsKey(p.getName()))
-						plugin.Kills.remove(p.getName());
+					if(plugin.kills.containsKey(p.getName()))
+						plugin.kills.remove(p.getName());
 				}
 			}
 		}
@@ -170,9 +170,9 @@ public class SpectatorListenerOld implements Listener {
 		}
 		if(target instanceof Player){
 			String targetName = ((Player) target).getName();
-			for(int i : plugin.Watching.keySet()){
-				if(plugin.Watching.get(i)!= null){
-					if(plugin.Watching.get(i).contains(targetName)){
+			for(int i : plugin.watching.keySet()){
+				if(plugin.watching.get(i)!= null){
+					if(plugin.watching.get(i).contains(targetName)){
 						event.setTarget(null);
 					}
 				}

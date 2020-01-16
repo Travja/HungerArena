@@ -112,7 +112,7 @@ public class SponsorCommands implements CommandExecutor {
 			p.sendMessage(ChatColor.RED + "That item does not exist !!");
 			return;
 		}
-		for(ItemStack Costs: plugin.Cost){
+		for(ItemStack Costs: plugin.cost){
 			if(!p.getInventory().containsAtLeast(Costs, Costs.getAmount()*amount)){
 				p.sendMessage(ChatColor.RED + "You don't have the necessary items to sponsor!");
 				return;
@@ -130,8 +130,8 @@ public class SponsorCommands implements CommandExecutor {
 					return;
 				}
 			}
-			if(!plugin.Cost.isEmpty()){
-				for(ItemStack aCosts: plugin.Cost){
+			if(!plugin.cost.isEmpty()){
+				for(ItemStack aCosts: plugin.cost){
 					for (int x=1;x<=amount;x++){
 						p.getInventory().removeItem(aCosts);
 						done = true;

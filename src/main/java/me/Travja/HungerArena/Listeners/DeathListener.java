@@ -1,8 +1,5 @@
 package me.Travja.HungerArena.Listeners;
 
-import java.util.HashMap;
-import java.util.List;
-
 import me.Travja.HungerArena.Main;
 
 import org.bukkit.Bukkit;
@@ -13,13 +10,11 @@ import org.bukkit.Server;
 import org.bukkit.World;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Player;
-import org.bukkit.entity.TNTPrimed;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.DisplaySlot;
 
 public class DeathListener implements Listener{
@@ -47,7 +42,7 @@ public class DeathListener implements Listener{
 		
 		//Jeppa: Fix for lonely players :)
 		for(int i : plugin.Dead.keySet()){ 
-			if ((plugin.Dead.get(i) != null) &&	(plugin.Dead.get(i).contains(pname)) &&	(plugin.MatchRunning.get(i) == null)) { 
+			if ((plugin.Dead.get(i) != null) &&	(plugin.Dead.get(i).contains(pname)) &&	(plugin.matchRunning.get(i) == null)) {
 				plugin.Dead.get(i).clear();
 			}
 		}
@@ -87,8 +82,8 @@ public class DeathListener implements Listener{
 			event.getDrops().clear();
 			p.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
 			plugin.scoreboards.remove(p.getName());
-			if(!plugin.Frozen.get(a).isEmpty()){
-				if(plugin.Frozen.get(a).contains(pname)){
+			if(!plugin.frozen.get(a).isEmpty()){
+				if(plugin.frozen.get(a).contains(pname)){
 					if(!(p.getKiller() instanceof Player)){
 						players = plugin.Playing.get(a).size()-1;
 						leftmsg = ChatColor.BLUE + "There are now " + players + " tributes left!";
@@ -109,7 +104,7 @@ public class DeathListener implements Listener{
 								g.sendMessage(pname + ChatColor.LIGHT_PURPLE + " Stepped off their pedestal too early!");
 							}
 						}
-						plugin.Frozen.get(a).remove(pname);
+						plugin.frozen.get(a).remove(pname);
 						plugin.Playing.get(a).remove(pname);
 						if(plugin.config.getBoolean("broadcastAll")){
 							p.getServer().broadcastMessage(leftmsg);
@@ -150,12 +145,12 @@ public class DeathListener implements Listener{
 								g.sendMessage(leftmsg);
 							}
 						}
-						if(plugin.Kills.containsKey(killername))
-							plugin.Kills.put(killername, plugin.Kills.get(killername)+1);
-						else plugin.Kills.put(killername, 1);
-						if(plugin.Kills.containsKey("__SuM__"))
-							plugin.Kills.put("__SuM__", plugin.Kills.get("__SuM__")+1);
-						else plugin.Kills.put("__SuM__", 1);
+						if(plugin.kills.containsKey(killername))
+							plugin.kills.put(killername, plugin.kills.get(killername)+1);
+						else plugin.kills.put(killername, 1);
+						if(plugin.kills.containsKey("__SuM__"))
+							plugin.kills.put("__SuM__", plugin.kills.get("__SuM__")+1);
+						else plugin.kills.put("__SuM__", 1);
 						plugin.winner(a);
 					}else{
 						Player killer = p.getKiller();
@@ -176,12 +171,12 @@ public class DeathListener implements Listener{
 								g.sendMessage(leftmsg);
 							}
 						}
-						if(plugin.Kills.containsKey(killername))
-							plugin.Kills.put(killername, plugin.Kills.get(killername)+1);
-						else plugin.Kills.put(killername, 1);
-						if(plugin.Kills.containsKey("__SuM__"))
-							plugin.Kills.put("__SuM__", plugin.Kills.get("__SuM__")+1);
-						else plugin.Kills.put("__SuM__", 1);
+						if(plugin.kills.containsKey(killername))
+							plugin.kills.put(killername, plugin.kills.get(killername)+1);
+						else plugin.kills.put(killername, 1);
+						if(plugin.kills.containsKey("__SuM__"))
+							plugin.kills.put("__SuM__", plugin.kills.get("__SuM__")+1);
+						else plugin.kills.put("__SuM__", 1);
 						plugin.winner(a);
 					}
 				}else{

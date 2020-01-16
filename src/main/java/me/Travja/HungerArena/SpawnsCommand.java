@@ -61,15 +61,15 @@ public class SpawnsCommand implements CommandExecutor {
 							plugin.Playing.put(a, new ArrayList<String>());
 							plugin.Ready.put(a, new ArrayList<String>());
 							plugin.Dead.put(a, new ArrayList<String>());
-							plugin.Quit.put(a, new ArrayList<String>());
-							plugin.Out.put(a, new ArrayList<String>());
-							plugin.Watching.put(a, new ArrayList<String>());
-							plugin.NeedConfirm.put(a, new ArrayList<String>());
+							plugin.quit.put(a, new ArrayList<String>());
+							plugin.out.put(a, new ArrayList<String>());
+							plugin.watching.put(a, new ArrayList<String>());
+							plugin.needConfirm.put(a, new ArrayList<String>());
 							plugin.inArena.put(a, new ArrayList<String>());
-							plugin.Frozen.put(a, new ArrayList<String>());
+							plugin.frozen.put(a, new ArrayList<String>());
 							plugin.arena.put(a, new ArrayList<String>());
 							plugin.canjoin.put(a, false);
-							plugin.MatchRunning.put(a, null);
+							plugin.matchRunning.put(a, null);
 							plugin.open.put(a, true);
 						}
 						String coords = loc.getWorld().getName() + "," + (loc.getX()) + "," + loc.getY() + "," + (loc.getZ()); 
@@ -107,15 +107,15 @@ public class SpawnsCommand implements CommandExecutor {
 								plugin.Playing.put(a, new ArrayList<String>());
 								plugin.Ready.put(a, new ArrayList<String>());
 								plugin.Dead.put(a, new ArrayList<String>());
-								plugin.Quit.put(a, new ArrayList<String>());
-								plugin.Out.put(a, new ArrayList<String>());
-								plugin.Watching.put(a, new ArrayList<String>());
-								plugin.NeedConfirm.put(a, new ArrayList<String>());
+								plugin.quit.put(a, new ArrayList<String>());
+								plugin.out.put(a, new ArrayList<String>());
+								plugin.watching.put(a, new ArrayList<String>());
+								plugin.needConfirm.put(a, new ArrayList<String>());
 								plugin.inArena.put(a, new ArrayList<String>());
-								plugin.Frozen.put(a, new ArrayList<String>());
+								plugin.frozen.put(a, new ArrayList<String>());
 								plugin.arena.put(a, new ArrayList<String>());
 								plugin.canjoin.put(a, false);
-								plugin.MatchRunning.put(a, null);
+								plugin.matchRunning.put(a, null);
 								plugin.open.put(a, true);
 							}
 							String coords = loc.getWorld().getName() + "," + (loc.getX()) + "," + loc.getY() + "," + (loc.getZ()); 

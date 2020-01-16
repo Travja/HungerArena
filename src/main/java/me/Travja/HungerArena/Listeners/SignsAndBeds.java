@@ -1,6 +1,7 @@
 package me.Travja.HungerArena.Listeners;
 
 import me.Travja.HungerArena.Main;
+import me.Travja.HungerArena.util.Utils;
 import org.bukkit.ChatColor;
 import org.bukkit.Tag;
 import org.bukkit.block.Block;
@@ -36,29 +37,7 @@ public class SignsAndBeds implements Listener {
 					}
 			}
 			if (foundSign) {
-				org.bukkit.block.Sign sign = (org.bukkit.block.Sign) b.getState();
-				String line1 = sign.getLine(0);
-				String line2 = sign.getLine(1);
-				String line3 = sign.getLine(2);
-				String line4 = sign.getLine(3);
-				if(line1.trim().equalsIgnoreCase(ChatColor.BLUE + "[HungerArena]") || line1.trim().equalsIgnoreCase(ChatColor.BLUE + "[HA]")){
-					if(!line2.equals("") && line3.equals(""))
-						p.performCommand("ha " + line2);
-					else if(line2.equals("") && !line3.equals(""))	
-						p.performCommand("ha " + line3);
-					else if(!line2.equals("") && !line3.equals("")) {
-						String commands = "close,join,kick,leave,list,open,ready,refill,reload,restart,rlist,tp,start,watch,warpall";
-						if (commands.contains(line3.trim().toLowerCase())) {
-							p.performCommand("ha " + line2);
-							p.performCommand("ha " + line3);
-						} else  p.performCommand("ha " + line2 + " " + line3);
-					}
-					else
-						p.performCommand("ha");
-				}
-				if(line1.trim().equalsIgnoreCase(ChatColor.BLUE + "[Sponsor]")){
-					p.performCommand("sponsor " + line2 + " " + line3 + " " + line4);
-				}
+				Utils.useSign(b, p);
 			}
 			
 			if (plugin.config.getString("DenyBedUsage").equalsIgnoreCase("True")){
@@ -76,6 +55,7 @@ public class SignsAndBeds implements Listener {
 			}
 		}
 	}
+
 	@EventHandler
 	public void Create(SignChangeEvent event){
 		String top = event.getLine(0);

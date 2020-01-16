@@ -63,7 +63,7 @@ public class Chests implements Listener {
 								plugin.saveChests();
 								p.sendMessage(ChatColor.GREEN + "Thank you for finding this undiscovered item Storage, it has been stored!!");
 								if (plugin.config.getBoolean("ChestPay.enabled")){
-									for(ItemStack Rewards: plugin.ChestPay){
+									for(ItemStack Rewards: plugin.chestPay){
 										p.getInventory().addItem(Rewards);
 									}
 								}

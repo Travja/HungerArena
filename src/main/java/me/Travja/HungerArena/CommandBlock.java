@@ -19,8 +19,8 @@ public class CommandBlock implements Listener {
 		String cmd = event.getMessage();
 		Player p = event.getPlayer();
 		String pname = p.getName();
-		for(int x : plugin.Watching.keySet()){
-			if(plugin.Watching.get(x).contains(p.getName())){
+		for(int x : plugin.watching.keySet()){
+			if(plugin.watching.get(x).contains(p.getName())){
 				if (handleIngameCommands(p, cmd)==true) event.setCancelled(true);
 			}
 		}
@@ -29,7 +29,7 @@ public class CommandBlock implements Listener {
 		}else if(cmd.toLowerCase().trim().equals("/back")){
 			for(int u : plugin.Dead.keySet()){
 				if(plugin.Dead.get(u).contains(pname) && plugin.canjoin.get(u))
-					plugin.Tele.add(p);
+					plugin.tele.add(p);
 			}
 		}
 		if(cmd.startsWith("/tp") || cmd.startsWith("/telep") || cmd.contains(":tp") || cmd.contains(":telep")){

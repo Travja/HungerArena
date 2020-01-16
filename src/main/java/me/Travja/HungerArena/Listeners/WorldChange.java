@@ -36,7 +36,7 @@ public class WorldChange implements Listener {
 			if(plugin.worldsNames.get(i)!= null){
 				if (plugin.worldsNames.get(i).equals(ThisWorld)){
 					a=i;
-					if(plugin.Frozen.get(a)!=null && plugin.Frozen.get(a).contains(pname)){
+					if(plugin.frozen.get(a)!=null && plugin.frozen.get(a).contains(pname)){
 						return;
 					}else{
 						plugin.RestoreInv(p, pname);

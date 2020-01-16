@@ -29,27 +29,27 @@ public class JoinAndQuitListener implements Listener {
 		final Player p = event.getPlayer();
 		final String pname = p.getName();
 		boolean pfound = false;
-		for(int i : plugin.Watching.keySet()){
-			for(String s: plugin.Watching.get(i)){
+		for(int i : plugin.watching.keySet()){
+			for(String s: plugin.watching.get(i)){
 				Player spectator = plugin.getServer().getPlayerExact(s);
 				p.hidePlayer(plugin,spectator);
 			}
 		}
-		for(int i : plugin.Out.keySet()){
-			if(plugin.Out.get(i).contains(pname)){
+		for(int i : plugin.out.keySet()){
+			if(plugin.out.get(i).contains(pname)){
 				plugin.Playing.get(i).add(pname);
 				plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){
 					public void run(){
 						p.sendMessage(ChatColor.AQUA + "You have saved yourself from being ejected from the arena!");
 					}
 				}, 40L);
-				plugin.Out.get(i).remove(pname);
+				plugin.out.get(i).remove(pname);
 				pfound = true;
 			}
 		}
 
-		for(final int i : plugin.Quit.keySet()){
-			if(plugin.Quit.get(i).contains(pname)){
+		for(final int i : plugin.quit.keySet()){
+			if(plugin.quit.get(i).contains(pname)){
 				String[] Spawncoords = plugin.spawns.getString("Spawn_coords."+i).split(","); 
 				String w = Spawncoords[3];
 				World spawnw = plugin.getServer().getWorld(w);
@@ -62,7 +62,7 @@ public class JoinAndQuitListener implements Listener {
 						p.teleport(Spawn);
 						p.sendMessage(ChatColor.RED + "You have been teleported to last spawn because you quit/forfeited!");
 						plugin.RestoreInv(p, p.getName()); 
-						if (plugin.Quit.get(i)!= null) plugin.Quit.get(i).remove(p.getName());
+						if (plugin.quit.get(i)!= null) plugin.quit.get(i).remove(p.getName());
 					}
 				}, 40L);
 				pfound = true;
@@ -139,9 +139,9 @@ public class JoinAndQuitListener implements Listener {
 	public void onQuit(PlayerQuitEvent evt) {
 		Player p = evt.getPlayer();
 		String pname = p.getName();
-		for(int i : plugin.Frozen.keySet()){
-			if (plugin.Frozen.get(i).contains(pname)) {
-				plugin.Frozen.remove(pname);
+		for(int i : plugin.frozen.keySet()){
+			if (plugin.frozen.get(i).contains(pname)) {
+				plugin.frozen.remove(pname);
 				String[] Spawncoords = plugin.spawns.getString("Spawn_coords.0").split(","); 
 				String w = Spawncoords[3];
 				World spawnw = plugin.getServer().getWorld(w);
@@ -153,8 +153,8 @@ public class JoinAndQuitListener implements Listener {
 				p.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
 				if(plugin.scoreboards.containsKey(p.getName()))
 					plugin.scoreboards.remove(p.getName());
-				if(plugin.Kills.containsKey(p.getName()))
-					plugin.Kills.remove(p.getName());
+				if(plugin.kills.containsKey(p.getName()))
+					plugin.kills.remove(p.getName());
 			}
 		}
 	}
@@ -164,22 +164,22 @@ public class JoinAndQuitListener implements Listener {
 		final String pname = p.getName();
 		if(plugin.getArena(p)!= null){
 			a = plugin.getArena(p);
-			plugin.Out.get(a).add(pname);
+			plugin.out.get(a).add(pname);
 			plugin.Playing.get(a).remove(pname);
 			plugin.getServer().getScheduler().scheduleSyncDelayedTask(plugin, new Runnable(){ 
 				public void run(){
-					if(plugin.Out.get(a).contains(pname)){
-						plugin.Quit.get(a).add(pname);
-						plugin.Out.get(a).remove(pname); 
+					if(plugin.out.get(a).contains(pname)){
+						plugin.quit.get(a).add(pname);
+						plugin.out.get(a).remove(pname);
 						p.getScoreboard().clearSlot(DisplaySlot.SIDEBAR);
 						if(plugin.scoreboards.containsKey(p.getName()))
 							plugin.scoreboards.remove(p.getName());
-						if(plugin.Kills.containsKey(p.getName()))
-							plugin.Kills.remove(p.getName());
+						if(plugin.kills.containsKey(p.getName()))
+							plugin.kills.remove(p.getName());
 						plugin.winner(a);
 						plugin.inArena.get(a).add(pname); 
 					}else if(plugin.getArena(p)== null){
-						plugin.Quit.get(a).add(pname);
+						plugin.quit.get(a).add(pname);
 					}
 				}
 			}, 1200L);

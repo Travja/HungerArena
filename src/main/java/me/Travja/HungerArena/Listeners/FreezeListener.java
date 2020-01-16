@@ -31,7 +31,7 @@ public class FreezeListener implements Listener {
 		String pname = p.getName();
 		if(plugin.getArena(p)!= null){
 			a = plugin.getArena(p);
-			if(plugin.Frozen.get(a).contains(pname) && plugin.config.getString("Frozen_Teleport").equalsIgnoreCase("True")){
+			if(plugin.frozen.get(a).contains(pname) && plugin.config.getString("Frozen_Teleport").equalsIgnoreCase("True")){
 				if(plugin.config.getString("Explode_on_Move").equalsIgnoreCase("true")){
 					timeUp.put(a, false);
 					for(String players: plugin.Playing.get(a)){
@@ -80,7 +80,7 @@ public class FreezeListener implements Listener {
 								g.sendMessage(pname + ChatColor.LIGHT_PURPLE + " Stepped off their pedestal too early!");
 							}
 						}
-						plugin.Frozen.get(a).remove(pname);
+						plugin.frozen.get(a).remove(pname);
 						plugin.Playing.get(a).remove(pname);
 						if(plugin.config.getBoolean("broadcastAll")){
 							p.getServer().broadcastMessage(leftmsg);

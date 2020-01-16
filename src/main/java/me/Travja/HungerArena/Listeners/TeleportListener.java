@@ -18,14 +18,14 @@ public class TeleportListener implements Listener {
     @EventHandler(priority = EventPriority.MONITOR)
     public void onTP(PlayerTeleportEvent event){
     	Player p = event.getPlayer();
-    	if(plugin.worldsNames.values().contains(event.getTo().getWorld().getName()) && plugin.Tele.contains(p)){
+    	if(plugin.worldsNames.values().contains(event.getTo().getWorld().getName()) && plugin.tele.contains(p)){
     		event.setCancelled(true);
     		p.sendMessage(ChatColor.RED + "You are a dead tribute... How are you supposed to get back into the arena....");
-    		plugin.Tele.remove(p);
-    	}else if(plugin.Tele.contains(p)){
+    		plugin.tele.remove(p);
+    	}else if(plugin.tele.contains(p)){
     		if(event.isCancelled()){
     			event.setCancelled(false);
-    			plugin.Tele.remove(p);
+    			plugin.tele.remove(p);
     		}
     	}
     }
