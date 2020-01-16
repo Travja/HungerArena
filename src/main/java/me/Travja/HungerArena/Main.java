@@ -73,6 +73,9 @@ import org.bukkit.scoreboard.Scoreboard;
 import com.sk89q.worldedit.bukkit.WorldEditPlugin;
 
 public class Main extends JavaPlugin {
+
+	//TODO Implement Auto TNT
+	//TODO Implement random spawn
 	static Logger log;
 	public HashMap<Integer, List<String>> Playing = new HashMap<Integer, List<String>>();
 	public HashMap<Integer, List<String>> Ready = new HashMap<Integer, List<String>>();
